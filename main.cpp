@@ -1,9 +1,14 @@
 #include <iostream>
-#include "DynamicArray.hpp"
-#include "LinkedList.hpp"
+#include "DebugTest.h"
 
-int main(void) {
 
+
+
+int main() {
+
+    testDynamicArray();
+    testLinkedList();
+    testStack();
 
     return 0;
 }

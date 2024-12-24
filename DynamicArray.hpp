@@ -56,8 +56,14 @@ private:
         if (new_capacity < DEFAULT_CAPACITY)
             new_capacity = DEFAULT_CAPACITY;
 
-        Type* new_data = new Type[new_capacity];
-        copyData(data_, new_data, size_);
+        Type* new_data = nullptr;
+        try {
+            new_data = new Type[new_capacity];
+            copyData(data_, new_data, size_);
+        } catch (...) {
+            delete[] new_data;
+            throw;
+        }
 
         delete[] data_;
         data_ = new_data;
@@ -246,9 +252,7 @@ public:
 
 
     /// Destructor
-    ~DynamicArray() {
-        delete[] data_;
-    }
+    ~DynamicArray() { delete[] data_; }
 
 };
 

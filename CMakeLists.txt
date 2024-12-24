@@ -7,4 +7,8 @@ add_executable(Algorithms
         main.cpp
         DynamicArray.hpp
         LinkedList.hpp
+        Stack.hpp
+        DebugTest.cpp
+        DebugTest.h
+        BinaryTree.hpp
 )

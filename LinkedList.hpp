@@ -361,9 +361,7 @@ public:
 
 
     /// Destructor
-    ~LinkedList() {
-        clear();
-    }
+    ~LinkedList() { clear(); }
 
 };
 
