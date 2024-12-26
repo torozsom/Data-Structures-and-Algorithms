@@ -144,11 +144,20 @@ public:
      *
      * @param element The element to be added to the array.
      */
-    void add(const Type& element) {
-        if (size_ == capacity_)
-            resize(capacity_ * 2);
+    void addLast(const Type& element) {
+        insert(size_, element);
+    }
 
-        data_[size_++] = element;
+
+    /**
+     * Adds an element to the beginning of the dynamic array. All existing elements
+     * are shifted one position to the right to make space for the new element.
+     * If the array is at full capacity, it resizes to accommodate the new element.
+     *
+     * @param element The element to be added at the beginning of the array.
+     */
+    void addFirst(const Type& element) {
+        insert(0, element);
     }
 
 

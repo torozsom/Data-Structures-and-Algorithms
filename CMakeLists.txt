@@ -11,4 +11,5 @@ add_executable(Algorithms
         DebugTest.cpp
         DebugTest.h
         BinaryTree.hpp
+        BinarySearchTree.hpp
 )
