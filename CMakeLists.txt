@@ -8,8 +8,12 @@ add_executable(Algorithms
         DynamicArray.hpp
         LinkedList.hpp
         Stack.hpp
-        DebugTest.cpp
-        DebugTest.h
+        Tests.h
         BinaryTree.hpp
         BinarySearchTree.hpp
+        BinaryTreeTest.cpp
+        DynamicArrayTest.cpp
+        LinkedListTest.cpp
+        StackTest.cpp
+        BinarySearchTreeTest.cpp
 )

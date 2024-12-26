@@ -189,7 +189,7 @@ public:
 
     Node<Type>* getRoot() const { return root; }
 
-    unsigned int getHeight() const { return recursiveHeight(root); }
+    unsigned getHeight() const { return recursiveHeight(root); }
 
 
     /**
