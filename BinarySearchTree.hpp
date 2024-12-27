@@ -1,11 +1,9 @@
-//
-// Created by toron on 2024. 12. 26..
-//
+
 
 #ifndef BINARYSEARCHTREE_HPP
 #define BINARYSEARCHTREE_HPP
 
-#include <iostream>
+
 #include "BinaryTree.hpp"
 
 
@@ -25,12 +23,9 @@
  * @tparam Type The type of elements stored in the binary search tree.
  */
 template<typename Type>
-class BinarySearchTree : public BinaryTree<Type> {
+class BinarySearchTree final : public BinaryTree<Type> {
 
 private:
-    using BinaryTree<Type>::root;
-
-
     /**
      * Recursively inserts an element into a binary search tree.
      *
@@ -137,17 +132,19 @@ public:
 
 
     void insert(const Type& element) {
-        recursiveInsert(root, element);
+        recursiveInsert(this->root, element);
     }
+
 
     void insertLeft(const Type& element) = delete;
     void insertRight(const Type& element) = delete;
 
+
     void remove(const Type& element) {
-        recursiveRemove(root, element);
+        recursiveRemove(this->root, element);
     }
 
-    ~BinarySearchTree() = default;
+    ~BinarySearchTree() override = default;
 
 };
 

@@ -38,7 +38,6 @@ protected:
     Node<Type>* root;
 
 
-private:
 
     /**
      * Creates a new copy of a binary tree node and all its child nodes recursively.
@@ -66,9 +65,6 @@ private:
         root = copyNode(other.root);
     }
 
-
-
-protected:
 
     /**
      * Recursively calculates the height of the binary tree.
@@ -252,14 +248,14 @@ public:
      * This method ensures that all allocated memory for the tree nodes is released,
      * leaving the root pointer as nullptr.
      */
-    void clear() {
+    virtual void clear() {
         recursiveClear(root);
         root = nullptr;
     }
 
 
     /// Destructor
-    ~BinaryTree() { clear(); }
+    virtual ~BinaryTree() { clear(); }
 
 };
 

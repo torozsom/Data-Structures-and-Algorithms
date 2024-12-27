@@ -1,6 +1,4 @@
-//
-// Created by toron on 2024. 12. 24..
-//
+
 
 #ifndef STACK_HPP
 #define STACK_HPP

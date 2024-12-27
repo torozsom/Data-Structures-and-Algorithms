@@ -1,12 +1,4 @@
-/**
- * @file LinkedList.hpp
- * A generic doubly linked list class that provides functionalities for adding,
- * removing, and accessing elements. The internal storage is implemented using
- * a doubly linked list structure.
- *
- * @version 1.0
- * @date 2024-12-23
- */
+
 
 #ifndef LINKEDLIST_HPP
 #define LINKEDLIST_HPP

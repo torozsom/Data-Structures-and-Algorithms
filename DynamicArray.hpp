@@ -1,12 +1,4 @@
-/**
- * @file DynamicArray.hpp
- * A generic dynamic array class that provides functionalities for adding,
- * inserting, removing, and accessing elements. The internal storage is
- * dynamically resized as needed to accommodate changes in size.
- *
- * @version 1.0
- * @date 2024-12-23
- */
+
 
 
 #ifndef DYNAMICARRAY_HPP

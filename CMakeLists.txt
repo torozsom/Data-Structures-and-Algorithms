@@ -16,4 +16,6 @@ add_executable(Algorithms
         LinkedListTest.cpp
         StackTest.cpp
         BinarySearchTreeTest.cpp
+        MinHeap.hpp
+        Heap.hpp
 )

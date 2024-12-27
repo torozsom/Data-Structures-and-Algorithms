@@ -1,6 +1,4 @@
-//
-// Created by toron on 2024. 12. 24..
-//
+
 
 #ifndef DEBUGTEST_H
 #define DEBUGTEST_H

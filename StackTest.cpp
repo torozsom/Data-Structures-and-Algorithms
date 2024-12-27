@@ -1,11 +1,7 @@
-//
-// Created by toron on 2024. 12. 26..
-//
 
 
 
 #include "Tests.h"
-
 
 
 /**

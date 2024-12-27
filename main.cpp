@@ -1,12 +1,8 @@
-/**
- * @file main.cpp
- * @brief Main file for the project
- * @version 1.0
- * @date 2024-12-26
- */
+
 
 
 #include "Tests.h"
+
 
 enum Choice {
     DYNAMIC_ARRAY = 1,
@@ -30,8 +26,8 @@ void printMenu() {
                 "7. Exit \n";
 }
 
-int main() {
 
+int main() {
 
     int num;
 
