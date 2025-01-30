@@ -34,11 +34,18 @@ public:
     /// Default constructor
     LinkedList() : head_(nullptr), tail_(nullptr), size_(0) {}
 
+
+    LinkedList(const Type* array, const unsigned int size) : head_(nullptr), tail_(nullptr), size_(0) {
+        for (unsigned int i = 0; i < size; ++i)
+            addLast(array[i]);
+    }
+
+
     /// Copy constructor
-    LinkedList(const LinkedList& other) : head_(nullptr), tail_(nullptr), size_(0) {
+    LinkedList(const LinkedList& other) : head_(nullptr), tail_(nullptr), size_(other.size_) {
         Node* current = other.head_;
         while (current != nullptr) {
-            add(current->data);
+            addLast(current->data);
             current = current->next;
         }
     }
@@ -149,7 +156,7 @@ public:
      * @param element The element of type Type to be inserted into the list.
      * @throws std::out_of_range If the specified index is greater than the current size.
      */
-    void insert(unsigned int idx, const Type& element) {
+    void insert(const unsigned int idx, const Type& element) {
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
@@ -232,7 +239,7 @@ public:
      * @param idx The index of the element to remove.
      * @throws std::out_of_range If the specified index is out of range (greater than or equal to the size of the list).
      */
-    void removeAt(unsigned int idx) {
+    void removeAt(const unsigned int idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -240,14 +247,24 @@ public:
             removeFirst();
         } else if (idx == size_ - 1) {
             removeLast();
-        } else {
+
+        } else if (idx < size_ / 2) {
             Node* current = head_;
             for (unsigned int i = 0; i < idx; ++i)
                 current = current->next;
 
             current->prev->next = current->next;
             current->next->prev = current->prev;
+            delete current;
+            --size_;
 
+        } else if (idx >= size_ / 2) {
+            Node* current = tail_;
+            for (unsigned int i = size_ - 1; i > idx; --i)
+                current = current->prev;
+
+            current->prev->next = current->next;
+            current->next->prev = current->prev;
             delete current;
             --size_;
         }
@@ -291,7 +308,7 @@ public:
      * @return A reference to the data at the specified index.
      * @throws std::out_of_range If the provided index is outside the bounds of the list.
      */
-    Type& get(unsigned int idx) const {
+    Type& get(const unsigned int idx) const {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 

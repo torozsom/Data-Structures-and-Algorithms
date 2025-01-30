@@ -31,7 +31,7 @@ private:
      * @param destination Pointer to the destination array where elements will be copied to.
      * @param count The number of elements to copy from the source to the destination.
      */
-    void copyData(const Type* source, Type* destination, unsigned int count) {
+    void copyData(const Type* source, Type* destination, const unsigned int count) {
         for (unsigned int i = 0; i < count; ++i)
             destination[i] = source[i];
     }
@@ -71,7 +71,7 @@ public:
     }
 
     /// Constructor with initial size
-    DynamicArray(const Type* initial_data, unsigned int initial_size)
+    DynamicArray(const Type* initial_data, const unsigned int initial_size)
         : data_(new Type[initial_size]), size_(initial_size), capacity_(initial_size) {
         copyData(initial_data, data_, initial_size);
     }
@@ -158,21 +158,21 @@ public:
      * Shifts all subsequent elements one position to the right. If the array
      * is at full capacity, it resizes to accommodate the new element.
      *
-     * @param index The position at which the element is to be inserted. Must be within the range [0, size_].
+     * @param idx The position at which the element is to be inserted. Must be within the range [0, size_].
      * @param element The element to be inserted into the array.
      * @throws std::out_of_range If the specified index is greater than the size of the array.
      */
-    void insert(unsigned int index, const Type& element) {
-        if (index > size_)
+    void insert(const unsigned int idx, const Type& element) {
+        if (idx > size_)
             throw std::out_of_range("Index out of range");
 
         if (size_ == capacity_)
             resize(capacity_ * 2);
 
-        for (unsigned int i = size_; i > index; --i)
+        for (unsigned int i = size_; i > idx; --i)
             data_[i] = data_[i - 1];
 
-        data_[index] = element;
+        data_[idx] = element;
         ++size_;
     }
 
@@ -183,14 +183,14 @@ public:
      * size of the array. If the size falls below one-fourth of the capacity,
      * the array is resized to half of its current capacity.
      *
-     * @param index The position of the element to be removed. Must be within the range [0, size_ - 1].
+     * @param idx The position of the element to be removed. Must be within the range [0, size_ - 1].
      * @throws std::out_of_range If the specified index is greater than or equal to the size of the array.
      */
-    void remove(unsigned int index) {
-        if (index >= size_)
+    void remove(const unsigned int idx) {
+        if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
-        for (unsigned int i = index; i < size_ - 1; ++i)
+        for (unsigned int i = idx; i < size_ - 1; ++i)
             data_[i] = data_[i + 1];
 
         --size_;
@@ -203,39 +203,39 @@ public:
     /**
      * Retrieves the element at the specified index in the dynamic array.
      *
-     * @param index The position of the element to retrieve. Must be within the range [0, size_ - 1].
+     * @param idx The position of the element to retrieve. Must be within the range [0, size_ - 1].
      * @return A reference to the element at the specified index in the dynamic array.
      * @throws std::out_of_range If the specified index is greater than or equal to the size of the array.
      */
-    Type& get(unsigned int index) const {
-        if (index >= size_)
+    Type& get(const unsigned int idx) const {
+        if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
-        return data_[index];
+        return data_[idx];
     }
 
 
     /**
      * Accesses the element at the specified index in the dynamic array.
      *
-     * @param index The position of the element to access. Must be within the range [0, size_ - 1].
+     * @param idx The position of the element to access. Must be within the range [0, size_ - 1].
      * @return A reference to the element at the specified index in the dynamic array.
      * @throws std::out_of_range If the specified index is greater than or equal to the size of the array.
      */
-    Type& operator[](unsigned int index) {
-        return get(index);
+    Type& operator[](const unsigned int idx) {
+        return get(idx);
     }
 
 
     /**
      * Provides read-only access to the element at the specified index in the dynamic array.
      *
-     * @param index The position of the element to access. Must be within the range [0, size_ - 1].
+     * @param idx The position of the element to access. Must be within the range [0, size_ - 1].
      * @return A constant reference to the element at the specified index in the dynamic array.
      * @throws std::out_of_range If the specified index is greater than or equal to the size of the array.
      */
-    const Type& operator[](unsigned int index) const {
-        return get(index);
+    const Type& operator[](const unsigned int idx) const {
+        return get(idx);
     }
 
 

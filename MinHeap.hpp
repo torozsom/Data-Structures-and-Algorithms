@@ -81,7 +81,7 @@ public:
             return;
         }
 
-        Node<Type>* lastNode = findLastNode();
+        Node<Type>* lastNode = this->findLastNode();
 
         if (lastNode->left == nullptr)
             lastNode->left = newNode;

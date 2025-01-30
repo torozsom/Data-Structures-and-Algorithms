@@ -9,7 +9,7 @@
 #include "BinaryTree.hpp"
 
 /**
- * @class Heap
+ * @class Heap: Abstract class
  *
  * A generic heap data structure that stores elements of a given type.
  * The heap is a binary tree structure that satisfies the heap property,

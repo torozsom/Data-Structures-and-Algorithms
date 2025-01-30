@@ -21,10 +21,13 @@ private:
 
 public:
     Stack() = default;
+
     Stack(const Stack& other) = default;
+
     Stack(Stack&& other) noexcept = default;
 
     Stack& operator=(const Stack& other) = default;
+
     Stack& operator=(Stack&& other) noexcept = default;
 
 

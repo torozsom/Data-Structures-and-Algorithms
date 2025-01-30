@@ -38,7 +38,6 @@ protected:
     Node<Type>* root;
 
 
-
     /**
      * Creates a new copy of a binary tree node and all its child nodes recursively.
      *
