@@ -122,6 +122,11 @@ private:
 public:
     BinarySearchTree() = default;
 
+    BinarySearchTree(const Type* array, const unsigned int size) {
+        for (int i = 0; i < size; i++)
+            insert(array[i]);
+    }
+
     BinarySearchTree(const BinarySearchTree& other) = default;
 
     BinarySearchTree(BinarySearchTree&& other) noexcept = default;
@@ -131,8 +136,19 @@ public:
     BinarySearchTree& operator=(BinarySearchTree&& other) noexcept = default;
 
 
+    /**
+     * Inserts an element into the binary search tree.
+     *
+     * This method inserts a new element into the binary search tree
+     * by recursively traversing the tree to find the appropriate position
+     * for the element. If the tree is empty, the element becomes the root.
+     * Otherwise, the element is compared to the data of the current node,
+     * and traversal continues to the left or right subtree as needed.
+     *
+     * @param element The element to be inserted into the tree.
+     */
     void insert(const Type& element) {
-        recursiveInsert(this->root, element);
+        recursiveInsert(this->root_, element);
     }
 
 
@@ -140,9 +156,20 @@ public:
     void insertRight(const Type& element) = delete;
 
 
+    /**
+     * Removes an element from the binary search tree.
+     *
+     * This method removes a specified element from the binary search tree
+     * by recursively traversing the tree to locate the node containing the element.
+     * If the element is found, it is removed according to standard binary search tree
+     * removal logic. If the element is not found, the tree remains unchanged.
+     *
+     * @param element The element to be removed from the tree.
+     */
     void remove(const Type& element) {
-        recursiveRemove(this->root, element);
+        recursiveRemove(this->root_, element);
     }
+
 
     ~BinarySearchTree() override = default;
 

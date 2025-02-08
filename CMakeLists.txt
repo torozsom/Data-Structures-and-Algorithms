@@ -18,4 +18,5 @@ add_executable(Algorithms
         BinarySearchTreeTest.cpp
         MinHeap.hpp
         Heap.hpp
+        MinHeapTest.cpp
 )

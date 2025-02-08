@@ -35,7 +35,8 @@ template<typename Type>
 class BinaryTree {
 
 protected:
-    Node<Type>* root;
+    Node<Type>* root_;
+    unsigned int size_;
 
 
     /**
@@ -61,7 +62,7 @@ protected:
      * @param other The binary tree whose elements are to be copied into the current tree.
      */
     void recursiveCopy(const BinaryTree& other) {
-        root = copyNode(other.root);
+        root_ = copyNode(other.root_);
     }
 
 
@@ -143,19 +144,37 @@ protected:
     }
 
 
+    /**
+     * Recursively checks if a binary tree contains a node with a specific value.
+     *
+     * @param node Pointer to the current node being visited in the recursive process.
+     * @param value The value to search for in the binary tree.
+     * @return True if the value is found in the binary tree, false otherwise.
+     */
+    bool recursiveContainsNode(const Node<Type>* node, const Type& value) const {
+        if (node == nullptr)
+            return false;
+
+        if (node->data == value)
+            return true;
+
+        return recursiveContainsNode(node->left, value) || recursiveContainsNode(node->right, value);
+    }
+
 
 public:
     /// Default constructor
-    BinaryTree() : root(nullptr) {}
+    BinaryTree() : root_(nullptr), size_(0) {}
 
     /// Copy constructor
-    BinaryTree(const BinaryTree& other) : root(nullptr) {
+    BinaryTree(const BinaryTree& other) : root_(nullptr), size_(other.size_) {
         recursiveCopy(other);
     }
 
     /// Move constructor
-    BinaryTree(BinaryTree&& other) noexcept : root(other.root) {
-        other.root = nullptr;
+    BinaryTree(BinaryTree&& other) noexcept : root_(other.root_), size_(other.size_) {
+        other.root_ = nullptr;
+        other.size_ = 0;
     }
 
 
@@ -166,6 +185,7 @@ public:
 
         clear();
         recursiveCopy(other);
+        size_ = other.size_;
         return *this;
     }
 
@@ -176,15 +196,17 @@ public:
             return *this;
 
         clear();
-        root = other.root;
-        other.root = nullptr;
+        root_ = other.root_;
+        size_ = other.size_;
+        other.root_ = nullptr;
+        other.size_ = 0;
         return *this;
     }
 
 
-    Node<Type>* getRoot() const { return root; }
+    Node<Type>* getRoot() const { return root_; }
 
-    unsigned getHeight() const { return recursiveHeight(root); }
+     unsigned getHeight() const { return recursiveHeight(root_); }
 
 
     /**
@@ -193,15 +215,17 @@ public:
      * @param element The element to be inserted into the rightmost position.
      */
     void insertRight(const Type& element) {
-        if (root == nullptr) {
-            root = new Node(element);
+        if (root_ == nullptr) {
+            root_ = new Node(element);
+            size_++;
             return;
         }
 
-        Node<Type>* current = root;
+        Node<Type>* current = root_;
         while (current->right != nullptr)
             current = current->right;
         current->right = new Node(element);
+        size_++;
     }
 
 
@@ -211,33 +235,46 @@ public:
      * @param element The element to be inserted at the leftmost position of the binary tree.
      */
     void insertLeft(const Type& element) {
-        if (root == nullptr) {
-            root = new Node(element);
+        if (root_ == nullptr) {
+            root_ = new Node(element);
+            size_++;
             return;
         }
 
-        Node<Type>* current = root;
+        Node<Type>* current = root_;
         while (current->left != nullptr)
             current = current->left;
         current->left = new Node(element);
+        size_++;
+    }
+
+
+    /**
+     * Checks if the binary tree contains a node with a specific value.
+     *
+     * @param value The value to search for in the binary tree.
+     * @return True if the value is found in the binary tree, false otherwise.
+     */
+    bool containsNode(const Type& value) const {
+        return recursiveContainsNode(root_, value);
     }
 
 
     /// Prints the elements of the binary tree in in-order traversal.
     void printInOrder() const {
-        recursiveInOrder(root);
+        recursiveInOrder(root_);
     }
 
 
     /// Prints the elements of the binary tree in pre-order traversal.
     void printPreOrder() const {
-        recursivePreOrder(root);
+        recursivePreOrder(root_);
     }
 
 
     /// Prints the elements of the binary tree in post-order traversal.
     void printPostOrder() const {
-        recursivePostOrder(root);
+        recursivePostOrder(root_);
     }
 
 
@@ -248,13 +285,14 @@ public:
      * leaving the root pointer as nullptr.
      */
     virtual void clear() {
-        recursiveClear(root);
-        root = nullptr;
+        recursiveClear(root_);
+        root_ = nullptr;
+        size_ = 0;
     }
 
 
     /// Destructor
-    virtual ~BinaryTree() { clear(); }
+    virtual ~BinaryTree() { BinaryTree::clear(); }
 
 };
 

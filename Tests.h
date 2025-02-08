@@ -9,6 +9,7 @@
 #include "Stack.hpp"
 #include "BinaryTree.hpp"
 #include "BinarySearchTree.hpp"
+#include "MinHeap.hpp"
 
 
 
@@ -22,6 +23,7 @@ void testBinaryTree();
 
 void testBinarySearchTree();
 
+void testMinHeap();
 
 
 #endif //DEBUGTEST_H

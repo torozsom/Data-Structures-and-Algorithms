@@ -6,18 +6,11 @@
 
 void testBinarySearchTree() {
 
-    BinarySearchTree<int> bst;
-
     std::cout << "\n\n==== Testing Binary Search Tree ====" << std::endl;
 
     // **Insert Elements**
-    bst.insert(50);
-    bst.insert(30);
-    bst.insert(70);
-    bst.insert(20);
-    bst.insert(40);
-    bst.insert(60);
-    bst.insert(80);
+    int array[7] = {50, 30, 70, 20, 40, 60, 80};
+    BinarySearchTree bst(array, 7);
 
     // **Traversals**
     std::cout << "\nIn-Order Traversal (Should be sorted): ";

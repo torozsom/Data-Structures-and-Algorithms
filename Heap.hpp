@@ -8,6 +8,14 @@
 
 #include "BinaryTree.hpp"
 
+
+template <typename Type>
+struct HeapNode : Node<Type> {
+    HeapNode* parent;
+    explicit HeapNode(const Type& data) : Node<Type>(data), parent(nullptr) {}
+};
+
+
 /**
  * @class Heap: Abstract class
  *
@@ -25,13 +33,13 @@
 template <typename Type>                    // Protected inheritance
 class Heap : protected BinaryTree<Type> {   // means that the public and protected members
                                             // in the parent are protected here
+
+    using HeapNode = HeapNode<Type>;
+
 protected:
-    unsigned int size_ = 0;
 
-
-
-    virtual void heapifyUp(Node<Type>* node) = 0;
-    virtual void heapifyDown(Node<Type>* node) = 0;
+    virtual void heapifyUp(HeapNode* node) = 0;
+    virtual void heapifyDown(HeapNode* node) = 0;
 
 
     /**
@@ -44,14 +52,14 @@ protected:
      *
      * @return A pointer to the last node in the tree, or nullptr if the tree is empty.
      */
-    Node<Type>* findLastNode() const {
-        if (this->root == nullptr)
+    HeapNode* findLastNode() const {
+        if (this->root_ == nullptr)
             return nullptr;
 
-        Node<Type>* current = this->root;
+        Node<Type>* current = this->root_;
         while (current->right != nullptr)
             current = current->right;
-        return current;
+        return static_cast<HeapNode*>(current);
     }
 
 
@@ -64,7 +72,7 @@ protected:
      * @param node1 Pointer to the first node involved in the swap operation.
      * @param node2 Pointer to the second node involved in the swap operation.
      */
-    void swapData(Node<Type>* node1, Node<Type>* node2) {
+    void swapData(HeapNode* node1, HeapNode* node2) {
         if (node1 == nullptr || node2 == nullptr)
             return;
 
@@ -84,12 +92,13 @@ public:
 
 
     virtual void insert(const Type& element) = 0;
+    virtual void remove(const Type& element) = 0;
     virtual Type extractRoot() = 0;
 
 
-    bool isEmpty() const { return this->root == nullptr; }
+    bool isEmpty() const { return this->root_ == nullptr; }
 
-    unsigned int size() const { return size_; }
+    unsigned int size() const { return this->size_; }
 
 
     /**
@@ -102,9 +111,9 @@ public:
      * @throws std::out_of_range If the heap is empty.
      */
     Type peekRoot() const {
-        if (this->root == nullptr)
+        if (this->root_ == nullptr)
             throw std::out_of_range("Heap is empty");
-        return this->root->data;
+        return this->root_->data;
     }
 
 
@@ -118,7 +127,6 @@ public:
      */
     void clear() override {
         BinaryTree<Type>::clear();
-        size_ = 0;
     }
 
 

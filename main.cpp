@@ -10,6 +10,7 @@ enum Choice {
     STACK,
     BINARY_TREE,
     BINARY_SEARCH_TREE,
+    MIN_HEAP,
     ALL,
     EXIT
 };
@@ -22,8 +23,9 @@ void printMenu() {
                 "3. Stack \n"
                 "4. Binary Tree \n"
                 "5. Binary Search Tree \n"
-                "6. All \n"
-                "7. Exit \n";
+                "6. Minimum Heap \n"
+                "7. All \n"
+                "8. Exit \n";
 }
 
 
@@ -55,6 +57,10 @@ int main() {
 
             case BINARY_SEARCH_TREE:
                 testBinarySearchTree();
+                break;
+
+            case MIN_HEAP:
+                testMinHeap();
                 break;
 
             case ALL:
