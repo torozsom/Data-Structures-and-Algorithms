@@ -69,6 +69,7 @@ int main() {
                 testStack();
                 testBinaryTree();
                 testBinarySearchTree();
+                testMinHeap();
                 break;
 
             case EXIT:

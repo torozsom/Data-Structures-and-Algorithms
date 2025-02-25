@@ -7,9 +7,9 @@
 
 
 template<typename Type>
-class MinHeap : public Heap<Type> {
+class MinHeap final : public Heap<Type> {
 
-    using HeapNode = HeapNode<Type>;
+    using Node = Node<Type>;
 
 protected:
     /**
@@ -20,8 +20,8 @@ protected:
      *
      * @param node A pointer to the node that needs to be adjusted upwards.
      */
-    void heapifyUp(HeapNode* node) override {
-        while (node && node->parent && node->data < node->parent->data) {
+    void heapifyUp(Node* node) override {
+        while (node && node->parent && node->data <= node->parent->data) {
             this->swapData(node, node->parent);
             node = node->parent;
         }
@@ -37,15 +37,15 @@ protected:
      *
      * @param node A pointer to the node that needs to be adjusted downwards.
      */
-    void heapifyDown(HeapNode* node) override {
+    void heapifyDown(Node* node) override {
         while (node) {
-            HeapNode* smallest = node;
+            Node* smallest = node;
 
             if (node->left && node->left->data < smallest->data)
-                smallest = static_cast<HeapNode*>(node->left);
+                smallest = node->left;
 
             if (node->right && node->right->data < smallest->data)
-                smallest = static_cast<HeapNode*>(node->right);
+                smallest = node->right;
 
             if (smallest == node)
                 break;
@@ -69,122 +69,99 @@ public:
     MinHeap& operator=(MinHeap&& other) noexcept = default;
 
 
-    /**
-     * Inserts a new value into the MinHeap while maintaining the min-heap property.
-     * The new value is added as the last node in the binary tree, and the heapifyUp
-     * function is called to restore the min-heap structure.
-     *
-     * @param element The value to be inserted into the heap.
-     */
-    void insert(const Type& element) override {
-        auto* newNode = new HeapNode(element);
+/**
+ * Inserts a new element into the heap while maintaining the heap property.
+ * This method locates the correct position for the new element by following
+ * a binary path derived from a level-order traversal. After insertion, the
+ * heap property is restored by repositioning the new element upwards in the
+ * heap if necessary.
+ *
+ * @param element The element to be inserted into the heap.
+ */
+void insert(const Type& element) override {
+    Node* newNode = new Node(element);
 
-        if (this->root_ == nullptr)
-            this->root_ = newNode;
-        else {
-            Stack<HeapNode*> stack;
-            stack.push(static_cast<HeapNode*>(this->root_));
-
-            while (!stack.isEmpty()) {
-                HeapNode* current = stack.pop();
-
-                if (!current->left) {
-                    current->left = newNode;
-                    newNode->parent = current;
-                    break;
-                } else {
-                    stack.push(static_cast<HeapNode*>(current->left));
-                }
-
-                if (!current->right) {
-                    current->right = newNode;
-                    newNode->parent = current;
-                    break;
-                } else {
-                    stack.push(static_cast<HeapNode*>(current->right));
-                }
-            }
-        }
-
+    if (this->root_ == nullptr) {
+        this->root_ = newNode;
         ++this->size_;
-        this->heapifyUp(newNode);
+        return;
     }
+
+    unsigned int n = this->size() + 1;
+    std::bitset<32> binary(n);
+    std::string path = binary.to_string();
+    unsigned int index = path.find('1');
+    path = path.substr(index + 1);
+
+    Node* current = this->root_;
+    for (size_t i = 0; i < path.size() - 1; ++i) {
+        if (path[i] == '0') {
+            if (!current->left) {
+                current->left = newNode;
+                newNode->parent = current;
+                ++this->size_;
+                heapifyUp(newNode);
+                return;
+            }
+            current = current->left;
+        } else {
+            if (!current->right) {
+                current->right = newNode;
+                newNode->parent = current;
+                ++this->size_;
+                heapifyUp(newNode);
+                return;
+            }
+            current = current->right;
+        }
+    }
+
+    if (path.back() == '0')
+        current->left = newNode;
+    else
+        current->right = newNode;
+
+    newNode->parent = current;
+    ++this->size_;
+    heapifyUp(newNode);
+}
 
 
     /**
-     * Removes the specified element from the heap while maintaining the min-heap property.
-     * The element is searched for: if found, it is removed, and the structure is corrected
-     * using heapifyDown.
+     * Removes and returns the root element of the heap, maintaining the heap property.
      *
-     * @param element The value to be removed from the heap.
+     * This method retrieves the value of the root node, then replaces the root with
+     * the value of the last node in level-order. After removing the last node, the
+     * heap property is restored by a downward adjustment from the root.
+     * If the heap is empty, an exception is thrown.
+     *
+     * @return The value of the root element that was removed from the heap.
+     * @throws std::out_of_range If the heap is empty.
      */
-    void remove(const Type& element) override {
-        if (this->root_ == nullptr)
-            throw std::out_of_range("Heap is empty");
-
-        Stack<HeapNode*> stack;
-        stack.push(static_cast<HeapNode*>(this->root_));
-        HeapNode* target = nullptr;
-
-        while (!stack.isEmpty()) {
-            HeapNode* current = stack.pop();
-
-            if (current->data == element) {
-                target = current;
-                break;
-            }
-
-            if (current->right)
-                stack.push(static_cast<HeapNode*>(current->right));
-
-            if (current->left)
-                stack.push(static_cast<HeapNode*>(current->left));
-        }
-
-        if (target == nullptr)
-            throw std::invalid_argument("Element not found in heap");
-
-        HeapNode* lastNode = this->findLastNode();
-
-        if (target != lastNode) {
-            target->data = lastNode->data;
-
-            if (lastNode->parent) {
-                if (lastNode->parent->left == lastNode)
-                    lastNode->parent->left = nullptr;
-                else if (lastNode->parent->right == lastNode)
-                    lastNode->parent->right = nullptr;
-            } else {
-                this->root_ = nullptr;
-            }
-
-            delete lastNode;
-            --this->size_;
-            this->heapifyDown(target);
-
-        } else {
-            if (lastNode->parent) {
-                if (lastNode->parent->left == lastNode)
-                    lastNode->parent->left = nullptr;
-                else if (lastNode->parent->right == lastNode)
-                    lastNode->parent->right = nullptr;
-            } else {
-                this->root_ = nullptr;
-            }
-
-            delete lastNode;
-            --this->size_;
-        }
-    }
-
-
     Type extractRoot() override {
-        if (this->root_ == nullptr)
-            throw std::out_of_range("Heap is empty");
+        if (this->isEmpty())
+            throw std::out_of_range("Heap is empty. Cannot extract root.");
 
-        Type value = this->root_->data;
-        remove(value);
-        return value;
+        Type rootValue = this->root_->data;
+        Node* lastNode = this->findLastNode();
+
+        if (lastNode == this->root_) {
+            delete this->root_;
+            this->root_ = nullptr;
+        } else {
+            this->root_->data = lastNode->data;
+
+            if (lastNode->parent->left == lastNode)
+                lastNode->parent->left = nullptr;
+            else
+                lastNode->parent->right = nullptr;
+
+            delete lastNode;
+            heapifyDown(this->root_);
+        }
+
+        --this->size_;
+        return rootValue;
     }
 
 
@@ -192,6 +169,7 @@ public:
 
 
     ~MinHeap() override { MinHeap::clear(); }
+
 };
 
 #endif // MINHEAP_HPP

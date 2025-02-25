@@ -6,14 +6,10 @@
 #define HEAP_HPP
 
 
+#include <bitset>
+
 #include "BinaryTree.hpp"
 
-
-template <typename Type>
-struct HeapNode : Node<Type> {
-    HeapNode* parent;
-    explicit HeapNode(const Type& data) : Node<Type>(data), parent(nullptr) {}
-};
 
 
 /**
@@ -33,13 +29,12 @@ struct HeapNode : Node<Type> {
 template <typename Type>                    // Protected inheritance
 class Heap : protected BinaryTree<Type> {   // means that the public and protected members
                                             // in the parent are protected here
-
-    using HeapNode = HeapNode<Type>;
+    using Node = Node<Type>;
 
 protected:
 
-    virtual void heapifyUp(HeapNode* node) = 0;
-    virtual void heapifyDown(HeapNode* node) = 0;
+    virtual void heapifyUp(Node* node) = 0;
+    virtual void heapifyDown(Node* node) = 0;
 
 
     /**
@@ -52,15 +47,31 @@ protected:
      *
      * @return A pointer to the last node in the tree, or nullptr if the tree is empty.
      */
-    HeapNode* findLastNode() const {
+    Node* findLastNode() const {
         if (this->root_ == nullptr)
             return nullptr;
 
-        Node<Type>* current = this->root_;
-        while (current->right != nullptr)
-            current = current->right;
-        return static_cast<HeapNode*>(current);
+        unsigned int n = this->size();
+        std::bitset<32> binary(n);
+        std::string path = binary.to_string();
+
+        unsigned int index = path.find('1');
+        path = path.substr(index + 1);
+
+        Node* current = this->root_;
+        for (char direction : path) {
+            if (direction == '0')
+                current = current->left;
+            else
+                current = current->right;
+
+            if (current == nullptr)
+                break;
+        }
+
+        return current;
     }
+
 
 
     /**
@@ -72,7 +83,7 @@ protected:
      * @param node1 Pointer to the first node involved in the swap operation.
      * @param node2 Pointer to the second node involved in the swap operation.
      */
-    void swapData(HeapNode* node1, HeapNode* node2) {
+    void swapData(Node* node1, Node* node2) {
         if (node1 == nullptr || node2 == nullptr)
             return;
 
@@ -84,15 +95,12 @@ protected:
 
 
 public:
-    Heap() = default;
-
 
     void insertLeft(const Type& element) = delete;
     void insertRight(const Type& element) = delete;
 
 
     virtual void insert(const Type& element) = 0;
-    virtual void remove(const Type& element) = 0;
     virtual Type extractRoot() = 0;
 
 

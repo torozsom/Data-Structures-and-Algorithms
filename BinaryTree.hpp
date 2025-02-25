@@ -15,9 +15,10 @@
 template<typename Type>
 struct Node {
     Type data;
+    Node* parent;
     Node* left;
     Node* right;
-    explicit Node(const Type& data) : data(data), left(nullptr), right(nullptr) {}
+    explicit Node(const Type& data) : data(data), parent(nullptr), left(nullptr), right(nullptr) {}
 };
 
 
@@ -34,8 +35,10 @@ struct Node {
 template<typename Type>
 class BinaryTree {
 
+    using Node = Node<Type>;
+
 protected:
-    Node<Type>* root_;
+    Node* root_;
     unsigned int size_;
 
 
@@ -43,15 +46,18 @@ protected:
      * Creates a new copy of a binary tree node and all its child nodes recursively.
      *
      * @param otherNode A pointer to the node to be copied. If nullptr, returns nullptr.
+     * @param parent A pointer to the parent node of the current node being copied.
      * @return A pointer to the newly created node, which is a copy of the input node along with its subtree.
      */
-    Node<Type>* copyNode(Node<Type>* otherNode) {
+    Node* copyNode(Node* otherNode, Node* parent = nullptr) {
         if (otherNode == nullptr)
             return nullptr;
 
-        Node<Type>* newNode = new Node(otherNode->data);
-        newNode->left = copyNode(otherNode->left);
-        newNode->right = copyNode(otherNode->right);
+        Node* newNode = new Node(otherNode->data);
+        newNode->parent = parent;
+
+        newNode->left = copyNode(otherNode->left, newNode);
+        newNode->right = copyNode(otherNode->right, newNode);
         return newNode;
     }
 
@@ -62,7 +68,7 @@ protected:
      * @param other The binary tree whose elements are to be copied into the current tree.
      */
     void recursiveCopy(const BinaryTree& other) {
-        root_ = copyNode(other.root_);
+        root_ = copyNode(other.root_, nullptr);
     }
 
 
@@ -72,7 +78,7 @@ protected:
      * @param node Pointer to the current node being visited in the recursive process.
      * @return The height of the binary tree.
      */
-    unsigned recursiveHeight(Node<Type>* node) const {
+    unsigned recursiveHeight(Node* node) const {
         if (node == nullptr)
             return 0;
 
@@ -87,7 +93,7 @@ protected:
      *
      * @param node Pointer to the current node being visited during the in-order traversal.
      */
-    void recursiveInOrder(Node<Type>* node) const {
+    void recursiveInOrder(Node* node) const {
         if (node == nullptr)
             return;
 
@@ -103,7 +109,7 @@ protected:
      *
      * @param node The current node in the binary tree being visited during the traversal.
      */
-    void recursivePreOrder(Node<Type>* node) const {
+    void recursivePreOrder(Node* node) const {
         if (node == nullptr)
             return;
 
@@ -119,7 +125,7 @@ protected:
      *
      * @param node Pointer to the current node being visited in the traversal process.
      */
-    void recursivePostOrder(Node<Type>* node) const {
+    void recursivePostOrder(Node* node) const {
         if (node == nullptr)
             return;
 
@@ -134,7 +140,7 @@ protected:
      *
      * @param node Pointer to the current node in the binary tree that is being cleared.
      */
-    void recursiveClear(Node<Type>* node) {
+    void recursiveClear(Node* node) {
         if (node == nullptr)
             return;
 
@@ -151,7 +157,7 @@ protected:
      * @param value The value to search for in the binary tree.
      * @return True if the value is found in the binary tree, false otherwise.
      */
-    bool recursiveContainsNode(const Node<Type>* node, const Type& value) const {
+    bool recursiveContainsNode(const Node* node, const Type& value) const {
         if (node == nullptr)
             return false;
 
@@ -204,9 +210,9 @@ public:
     }
 
 
-    Node<Type>* getRoot() const { return root_; }
+    Node* getRoot() const { return root_; }
 
-     unsigned getHeight() const { return recursiveHeight(root_); }
+    unsigned getHeight() const { return recursiveHeight(root_); }
 
 
     /**
@@ -221,10 +227,14 @@ public:
             return;
         }
 
-        Node<Type>* current = root_;
+        Node* current = root_;
         while (current->right != nullptr)
             current = current->right;
         current->right = new Node(element);
+
+        Node* newNode = new Node(element);
+        newNode->parent = current;
+        current->right = newNode;
         size_++;
     }
 
@@ -241,10 +251,13 @@ public:
             return;
         }
 
-        Node<Type>* current = root_;
+        Node* current = root_;
         while (current->left != nullptr)
             current = current->left;
-        current->left = new Node(element);
+
+        Node* newNode = new Node(element);
+        newNode->parent = current;
+        current->left = newNode;
         size_++;
     }
 
