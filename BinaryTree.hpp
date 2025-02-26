@@ -35,10 +35,8 @@ struct Node {
 template<typename Type>
 class BinaryTree {
 
-    using Node = Node<Type>;
-
 protected:
-    Node* root_;
+    Node<Type>* root_;
     unsigned int size_;
 
 
@@ -49,11 +47,11 @@ protected:
      * @param parent A pointer to the parent node of the current node being copied.
      * @return A pointer to the newly created node, which is a copy of the input node along with its subtree.
      */
-    Node* copyNode(Node* otherNode, Node* parent = nullptr) {
+    Node<Type>* copyNode(Node<Type>* otherNode, Node<Type>* parent = nullptr) {
         if (otherNode == nullptr)
             return nullptr;
 
-        Node* newNode = new Node(otherNode->data);
+        Node<Type>* newNode = new Node(otherNode->data);
         newNode->parent = parent;
 
         newNode->left = copyNode(otherNode->left, newNode);
@@ -68,7 +66,7 @@ protected:
      * @param other The binary tree whose elements are to be copied into the current tree.
      */
     void recursiveCopy(const BinaryTree& other) {
-        root_ = copyNode(other.root_, nullptr);
+        root_ = copyNode(other.root_);
     }
 
 
@@ -78,7 +76,7 @@ protected:
      * @param node Pointer to the current node being visited in the recursive process.
      * @return The height of the binary tree.
      */
-    unsigned recursiveHeight(Node* node) const {
+    unsigned recursiveHeight(Node<Type>* node) const {
         if (node == nullptr)
             return 0;
 
@@ -93,7 +91,7 @@ protected:
      *
      * @param node Pointer to the current node being visited during the in-order traversal.
      */
-    void recursiveInOrder(Node* node) const {
+    void recursiveInOrder(Node<Type>* node) const {
         if (node == nullptr)
             return;
 
@@ -109,7 +107,7 @@ protected:
      *
      * @param node The current node in the binary tree being visited during the traversal.
      */
-    void recursivePreOrder(Node* node) const {
+    void recursivePreOrder(Node<Type>* node) const {
         if (node == nullptr)
             return;
 
@@ -125,7 +123,7 @@ protected:
      *
      * @param node Pointer to the current node being visited in the traversal process.
      */
-    void recursivePostOrder(Node* node) const {
+    void recursivePostOrder(Node<Type>* node) const {
         if (node == nullptr)
             return;
 
@@ -140,7 +138,7 @@ protected:
      *
      * @param node Pointer to the current node in the binary tree that is being cleared.
      */
-    void recursiveClear(Node* node) {
+    void recursiveClear(Node<Type>* node) {
         if (node == nullptr)
             return;
 
@@ -157,7 +155,7 @@ protected:
      * @param value The value to search for in the binary tree.
      * @return True if the value is found in the binary tree, false otherwise.
      */
-    bool recursiveContainsNode(const Node* node, const Type& value) const {
+    bool recursiveContainsNode(const Node<Type>* node, const Type& value) const {
         if (node == nullptr)
             return false;
 
@@ -210,7 +208,11 @@ public:
     }
 
 
-    Node* getRoot() const { return root_; }
+    bool isEmpty() const { return root_ == nullptr; }
+
+    unsigned int size() const { return size_; }
+
+    Node<Type>* getRoot() const { return root_; }
 
     unsigned getHeight() const { return recursiveHeight(root_); }
 
@@ -221,18 +223,18 @@ public:
      * @param element The element to be inserted into the rightmost position.
      */
     void insertRight(const Type& element) {
-        if (root_ == nullptr) {
+        if (this->isEmpty()) {
             root_ = new Node(element);
             size_++;
             return;
         }
 
-        Node* current = root_;
+        Node<Type>* current = root_;
         while (current->right != nullptr)
             current = current->right;
         current->right = new Node(element);
 
-        Node* newNode = new Node(element);
+        Node<Type>* newNode = new Node(element);
         newNode->parent = current;
         current->right = newNode;
         size_++;
@@ -245,17 +247,17 @@ public:
      * @param element The element to be inserted at the leftmost position of the binary tree.
      */
     void insertLeft(const Type& element) {
-        if (root_ == nullptr) {
+        if (this->isEmpty()) {
             root_ = new Node(element);
             size_++;
             return;
         }
 
-        Node* current = root_;
+        Node<Type>* current = root_;
         while (current->left != nullptr)
             current = current->left;
 
-        Node* newNode = new Node(element);
+        Node<Type>* newNode = new Node(element);
         newNode->parent = current;
         current->left = newNode;
         size_++;
@@ -297,7 +299,7 @@ public:
      * This method ensures that all allocated memory for the tree nodes is released,
      * leaving the root pointer as nullptr.
      */
-    virtual void clear() {
+    void clear() {
         recursiveClear(root_);
         root_ = nullptr;
         size_ = 0;

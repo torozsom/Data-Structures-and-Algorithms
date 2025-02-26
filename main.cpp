@@ -11,6 +11,7 @@ enum Choice {
     BINARY_TREE,
     BINARY_SEARCH_TREE,
     MIN_HEAP,
+    MAX_HEAP,
     ALL,
     EXIT
 };
@@ -24,8 +25,9 @@ void printMenu() {
                 "4. Binary Tree \n"
                 "5. Binary Search Tree \n"
                 "6. Minimum Heap \n"
-                "7. All \n"
-                "8. Exit \n";
+                "7. Maximum Heap \n"
+                "8. All \n"
+                "9. Exit \n";
 }
 
 
@@ -63,6 +65,10 @@ int main() {
                 testMinHeap();
                 break;
 
+            case MAX_HEAP:
+                testMaxHeap();
+                break;
+
             case ALL:
                 testDynamicArray();
                 testLinkedList();
@@ -70,6 +76,7 @@ int main() {
                 testBinaryTree();
                 testBinarySearchTree();
                 testMinHeap();
+                testMaxHeap();
                 break;
 
             case EXIT:

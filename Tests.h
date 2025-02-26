@@ -25,5 +25,6 @@ void testBinarySearchTree();
 
 void testMinHeap();
 
+void testMaxHeap();
 
 #endif //DEBUGTEST_H

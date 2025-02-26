@@ -27,14 +27,12 @@
  * @tparam Type The type of elements stored in the heap.
  */
 template <typename Type>                    // Protected inheritance
-class Heap : protected BinaryTree<Type> {   // means that the public and protected members
+class Heap : public BinaryTree<Type> {   // means that the public and protected members
                                             // in the parent are protected here
-    using Node = Node<Type>;
-
 protected:
 
-    virtual void heapifyUp(Node* node) = 0;
-    virtual void heapifyDown(Node* node) = 0;
+    virtual void heapifyUp(Node<Type>* node) = 0;
+    virtual void heapifyDown(Node<Type>* node) = 0;
 
 
     /**
@@ -47,8 +45,8 @@ protected:
      *
      * @return A pointer to the last node in the tree, or nullptr if the tree is empty.
      */
-    Node* findLastNode() const {
-        if (this->root_ == nullptr)
+    Node<Type>* findLastNode() const {
+        if (this->isEmpty())
             return nullptr;
 
         unsigned int n = this->size();
@@ -58,7 +56,7 @@ protected:
         unsigned int index = path.find('1');
         path = path.substr(index + 1);
 
-        Node* current = this->root_;
+        Node<Type>* current = this->root_;
         for (char direction : path) {
             if (direction == '0')
                 current = current->left;
@@ -83,7 +81,7 @@ protected:
      * @param node1 Pointer to the first node involved in the swap operation.
      * @param node2 Pointer to the second node involved in the swap operation.
      */
-    void swapData(Node* node1, Node* node2) {
+    void swapData(Node<Type>* node1, Node<Type>* node2) {
         if (node1 == nullptr || node2 == nullptr)
             return;
 
@@ -99,14 +97,45 @@ public:
     void insertLeft(const Type& element) = delete;
     void insertRight(const Type& element) = delete;
 
-
     virtual void insert(const Type& element) = 0;
-    virtual Type extractRoot() = 0;
 
 
-    bool isEmpty() const { return this->root_ == nullptr; }
+    /**
+     * Removes and returns the root element of the heap, maintaining the heap property.
+     *
+     * This method retrieves the value of the root node, then replaces the root with
+     * the value of the last node in level-order. After removing the last node, the
+     * heap property is restored by a downward adjustment from the root.
+     * If the heap is empty, an exception is thrown.
+     *
+     * @return The value of the root element that was removed from the heap.
+     * @throws std::out_of_range If the heap is empty.
+     */
+    Type extractRoot() {
+        if (this->isEmpty())
+            throw std::out_of_range("Heap is empty. Cannot extract root.");
 
-    unsigned int size() const { return this->size_; }
+        Type rootValue = this->root_->data;
+        Node<Type>* lastNode = this->findLastNode();
+
+        if (lastNode == this->root_) {
+            delete this->root_;
+            this->root_ = nullptr;
+        } else {
+            this->root_->data = lastNode->data;
+
+            if (lastNode->parent->left == lastNode)
+                lastNode->parent->left = nullptr;
+            else
+                lastNode->parent->right = nullptr;
+
+            delete lastNode;
+            heapifyDown(this->root_);
+        }
+
+        --this->size_;
+        return rootValue;
+    }
 
 
     /**
@@ -119,27 +148,14 @@ public:
      * @throws std::out_of_range If the heap is empty.
      */
     Type peekRoot() const {
-        if (this->root_ == nullptr)
+        if (this->isEmpty())
             throw std::out_of_range("Heap is empty");
         return this->root_->data;
     }
 
 
-    /**
-     * Clears all elements from the heap, removing nodes and resetting the size.
-     *
-     * This method overrides the `clear` method of the BinaryTree class to ensure
-     * proper cleanup specific to the heap structure. It removes all nodes in the heap
-     * and sets the size of the heap to zero. This process does not assume any specific
-     * heap configuration after the method is executed.
-     */
-    void clear() override {
-        BinaryTree<Type>::clear();
-    }
-
-
     /// Destructor
-    ~Heap() override { Heap::clear(); }
+    ~Heap() override = default;
 
 };
 

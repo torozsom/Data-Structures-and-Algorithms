@@ -19,4 +19,6 @@ add_executable(Algorithms
         MinHeap.hpp
         Heap.hpp
         MinHeapTest.cpp
+        MaxHeap.hpp
+        MaxHeapTest.cpp
 )

@@ -38,17 +38,19 @@ private:
      *
      * @param node A reference to a pointer to the current node of the subtree being traversed.
      * @param element The element to be inserted into the tree.
+     * @param parent A pointer to the parent node of the current node being examined.
      */
-    void recursiveInsert(Node<Type>*& node, const Type& element) {
+    void recursiveInsert(Node<Type>*& node, const Type& element, Node<Type>* parent = nullptr) {
         if (node == nullptr) {
-            node = new Node(element);
+            node = new Node<Type>(element);
+            node->parent = parent;  // Set parent pointer
             return;
         }
 
         if (element < node->data)
-            recursiveInsert(node->left, element);
+            recursiveInsert(node->left, element, node);
         else if (element > node->data)
-            recursiveInsert(node->right, element);
+            recursiveInsert(node->right, element, node);
     }
 
 
@@ -82,10 +84,12 @@ private:
             } else if (node->left == nullptr) {
                 Node<Type>* temp = node;
                 node = node->right;
+                node->parent = temp->parent;
                 delete temp;
             } else if (node->right == nullptr) {
                 Node<Type>* temp = node;
                 node = node->left;
+                node->parent = temp->parent;
                 delete temp;
             } else {
                 Node<Type>* temp = findMin(node->right);
