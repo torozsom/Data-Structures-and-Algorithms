@@ -1,6 +1,4 @@
-//
-// Created by toron on 2024. 12. 26..
-//
+
 
 #ifndef HEAP_HPP
 #define HEAP_HPP

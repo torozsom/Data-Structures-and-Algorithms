@@ -1,5 +1,6 @@
-#include <iostream>
-#include "MaxHeap.hpp"
+
+#include "Tests.h"
+
 
 void testMaxHeap() {
     MaxHeap<int> heap;

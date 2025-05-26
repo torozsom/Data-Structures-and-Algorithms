@@ -10,7 +10,7 @@
 #include "BinaryTree.hpp"
 #include "BinarySearchTree.hpp"
 #include "MinHeap.hpp"
-
+#include "MaxHeap.hpp"
 
 
 void testLinkedList();
@@ -26,5 +26,7 @@ void testBinarySearchTree();
 void testMinHeap();
 
 void testMaxHeap();
+
+void testAllDataStructures();
 
 #endif //DEBUGTEST_H

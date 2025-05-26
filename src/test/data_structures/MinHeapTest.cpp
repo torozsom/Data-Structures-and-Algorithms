@@ -1,5 +1,6 @@
-#include <iostream>
-#include "MinHeap.hpp"
+
+#include "Tests.h"
+
 
 void testMinHeap() {
     MinHeap<int> heap;

@@ -9,6 +9,7 @@
 
 /**
  * @class BinarySearchTree
+ *
  * A binary search tree data structure that stores elements of a given type.
  *
  * The binary search tree is a binary tree data structure in which each node has at most two children,

@@ -3,6 +3,18 @@
 
 #include "Heap.hpp"
 
+
+
+/**
+ * @class MaxHeap
+ *
+ * A specialized heap data structure that maintains the max-heap property,
+ * where each parent node is greater than or equal to its child nodes.
+ * This class provides methods for inserting elements while ensuring the
+ * max-heap property is preserved.
+ *
+ * @tparam Type The type of elements stored in the heap.
+ */
 template<typename Type>
 class MaxHeap final : public Heap<Type> {
 

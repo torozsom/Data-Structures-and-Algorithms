@@ -5,6 +5,17 @@
 #include "Heap.hpp"
 
 
+
+/**
+ * @class MinHeap
+ *
+ * A specialized heap data structure that maintains the min-heap property,
+ * where each parent node is less than or equal to its child nodes.
+ * This class provides methods for inserting elements while ensuring the
+ * min-heap property is preserved.
+ *
+ * @tparam Type The type of elements stored in the heap.
+ */
 template<typename Type>
 class MinHeap final : public Heap<Type> {
 
