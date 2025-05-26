@@ -212,7 +212,7 @@ public:
 
     unsigned int size() const { return size_; }
 
-    Node<Type>* getRoot() const { return root_; }
+    const Node<Type>* getRoot() const { return root_; }
 
     unsigned getHeight() const { return recursiveHeight(root_); }
 
@@ -307,7 +307,7 @@ public:
 
 
     /// Destructor
-    virtual ~BinaryTree() { BinaryTree::clear(); }
+    virtual ~BinaryTree() { clear(); }
 
 };
 

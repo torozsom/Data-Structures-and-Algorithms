@@ -51,6 +51,7 @@ public:
         }
     }
 
+
     /// Move constructor
     LinkedList(LinkedList&& other) noexcept
         : head_(other.head_), tail_(other.tail_), size_(other.size_) {

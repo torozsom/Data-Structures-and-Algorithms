@@ -1,6 +1,5 @@
 
 
-
 #ifndef DYNAMICARRAY_HPP
 #define DYNAMICARRAY_HPP
 
@@ -208,7 +207,22 @@ public:
      * @return A reference to the element at the specified index in the dynamic array.
      * @throws std::out_of_range If the specified index is greater than or equal to the size of the array.
      */
-    Type& get(const unsigned int idx) const {
+    Type& get(const unsigned int idx) {
+        if (idx >= size_)
+            throw std::out_of_range("Index out of range");
+
+        return data_[idx];
+    }
+
+
+    /**
+     * Retrieves the element at the specified index in the dynamic array.
+     *
+     * @param idx The position of the element to retrieve. Must be within the range [0, size_ - 1].
+     * @return A reference to the element at the specified index in the dynamic array.
+     * @throws std::out_of_range If the specified index is greater than or equal to the size of the array.
+     */
+    const Type& get(const unsigned int idx) const {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 

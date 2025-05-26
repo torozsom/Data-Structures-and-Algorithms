@@ -44,7 +44,7 @@ private:
     void recursiveInsert(Node<Type>*& node, const Type& element, Node<Type>* parent = nullptr) {
         if (node == nullptr) {
             node = new Node<Type>(element);
-            node->parent = parent;  // Set parent pointer
+            node->parent = parent;
             return;
         }
 
@@ -173,6 +173,33 @@ public:
      */
     void remove(const Type& element) {
         recursiveRemove(this->root_, element);
+    }
+
+
+    /**
+     * Checks if the binary search tree contains a specified element.
+     *
+     * This method traverses the binary search tree to determine if
+     * a given element is present in the tree. It starts from the root
+     * and compares the element with the data of each node, moving left
+     * or right as appropriate until it either finds the element or reaches
+     * a leaf node.
+     *
+     * @param element The element to check for presence in the tree.
+     * @return True if the element is found, false otherwise.
+     */
+    bool contains(const Type& element) const {
+        Node<Type>* current = this->root_;
+        while (current != nullptr) {
+            if (element < current->data) {
+                current = current->left;
+            } else if (element > current->data) {
+                current = current->right;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
 

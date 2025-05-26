@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 project(Algorithms)
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 17)
 
 # Main executable (your application)
 add_executable(algorithms_main
