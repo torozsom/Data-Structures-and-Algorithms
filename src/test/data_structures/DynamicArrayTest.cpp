@@ -71,9 +71,9 @@ void testDynamicArray() {
 
     // Removing elements
     std::cout << "\n-- Removing Elements --" << std::endl;
-    array.remove(0);
-    array.remove(2);
-    array.remove(array.getSize() - 1);
+    array.removeAt(0);
+    array.removeAt(2);
+    array.removeAt(array.getSize() - 1);
 
     std::cout << "Array after removing elements: ";
     for (unsigned int i = 0; i < array.getSize(); ++i)
@@ -85,7 +85,7 @@ void testDynamicArray() {
     // Edge Case: Removing invalid index
     std::cout << "\n-- Removing Invalid Index --" << std::endl;
     try {
-        array.remove(10); // Invalid index
+        array.removeAt(10); // Invalid index
     } catch (const std::out_of_range& e) {
         std::cout << "Error: " << e.what() << std::endl;
     }

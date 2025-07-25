@@ -3,6 +3,7 @@
 #ifndef STACK_HPP
 #define STACK_HPP
 
+
 #include "DynamicArray.hpp"
 #include <iostream>
 
@@ -34,7 +35,7 @@ class Stack {
 
     bool isEmpty() const { return array_.isEmpty(); }
 
-    unsigned int getSize() const { return array_.getSize(); }
+    unsigned int size() const { return array_.getSize(); }
 
     void clear() { array_.clear(); }
 
@@ -53,13 +54,11 @@ class Stack {
      * @return A reference to the top element of the stack.
      * @throws std::out_of_range If the stack is empty.
      */
-    Type pop() {
+    Type& pop() {
         if (array_.isEmpty())
             throw std::out_of_range("Stack is empty");
 
-        Type element = array_[array_.getSize() - 1];
-        array_.remove(array_.getSize() - 1);
-        return element;
+        return array_.removeLast();
     }
 
 

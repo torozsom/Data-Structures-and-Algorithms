@@ -25,7 +25,7 @@ void testStack() {
     // Test isEmpty and getSize
     std::cout << "Is stack empty? " << (stack.isEmpty() ? "Yes" : "No")
               << std::endl;
-    std::cout << "Stack size: " << stack.getSize() << std::endl;
+    std::cout << "Stack size: " << stack.size() << std::endl;
 
     // Push elements
     stack.push(10);
@@ -44,7 +44,7 @@ void testStack() {
     stack.print();
 
     // Check size and empty status
-    std::cout << "Stack size: " << stack.getSize() << std::endl;
+    std::cout << "Stack size: " << stack.size() << std::endl;
     std::cout << "Is stack empty? " << (stack.isEmpty() ? "Yes" : "No")
               << std::endl;
 

@@ -1,3 +1,5 @@
+
+
 #ifndef DYNAMICARRAY_HPP
 #define DYNAMICARRAY_HPP
 
@@ -127,8 +129,9 @@ class DynamicArray {
         if (this == &other)
             return *this;
 
-        Type* new_data = new Type[other.capacity_];
+        Type* new_data;
         try {
+            new_data = new Type[other.capacity_];
             copyData(other.data_, new_data, other.size_);
         } catch (...) {
             delete[] new_data;
@@ -221,10 +224,13 @@ class DynamicArray {
      * range [0, size_ - 1].
      * @throws std::out_of_range If the specified index is greater than or equal
      * to the size of the array.
+     * @return The removed element
      */
-    void remove(const unsigned int idx) {
+    Type& removeAt(const unsigned int idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
+
+        Type element = data_[idx];
 
         for (unsigned int i = idx; i < size_ - 1; ++i)
             data_[i] = data_[i + 1];
@@ -233,7 +239,25 @@ class DynamicArray {
 
         if (size_ > 0 && size_ <= capacity_ / 4)
             resize(capacity_ / 2);
+
+        return element;
     }
+
+
+    /**
+     * Removes the first element of the array.
+     *
+     * @return The first element
+     */
+    Type& removeFirst() { return removeAt(0); }
+
+
+    /**
+     * Removes the last element of the array.
+     *
+     * @return The last element
+     */
+    Type& removeLast() { return removeAt(size_ - 1); }
 
 
     /**

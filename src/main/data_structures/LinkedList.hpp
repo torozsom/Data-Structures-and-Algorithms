@@ -38,18 +38,33 @@ class LinkedList {
 
     LinkedList(const Type* array, const unsigned int size)
         : head_(nullptr), tail_(nullptr), size_(0) {
-        for (unsigned int i = 0; i < size; ++i)
-            addLast(array[i]);
+
+        if (size > 0 && array == nullptr)
+            throw std::invalid_argument("Initial data cannot be null if size is positive.");
+
+        try {
+            for (unsigned int i = 0; i < size; ++i)
+                addLast(array[i]);
+        } catch (...) {
+            clear();
+            throw;
+        }
     }
 
 
     /// Copy constructor
     LinkedList(const LinkedList& other)
-        : head_(nullptr), tail_(nullptr), size_(other.size_) {
+        : head_(nullptr), tail_(nullptr), size_(0) {
         Node* current = other.head_;
-        while (current != nullptr) {
-            addLast(current->data);
-            current = current->next;
+
+        try {
+            while (current != nullptr) {
+                addLast(current->data);
+                current = current->next;
+            }
+        } catch (...) {
+            clear();
+            throw;
         }
     }
 
@@ -62,10 +77,6 @@ class LinkedList {
         other.size_ = 0;
     }
 
-
-    Node* getHead() const { return head_; }
-
-    Node* getTail() const { return tail_; }
 
     unsigned int getSize() const { return size_; }
 
@@ -80,9 +91,15 @@ class LinkedList {
         clear();
 
         Node* current = other.head_;
-        while (current != nullptr) {
-            add(current->data);
-            current = current->next;
+
+        try {
+            while (current != nullptr) {
+                addLast(current->data);
+                current = current->next;
+            }
+        } catch (...) {
+            clear();
+            throw;
         }
 
         return *this;
@@ -166,23 +183,36 @@ class LinkedList {
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
-        if (idx == 0) {
-            addFirst(element);
-        } else if (idx == size_) {
-            addLast(element);
-        } else {
-            Node* current = head_;
-            for (unsigned int i = 0; i < idx; ++i)
-                current = current->next;
+        try {
+            if (idx == 0) {
+                addFirst(element);
+            } else if (idx == size_) {
+                addLast(element);
+            } else {
+                Node* current;
 
-            Node* new_node = new Node(element);
-            new_node->next = current;
-            new_node->prev = current->prev;
+                if (idx < size_ / 2) {
+                    current = head_;
+                    for (unsigned int i = 0; i < idx; ++i)
+                        current = current->next;
+                } else {
+                    current = tail_;
+                    for (unsigned int i = size_ - 1; i > idx; --i)
+                        current = current->prev;
+                }
 
-            current->prev->next = new_node;
-            current->prev = new_node;
+                Node* new_node = new Node(element);
+                new_node->next = current;
+                new_node->prev = current->prev;
 
-            ++size_;
+                current->prev->next = new_node;
+                current->prev = new_node;
+
+                ++size_;
+            }
+        } catch (...) {
+            clear();
+            throw;
         }
     }
 
@@ -319,7 +349,7 @@ class LinkedList {
      * @throws std::out_of_range If the provided index is outside the bounds of
      * the list.
      */
-    Type& get(const unsigned int idx) const {
+    Type& get(const unsigned int idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -335,6 +365,59 @@ class LinkedList {
         }
 
         return current->data;
+    }
+
+
+    /**
+     * Retrieves the data at the specified index.
+     *
+     * @param idx The zero-based index of the element to retrieve.
+     * @return A const reference to the data at the specified index.
+     * @throws std::out_of_range If the provided index is outside the bounds of
+     * the list.
+     */
+    const Type& get(const unsigned int idx) const {
+        if (idx >= size_)
+            throw std::out_of_range("Index out of range");
+
+        Node* current;
+        if (idx < size_ / 2) {
+            current = head_;
+            for (unsigned int i = 0; i < idx; ++i)
+                current = current->next;
+        } else {
+            current = tail_;
+            for (unsigned int i = size_ - 1; i > idx; --i)
+                current = current->prev;
+        }
+
+        return current->data;
+    }
+
+
+    /**
+     * Retrieves the data at the specified index.
+     *
+     * @param idx The zero-based index of the element to retrieve.
+     * @return A reference to the data at the specified index.
+     * @throws std::out_of_range If the provided index is outside the bounds of
+     * the list.
+     */
+    Type& operator[](const unsigned int idx) {
+        return get(idx);
+    }
+
+
+    /**
+     * Retrieves the data at the specified index.
+     *
+     * @param idx The zero-based index of the element to retrieve.
+     * @return A const reference to the data at the specified index.
+     * @throws std::out_of_range If the provided index is outside the bounds of
+     * the list.
+     */
+    const Type& operator[](const unsigned int idx) const {
+        return get(idx);
     }
 
 
