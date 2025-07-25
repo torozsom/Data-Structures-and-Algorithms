@@ -2,20 +2,25 @@
 #include "Tests.h"
 
 /**
- * @brief Tests the functionality of the DynamicArray class with various operations.
+ * @brief Tests the functionality of the DynamicArray class with various
+ * operations.
  *
- * This method performs a series of tests on a DynamicArray object to ensure it behaves as expected
- * under different scenarios. It tests the following operations:
+ * This method performs a series of tests on a DynamicArray object to ensure it
+ * behaves as expected under different scenarios. It tests the following
+ * operations:
  * - Checking if the array is empty and retrieving its size and capacity.
  * - Adding elements to the array.
  * - Inserting elements at specific index positions.
  * - Accessing elements using their index.
  * - Removing elements from specific positions in the array.
- * - Attempting to remove elements or access elements at invalid indices to test exception handling.
+ * - Attempting to remove elements or access elements at invalid indices to test
+ * exception handling.
  * - Clearing all elements in the array.
- * - Testing edge cases such as accessing an empty array or removing invalid indices.
+ * - Testing edge cases such as accessing an empty array or removing invalid
+ * indices.
  *
- * The results of the operations and any exceptions encountered are output to the console.
+ * The results of the operations and any exceptions encountered are output to
+ * the console.
  */
 void testDynamicArray() {
     // Create a DynamicArray of integers
@@ -24,7 +29,8 @@ void testDynamicArray() {
     std::cout << "\n\n==== Testing Dynamic Array ====" << std::endl;
 
     // Test isEmpty and getSize on an empty array
-    std::cout << "Is the array empty? " << (array.isEmpty() ? "Yes" : "No") << std::endl;
+    std::cout << "Is the array empty? " << (array.isEmpty() ? "Yes" : "No")
+              << std::endl;
     std::cout << "Size of the array: " << array.getSize() << std::endl;
     std::cout << "Capacity of the array: " << array.getCapacity() << std::endl;
 
@@ -37,7 +43,8 @@ void testDynamicArray() {
     for (unsigned int i = 0; i < array.getSize(); ++i)
         std::cout << array.get(i) << " ";
 
-    std::cout << "\nCurrent size: " << array.getSize() << ", Capacity: " << array.getCapacity() << std::endl;
+    std::cout << "\nCurrent size: " << array.getSize()
+              << ", Capacity: " << array.getCapacity() << std::endl;
 
     // Inserting elements
     std::cout << "\n-- Inserting Elements --" << std::endl;
@@ -49,7 +56,8 @@ void testDynamicArray() {
     for (unsigned int i = 0; i < array.getSize(); ++i)
         std::cout << array.get(i) << " ";
 
-    std::cout << "\nCurrent size: " << array.getSize() << ", Capacity: " << array.getCapacity() << std::endl;
+    std::cout << "\nCurrent size: " << array.getSize()
+              << ", Capacity: " << array.getCapacity() << std::endl;
 
     // Accessing elements
     std::cout << "\n-- Accessing Elements --" << std::endl;
@@ -71,7 +79,8 @@ void testDynamicArray() {
     for (unsigned int i = 0; i < array.getSize(); ++i)
         std::cout << array.get(i) << " ";
 
-    std::cout << "\nCurrent size: " << array.getSize() << ", Capacity: " << array.getCapacity() << std::endl;
+    std::cout << "\nCurrent size: " << array.getSize()
+              << ", Capacity: " << array.getCapacity() << std::endl;
 
     // Edge Case: Removing invalid index
     std::cout << "\n-- Removing Invalid Index --" << std::endl;
@@ -88,8 +97,10 @@ void testDynamicArray() {
     for (unsigned int i = 0; i < array.getSize(); ++i)
         std::cout << array.get(i) << " ";
 
-    std::cout << "\nIs the array empty? " << (array.isEmpty() ? "Yes" : "No") << std::endl;
-    std::cout << "Current size: " << array.getSize() << ", Capacity: " << array.getCapacity() << std::endl;
+    std::cout << "\nIs the array empty? " << (array.isEmpty() ? "Yes" : "No")
+              << std::endl;
+    std::cout << "Current size: " << array.getSize()
+              << ", Capacity: " << array.getCapacity() << std::endl;
 
     // Edge Case: Accessing an empty array
     std::cout << "\n-- Accessing an Empty Array --" << std::endl;

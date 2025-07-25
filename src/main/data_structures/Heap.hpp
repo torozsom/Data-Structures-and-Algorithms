@@ -9,7 +9,6 @@
 #include "BinaryTree.hpp"
 
 
-
 /**
  * @class Heap: Abstract class
  *
@@ -17,18 +16,18 @@
  * The heap is a binary tree structure that satisfies the heap property,
  * which depends on the type of heap (min-heap or max-heap).
  *
- * In a min-heap, the parent node is less than or equal to its children, while in a max-heap,
- * the parent node is greater than or equal to its children. The heap structure is commonly used to
- * implement priority queues and sorting algorithms. This class provides common
- * functionality for both min-heaps and max-heaps.
+ * In a min-heap, the parent node is less than or equal to its children, while
+ * in a max-heap, the parent node is greater than or equal to its children. The
+ * heap structure is commonly used to implement priority queues and sorting
+ * algorithms. This class provides common functionality for both min-heaps and
+ * max-heaps.
  *
  * @tparam Type The type of elements stored in the heap.
  */
-template <typename Type>                    // Protected inheritance
-class Heap : public BinaryTree<Type> {   // means that the public and protected members
-                                            // in the parent are protected here
-protected:
+template <typename Type>
+class Heap : public BinaryTree<Type> {
 
+  protected:
     virtual void heapifyUp(Node<Type>* node) = 0;
     virtual void heapifyDown(Node<Type>* node) = 0;
 
@@ -36,12 +35,13 @@ protected:
     /**
      * Finds and returns the rightmost (last) node in the binary tree.
      *
-     * The method starts from the root node and repeatedly traverses to the right child
-     * until it reaches a node with no right child. The node at this position is considered
-     * the last node in the tree based on a binary structure where right children are considered
-     * after left children.
+     * The method starts from the root node and repeatedly traverses to the
+     * right child until it reaches a node with no right child. The node at this
+     * position is considered the last node in the tree based on a binary
+     * structure where right children are considered after left children.
      *
-     * @return A pointer to the last node in the tree, or nullptr if the tree is empty.
+     * @return A pointer to the last node in the tree, or nullptr if the tree is
+     * empty.
      */
     Node<Type>* findLastNode() const {
         if (this->isEmpty())
@@ -69,12 +69,11 @@ protected:
     }
 
 
-
     /**
      * Swaps the data stored in two nodes of the binary tree.
      *
-     * This method exchanges the `data` field of the two provided nodes. If either node
-     * is null, the method does nothing.
+     * This method exchanges the `data` field of the two provided nodes. If
+     * either node is null, the method does nothing.
      *
      * @param node1 Pointer to the first node involved in the swap operation.
      * @param node2 Pointer to the second node involved in the swap operation.
@@ -89,9 +88,7 @@ protected:
     }
 
 
-
-public:
-
+  public:
     void insertLeft(const Type& element) = delete;
     void insertRight(const Type& element) = delete;
 
@@ -99,12 +96,13 @@ public:
 
 
     /**
-     * Removes and returns the root element of the heap, maintaining the heap property.
+     * Removes and returns the root element of the heap, maintaining the heap
+     * property.
      *
-     * This method retrieves the value of the root node, then replaces the root with
-     * the value of the last node in level-order. After removing the last node, the
-     * heap property is restored by a downward adjustment from the root.
-     * If the heap is empty, an exception is thrown.
+     * This method retrieves the value of the root node, then replaces the root
+     * with the value of the last node in level-order. After removing the last
+     * node, the heap property is restored by a downward adjustment from the
+     * root. If the heap is empty, an exception is thrown.
      *
      * @return The value of the root element that was removed from the heap.
      * @throws std::out_of_range If the heap is empty.
@@ -139,8 +137,9 @@ public:
     /**
      * Retrieves and returns the value stored at the root of the heap.
      *
-     * This method provides access to the root element of the heap without removing it.
-     * If the heap is empty, an exception is thrown to indicate the error.
+     * This method provides access to the root element of the heap without
+     * removing it. If the heap is empty, an exception is thrown to indicate the
+     * error.
      *
      * @return The value stored at the root of the heap.
      * @throws std::out_of_range If the heap is empty.
@@ -154,7 +153,6 @@ public:
 
     /// Destructor
     ~Heap() override = default;
-
 };
 
-#endif //HEAP_HPP
+#endif // HEAP_HPP

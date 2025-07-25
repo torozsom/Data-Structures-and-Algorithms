@@ -12,13 +12,14 @@
  *
  * @tparam Type The data type stored in the node.
  */
-template<typename Type>
+template <typename Type>
 struct Node {
     Type data;
     Node* parent;
     Node* left;
     Node* right;
-    explicit Node(const Type& data) : data(data), parent(nullptr), left(nullptr), right(nullptr) {}
+    explicit Node(const Type& data)
+        : data(data), parent(nullptr), left(nullptr), right(nullptr) {}
 };
 
 
@@ -26,26 +27,30 @@ struct Node {
  * @class BinaryTree
  * A binary tree data structure that stores elements of a given type.
  *
- * The binary tree is a tree data structure in which each node has at most two children,
- * referred to as the left child and the right child. The tree is defined recursively,
- * with each child node being the root of its own subtree.
+ * The binary tree is a tree data structure in which each node has at most two
+ * children, referred to as the left child and the right child. The tree is
+ * defined recursively, with each child node being the root of its own subtree.
  *
  * @tparam Type The type of elements stored in the binary tree.
  */
-template<typename Type>
+template <typename Type>
 class BinaryTree {
 
-protected:
+  protected:
     Node<Type>* root_;
     unsigned int size_;
 
 
     /**
-     * Creates a new copy of a binary tree node and all its child nodes recursively.
+     * Creates a new copy of a binary tree node and all its child nodes
+     * recursively.
      *
-     * @param otherNode A pointer to the node to be copied. If nullptr, returns nullptr.
-     * @param parent A pointer to the parent node of the current node being copied.
-     * @return A pointer to the newly created node, which is a copy of the input node along with its subtree.
+     * @param otherNode A pointer to the node to be copied. If nullptr, returns
+     * nullptr.
+     * @param parent A pointer to the parent node of the current node being
+     * copied.
+     * @return A pointer to the newly created node, which is a copy of the input
+     * node along with its subtree.
      */
     Node<Type>* copyNode(Node<Type>* otherNode, Node<Type>* parent = nullptr) {
         if (otherNode == nullptr)
@@ -61,9 +66,11 @@ protected:
 
 
     /**
-     * Recursively copies all elements from another binary tree into the current tree.
+     * Recursively copies all elements from another binary tree into the current
+     * tree.
      *
-     * @param other The binary tree whose elements are to be copied into the current tree.
+     * @param other The binary tree whose elements are to be copied into the
+     * current tree.
      */
     void recursiveCopy(const BinaryTree& other) {
         root_ = copyNode(other.root_);
@@ -73,7 +80,8 @@ protected:
     /**
      * Recursively calculates the height of the binary tree.
      *
-     * @param node Pointer to the current node being visited in the recursive process.
+     * @param node Pointer to the current node being visited in the recursive
+     * process.
      * @return The height of the binary tree.
      */
     unsigned recursiveHeight(Node<Type>* node) const {
@@ -87,9 +95,11 @@ protected:
 
 
     /**
-     * Performs an in-order traversal of the binary tree recursively and outputs the data of each node.
+     * Performs an in-order traversal of the binary tree recursively and outputs
+     * the data of each node.
      *
-     * @param node Pointer to the current node being visited during the in-order traversal.
+     * @param node Pointer to the current node being visited during the in-order
+     * traversal.
      */
     void recursiveInOrder(Node<Type>* node) const {
         if (node == nullptr)
@@ -102,10 +112,11 @@ protected:
 
 
     /**
-     * Performs a pre-order traversal of the binary tree recursively, visiting nodes in the order:
-     * root, left subtree, right subtree.
+     * Performs a pre-order traversal of the binary tree recursively, visiting
+     * nodes in the order: root, left subtree, right subtree.
      *
-     * @param node The current node in the binary tree being visited during the traversal.
+     * @param node The current node in the binary tree being visited during the
+     * traversal.
      */
     void recursivePreOrder(Node<Type>* node) const {
         if (node == nullptr)
@@ -118,10 +129,12 @@ protected:
 
 
     /**
-     * Performs a recursive post-order traversal of the binary tree and processes each node.
-     * The traversal visits the left subtree, then the right subtree, and finally the current node.
+     * Performs a recursive post-order traversal of the binary tree and
+     * processes each node. The traversal visits the left subtree, then the
+     * right subtree, and finally the current node.
      *
-     * @param node Pointer to the current node being visited in the traversal process.
+     * @param node Pointer to the current node being visited in the traversal
+     * process.
      */
     void recursivePostOrder(Node<Type>* node) const {
         if (node == nullptr)
@@ -134,9 +147,11 @@ protected:
 
 
     /**
-     * Recursively clears the binary tree by deallocating memory occupied by all nodes.
+     * Recursively clears the binary tree by deallocating memory occupied by all
+     * nodes.
      *
-     * @param node Pointer to the current node in the binary tree that is being cleared.
+     * @param node Pointer to the current node in the binary tree that is being
+     * cleared.
      */
     void recursiveClear(Node<Type>* node) {
         if (node == nullptr)
@@ -149,24 +164,28 @@ protected:
 
 
     /**
-     * Recursively checks if a binary tree contains a node with a specific value.
+     * Recursively checks if a binary tree contains a node with a specific
+     * value.
      *
-     * @param node Pointer to the current node being visited in the recursive process.
+     * @param node Pointer to the current node being visited in the recursive
+     * process.
      * @param value The value to search for in the binary tree.
      * @return True if the value is found in the binary tree, false otherwise.
      */
-    bool recursiveContainsNode(const Node<Type>* node, const Type& value) const {
+    bool recursiveContainsNode(const Node<Type>* node,
+                               const Type& value) const {
         if (node == nullptr)
             return false;
 
         if (node->data == value)
             return true;
 
-        return recursiveContainsNode(node->left, value) || recursiveContainsNode(node->right, value);
+        return recursiveContainsNode(node->left, value) ||
+               recursiveContainsNode(node->right, value);
     }
 
 
-public:
+  public:
     /// Default constructor
     BinaryTree() : root_(nullptr), size_(0) {}
 
@@ -176,7 +195,8 @@ public:
     }
 
     /// Move constructor
-    BinaryTree(BinaryTree&& other) noexcept : root_(other.root_), size_(other.size_) {
+    BinaryTree(BinaryTree&& other) noexcept
+        : root_(other.root_), size_(other.size_) {
         other.root_ = nullptr;
         other.size_ = 0;
     }
@@ -244,7 +264,8 @@ public:
     /**
      * Inserts an element as the leftmost child of the binary tree.
      *
-     * @param element The element to be inserted at the leftmost position of the binary tree.
+     * @param element The element to be inserted at the leftmost position of the
+     * binary tree.
      */
     void insertLeft(const Type& element) {
         if (this->isEmpty()) {
@@ -276,28 +297,23 @@ public:
 
 
     /// Prints the elements of the binary tree in in-order traversal.
-    void printInOrder() const {
-        recursiveInOrder(root_);
-    }
+    void printInOrder() const { recursiveInOrder(root_); }
 
 
     /// Prints the elements of the binary tree in pre-order traversal.
-    void printPreOrder() const {
-        recursivePreOrder(root_);
-    }
+    void printPreOrder() const { recursivePreOrder(root_); }
 
 
     /// Prints the elements of the binary tree in post-order traversal.
-    void printPostOrder() const {
-        recursivePostOrder(root_);
-    }
+    void printPostOrder() const { recursivePostOrder(root_); }
 
 
     /**
-     * Clears the binary tree by deallocating all nodes and resetting the tree to an empty state.
+     * Clears the binary tree by deallocating all nodes and resetting the tree
+     * to an empty state.
      *
-     * This method ensures that all allocated memory for the tree nodes is released,
-     * leaving the root pointer as nullptr.
+     * This method ensures that all allocated memory for the tree nodes is
+     * released, leaving the root pointer as nullptr.
      */
     void clear() {
         recursiveClear(root_);
@@ -308,7 +324,6 @@ public:
 
     /// Destructor
     virtual ~BinaryTree() { clear(); }
-
 };
 
-#endif //BINARYTREE_HPP
+#endif // BINARYTREE_HPP

@@ -6,7 +6,6 @@
 #include "Heap.hpp"
 
 
-
 /**
  * @class MaxHeap
  *
@@ -17,14 +16,14 @@
  *
  * @tparam Type The type of elements stored in the heap.
  */
-template<typename Type>
+template <typename Type>
 class MaxHeap final : public Heap<Type> {
 
-protected:
+  private:
     /**
      * Restores the max-heap property by moving the given node upwards.
-     * Starting from the given node, this method swaps the node's data with its parent
-     * if its value is greater than the parent's value, continuing until
+     * Starting from the given node, this method swaps the node's data with its
+     * parent if its value is greater than the parent's value, continuing until
      * the heap property is restored or the root is reached.
      *
      * @param node A pointer to the node that needs adjustment upwards.
@@ -39,9 +38,10 @@ protected:
 
     /**
      * Restores the max-heap property by moving the given node downwards.
-     * Starting from the given node, this method swaps its data with its largest child
-     * if the largest child's value is greater than the current node's value, 
-     * continuing recursively until the max-heap property is properly restored.
+     * Starting from the given node, this method swaps its data with its largest
+     * child if the largest child's value is greater than the current node's
+     * value, continuing recursively until the max-heap property is properly
+     * restored.
      *
      * @param node A pointer to the node that needs adjustment downwards.
      */
@@ -63,7 +63,7 @@ protected:
         }
     }
 
-public:
+  public:
     MaxHeap() = default;
 
     MaxHeap(const MaxHeap& other) = default;
@@ -76,9 +76,9 @@ public:
 
 
     /**
-     * Inserts a new element into the heap while maintaining the max-heap property.
-     * The new element is placed in a determined location based on a binary path,
-     * and then heapified upwards to maintain the heap property.
+     * Inserts a new element into the heap while maintaining the max-heap
+     * property. The new element is placed in a determined location based on a
+     * binary path, and then heapified upwards to maintain the heap property.
      *
      * @param element The element to be inserted into the heap.
      */
@@ -131,7 +131,6 @@ public:
 
 
     ~MaxHeap() override = default;
-
 };
 
 #endif // MAXHEAP_HPP

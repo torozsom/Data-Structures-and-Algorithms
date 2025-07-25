@@ -17,15 +17,15 @@ enum Choice {
 
 void printMenu() {
     std::cout << "\nWhat would you like to test?\n"
-            "1. Dynamic Array \n"
-            "2. Linked List \n"
-            "3. Stack \n"
-            "4. Binary Tree \n"
-            "5. Binary Search Tree \n"
-            "6. Minimum Heap \n"
-            "7. Maximum Heap \n"
-            "8. All \n"
-            "9. Exit \n";
+                 "1. Dynamic Array \n"
+                 "2. Linked List \n"
+                 "3. Stack \n"
+                 "4. Binary Tree \n"
+                 "5. Binary Search Tree \n"
+                 "6. Minimum Heap \n"
+                 "7. Maximum Heap \n"
+                 "8. All \n"
+                 "9. Exit \n";
 }
 
 
@@ -37,50 +37,50 @@ int main() {
         std::cout << "\nEnter a number:  ";
         std::cin >> num;
         switch (static_cast<Choice>(num)) {
-            case DYNAMIC_ARRAY:
-                testDynamicArray();
-                break;
+        case DYNAMIC_ARRAY:
+            testDynamicArray();
+            break;
 
-            case LINKED_LIST:
-                testLinkedList();
-                break;
+        case LINKED_LIST:
+            testLinkedList();
+            break;
 
-            case STACK:
-                testStack();
-                break;
+        case STACK:
+            testStack();
+            break;
 
-            case BINARY_TREE:
-                testBinaryTree();
-                break;
+        case BINARY_TREE:
+            testBinaryTree();
+            break;
 
-            case BINARY_SEARCH_TREE:
-                testBinarySearchTree();
-                break;
+        case BINARY_SEARCH_TREE:
+            testBinarySearchTree();
+            break;
 
-            case MIN_HEAP:
-                testMinHeap();
-                break;
+        case MIN_HEAP:
+            testMinHeap();
+            break;
 
-            case MAX_HEAP:
-                testMaxHeap();
-                break;
+        case MAX_HEAP:
+            testMaxHeap();
+            break;
 
-            case ALL:
-                testDynamicArray();
-                testLinkedList();
-                testStack();
-                testBinaryTree();
-                testBinarySearchTree();
-                testMinHeap();
-                testMaxHeap();
-                break;
+        case ALL:
+            testDynamicArray();
+            testLinkedList();
+            testStack();
+            testBinaryTree();
+            testBinarySearchTree();
+            testMinHeap();
+            testMaxHeap();
+            break;
 
-            case EXIT:
-                break;
+        case EXIT:
+            break;
 
-            default:
-                std::cout << "Invalid input" << std::endl;
-                break;
+        default:
+            std::cout << "Invalid input" << std::endl;
+            break;
         }
     } while (num != EXIT);
 

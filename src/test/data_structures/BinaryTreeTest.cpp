@@ -2,19 +2,25 @@
 #include "Tests.h"
 
 
-
 /**
  * @brief Tests various functionalities of a binary tree implementation.
  *
- * This method evaluates the correctness of a BinaryTree class by performing the following actions:
+ * This method evaluates the correctness of a BinaryTree class by performing the
+ * following actions:
  * - Verifying if the tree is initially empty by checking its height.
- * - Inserting a root node and verifying its properties through in-order traversal and height measurement.
- * - Adding nodes to the left subtree and testing the updated tree structure using in-order traversal and height analysis.
- * - Adding nodes to the right subtree and confirming the updated tree configuration through in-order traversal and height verification.
- * - Testing different traversal methods such as in-order, pre-order, and post-order to verify proper ordering of nodes in the tree.
- * - Clearing the tree to ensure all nodes are removed and confirming the state of the tree as empty.
+ * - Inserting a root node and verifying its properties through in-order
+ * traversal and height measurement.
+ * - Adding nodes to the left subtree and testing the updated tree structure
+ * using in-order traversal and height analysis.
+ * - Adding nodes to the right subtree and confirming the updated tree
+ * configuration through in-order traversal and height verification.
+ * - Testing different traversal methods such as in-order, pre-order, and
+ * post-order to verify proper ordering of nodes in the tree.
+ * - Clearing the tree to ensure all nodes are removed and confirming the state
+ * of the tree as empty.
  *
- * The function outputs intermediate results to assist in debugging and validation of the binary tree's behavior.
+ * The function outputs intermediate results to assist in debugging and
+ * validation of the binary tree's behavior.
  */
 void testBinaryTree() {
     BinaryTree<int> tree;
@@ -22,11 +28,13 @@ void testBinaryTree() {
     std::cout << "\n\n==== Testing Binary Tree ====" << std::endl;
 
     // **Test Empty Tree**
-    std::cout << "Is the tree empty initially? " << (tree.getHeight() == 0 ? "Yes" : "No") << std::endl;
+    std::cout << "Is the tree empty initially? "
+              << (tree.getHeight() == 0 ? "Yes" : "No") << std::endl;
 
     // **Insert Root Node**
     std::cout << "\n-- Inserting Root Node --" << std::endl;
-    tree.insertLeft(10); // The first insert will become the root (if logic permits)
+    tree.insertLeft(
+        10); // The first insert will become the root (if logic permits)
     std::cout << "In-Order Traversal after inserting root: ";
     tree.printInOrder();
     std::cout << "\nTree Height: " << tree.getHeight() << std::endl;
@@ -61,5 +69,6 @@ void testBinaryTree() {
     std::cout << "\n-- Clearing the Tree --" << std::endl;
     tree.clear();
     std::cout << "Tree cleared.\n";
-    std::cout << "Is the tree empty after clearing? " << (tree.getHeight() == 0 ? "Yes" : "No") << std::endl;
+    std::cout << "Is the tree empty after clearing? "
+              << (tree.getHeight() == 0 ? "Yes" : "No") << std::endl;
 }

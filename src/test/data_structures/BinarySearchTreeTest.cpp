@@ -40,5 +40,6 @@ void testBinarySearchTree() {
     // **Clear Tree**
     std::cout << "\n-- Clearing the Tree --" << std::endl;
     bst.clear();
-    std::cout << "Tree cleared. Is empty? " << (bst.getHeight() == 0 ? "Yes" : "No") << "\n";
+    std::cout << "Tree cleared. Is empty? "
+              << (bst.getHeight() == 0 ? "Yes" : "No") << "\n";
 }

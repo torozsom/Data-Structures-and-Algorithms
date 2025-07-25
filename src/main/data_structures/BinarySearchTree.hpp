@@ -12,21 +12,23 @@
  *
  * A binary search tree data structure that stores elements of a given type.
  *
- * The binary search tree is a binary tree data structure in which each node has at most two children,
- * referred to as the left child and the right child. The tree is defined recursively,
- * with each child node being the root of its own subtree.
+ * The binary search tree is a binary tree data structure in which each node has
+ * at most two children, referred to as the left child and the right child. The
+ * tree is defined recursively, with each child node being the root of its own
+ * subtree.
  *
- * The binary search tree is a special type of binary tree in which the elements are ordered in a specific way.
- * For each node, all elements in the left subtree are less than the node's element, and all elements in the right
- * subtree are greater than the node's element. This ordering property allows for efficient search, insertion,
- * and deletion operations.
+ * The binary search tree is a special type of binary tree in which the elements
+ * are ordered in a specific way. For each node, all elements in the left
+ * subtree are less than the node's element, and all elements in the right
+ * subtree are greater than the node's element. This ordering property allows
+ * for efficient search, insertion, and deletion operations.
  *
  * @tparam Type The type of elements stored in the binary search tree.
  */
-template<typename Type>
+template <typename Type>
 class BinarySearchTree final : public BinaryTree<Type> {
 
-private:
+  private:
     /**
      * Recursively inserts an element into a binary search tree.
      *
@@ -37,11 +39,14 @@ private:
      * than the current node's data, the method continues traversal to the
      * left subtree; otherwise, it traverses to the right subtree.
      *
-     * @param node A reference to a pointer to the current node of the subtree being traversed.
+     * @param node A reference to a pointer to the current node of the subtree
+     * being traversed.
      * @param element The element to be inserted into the tree.
-     * @param parent A pointer to the parent node of the current node being examined.
+     * @param parent A pointer to the parent node of the current node being
+     * examined.
      */
-    void recursiveInsert(Node<Type>*& node, const Type& element, Node<Type>* parent = nullptr) {
+    void recursiveInsert(Node<Type>*& node, const Type& element,
+                         Node<Type>* parent = nullptr) {
         if (node == nullptr) {
             node = new Node<Type>(element);
             node->parent = parent;
@@ -109,9 +114,10 @@ private:
      * in the subtree. If the provided node is nullptr, the method
      * returns nullptr.
      *
-     * @param node A pointer to the root of the subtree in which to find the minimum node.
-     * @return A pointer to the node containing the minimum value in the subtree,
-     *         or nullptr if the subtree is empty.
+     * @param node A pointer to the root of the subtree in which to find the
+     * minimum node.
+     * @return A pointer to the node containing the minimum value in the
+     * subtree, or nullptr if the subtree is empty.
      */
     Node<Type>* findMin(Node<Type>* node) const {
         if (node == nullptr)
@@ -123,8 +129,7 @@ private:
     }
 
 
-
-public:
+  public:
     BinarySearchTree() = default;
 
     BinarySearchTree(const Type* array, const unsigned int size) {
@@ -152,9 +157,7 @@ public:
      *
      * @param element The element to be inserted into the tree.
      */
-    void insert(const Type& element) {
-        recursiveInsert(this->root_, element);
-    }
+    void insert(const Type& element) { recursiveInsert(this->root_, element); }
 
 
     void insertLeft(const Type& element) = delete;
@@ -165,15 +168,14 @@ public:
      * Removes an element from the binary search tree.
      *
      * This method removes a specified element from the binary search tree
-     * by recursively traversing the tree to locate the node containing the element.
-     * If the element is found, it is removed according to standard binary search tree
-     * removal logic. If the element is not found, the tree remains unchanged.
+     * by recursively traversing the tree to locate the node containing the
+     * element. If the element is found, it is removed according to standard
+     * binary search tree removal logic. If the element is not found, the tree
+     * remains unchanged.
      *
      * @param element The element to be removed from the tree.
      */
-    void remove(const Type& element) {
-        recursiveRemove(this->root_, element);
-    }
+    void remove(const Type& element) { recursiveRemove(this->root_, element); }
 
 
     /**
@@ -204,8 +206,7 @@ public:
 
 
     ~BinarySearchTree() override = default;
-
 };
 
 
-#endif //BINARYSEARCHTREE_HPP
+#endif // BINARYSEARCHTREE_HPP

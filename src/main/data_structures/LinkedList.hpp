@@ -7,7 +7,6 @@
 #include <iostream>
 
 
-
 /**
  * @class LinkedList
  *
@@ -15,15 +14,16 @@
  * removing, and accessing elements. The internal storage is implemented using
  * a doubly linked list structure.
  */
-template<typename Type>
+template <typename Type>
 class LinkedList {
 
-private:
+  private:
     struct Node {
         Type data;
         Node* next;
         Node* prev;
-        explicit Node(const Type& data) : data(data), next(nullptr), prev(nullptr) {}
+        explicit Node(const Type& data)
+            : data(data), next(nullptr), prev(nullptr) {}
     };
 
     Node* head_;
@@ -31,19 +31,21 @@ private:
     unsigned int size_;
 
 
-public:
+  public:
     /// Default constructor
     LinkedList() : head_(nullptr), tail_(nullptr), size_(0) {}
 
 
-    LinkedList(const Type* array, const unsigned int size) : head_(nullptr), tail_(nullptr), size_(0) {
+    LinkedList(const Type* array, const unsigned int size)
+        : head_(nullptr), tail_(nullptr), size_(0) {
         for (unsigned int i = 0; i < size; ++i)
             addLast(array[i]);
     }
 
 
     /// Copy constructor
-    LinkedList(const LinkedList& other) : head_(nullptr), tail_(nullptr), size_(other.size_) {
+    LinkedList(const LinkedList& other)
+        : head_(nullptr), tail_(nullptr), size_(other.size_) {
         Node* current = other.head_;
         while (current != nullptr) {
             addLast(current->data);
@@ -151,12 +153,14 @@ public:
     /**
      * Inserts an element at the specified index in the linked list.
      * If the index is 0, the element is added to the beginning of the list.
-     * If the index is equal to the current size, the element is appended to the end.
-     * For other valid indices, the element is inserted at the desired position.
+     * If the index is equal to the current size, the element is appended to the
+     * end. For other valid indices, the element is inserted at the desired
+     * position.
      *
      * @param idx The index where the element should be inserted.
      * @param element The element of type Type to be inserted into the list.
-     * @throws std::out_of_range If the specified index is greater than the current size.
+     * @throws std::out_of_range If the specified index is greater than the
+     * current size.
      */
     void insert(const unsigned int idx, const Type& element) {
         if (idx > size_)
@@ -212,8 +216,8 @@ public:
     /**
      * Removes the last node from the linked list.
      * If the list is empty, the method returns without performing any action.
-     * If the list has only one node, the head and tail pointers are reset to nullptr.
-     * Decrements the size of the linked list by 1.
+     * If the list has only one node, the head and tail pointers are reset to
+     * nullptr. Decrements the size of the linked list by 1.
      */
     void removeLast() {
         if (tail_ == nullptr)
@@ -235,11 +239,13 @@ public:
     /**
      * Removes the element at the specified index in the linked list.
      * If the index is 0, the first element is removed.
-     * If the index is equal to the size of the list minus 1, the last element is removed.
-     * For other valid indices, the element at the specified position is removed.
+     * If the index is equal to the size of the list minus 1, the last element
+     * is removed. For other valid indices, the element at the specified
+     * position is removed.
      *
      * @param idx The index of the element to remove.
-     * @throws std::out_of_range If the specified index is out of range (greater than or equal to the size of the list).
+     * @throws std::out_of_range If the specified index is out of range (greater
+     * than or equal to the size of the list).
      */
     void removeAt(const unsigned int idx) {
         if (idx >= size_)
@@ -274,12 +280,14 @@ public:
 
 
     /**
-     * Removes the first occurrence of the specified element from the linked list.
-     * If the element is found, it is removed from the list, and the size of the
-     * linked list is decremented. The method returns immediately after removing
-     * the element. If the element is not found, no changes are made to the list.
+     * Removes the first occurrence of the specified element from the linked
+     * list. If the element is found, it is removed from the list, and the size
+     * of the linked list is decremented. The method returns immediately after
+     * removing the element. If the element is not found, no changes are made to
+     * the list.
      *
-     * @param element The element of type Type to be removed from the linked list.
+     * @param element The element of type Type to be removed from the linked
+     * list.
      */
     void remove(const Type& element) {
         Node* current = head_;
@@ -308,7 +316,8 @@ public:
      *
      * @param idx The zero-based index of the element to retrieve.
      * @return A reference to the data at the specified index.
-     * @throws std::out_of_range If the provided index is outside the bounds of the list.
+     * @throws std::out_of_range If the provided index is outside the bounds of
+     * the list.
      */
     Type& get(const unsigned int idx) const {
         if (idx >= size_)
@@ -330,9 +339,9 @@ public:
 
 
     /**
-     * Removes all elements from the linked list and releases their allocated memory.
-     * After this operation, the linked list will be empty, with head and tail pointers
-     * set to nullptr and the size set to zero.
+     * Removes all elements from the linked list and releases their allocated
+     * memory. After this operation, the linked list will be empty, with head
+     * and tail pointers set to nullptr and the size set to zero.
      */
     void clear() {
         while (!isEmpty())
@@ -341,9 +350,9 @@ public:
 
 
     /**
-     * Prints the elements of the linked list in forward order, starting from the
-     * first node (head) to the last node (tail). The elements are separated by
-     * a space and terminated with a newline character. If the list is empty,
+     * Prints the elements of the linked list in forward order, starting from
+     * the first node (head) to the last node (tail). The elements are separated
+     * by a space and terminated with a newline character. If the list is empty,
      * no output is produced.
      */
     void printForward() const {
@@ -357,9 +366,9 @@ public:
 
 
     /**
-     * Prints the elements of the linked list in reverse order, from the tail to the head.
-     * Each element is output to the standard output stream, separated by spaces.
-     * If the list is empty, no output is produced.
+     * Prints the elements of the linked list in reverse order, from the tail to
+     * the head. Each element is output to the standard output stream, separated
+     * by spaces. If the list is empty, no output is produced.
      */
     void printBackward() const {
         Node* current = tail_;
@@ -373,8 +382,7 @@ public:
 
     /// Destructor
     ~LinkedList() { clear(); }
-
 };
 
 
-#endif //LINKEDLIST_HPP
+#endif // LINKEDLIST_HPP

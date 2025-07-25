@@ -3,9 +3,8 @@
 #ifndef STACK_HPP
 #define STACK_HPP
 
-#include <iostream>
 #include "DynamicArray.hpp"
-
+#include <iostream>
 
 
 /**
@@ -15,13 +14,13 @@
  * from the stack. Elements can only be added to or removed from the top
  * of the stack.
  */
-template<typename Type>
+template <typename Type>
 class Stack {
 
-private:
+  private:
     DynamicArray<Type> array_;
 
-public:
+  public:
     Stack() = default;
 
     Stack(const Stack& other) = default;
@@ -31,7 +30,6 @@ public:
     Stack& operator=(const Stack& other) = default;
 
     Stack& operator=(Stack&& other) noexcept = default;
-
 
 
     bool isEmpty() const { return array_.isEmpty(); }
@@ -46,9 +44,7 @@ public:
      *
      * @param element The element to be added to the stack.
      */
-    void push(const Type& element) {
-        array_.addLast(element);
-    }
+    void push(const Type& element) { array_.addLast(element); }
 
 
     /**
@@ -112,4 +108,4 @@ public:
 };
 
 
-#endif //STACK_HPP
+#endif // STACK_HPP

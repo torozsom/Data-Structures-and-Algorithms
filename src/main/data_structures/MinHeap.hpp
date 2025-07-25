@@ -6,7 +6,6 @@
 #include "Heap.hpp"
 
 
-
 /**
  * @class MinHeap
  *
@@ -17,15 +16,15 @@
  *
  * @tparam Type The type of elements stored in the heap.
  */
-template<typename Type>
+template <typename Type>
 class MinHeap final : public Heap<Type> {
 
-protected:
+  private:
     /**
      * Restores the heap property by moving the given node upwards in the heap.
-     * Starting from the given node, this method swaps its data with its parent's
-     * data if its value is less than the parent's value, continuing until the
-     * heap property is restored or the root is reached.
+     * Starting from the given node, this method swaps its data with its
+     * parent's data if its value is less than the parent's value, continuing
+     * until the heap property is restored or the root is reached.
      *
      * @param node A pointer to the node that needs to be adjusted upwards.
      */
@@ -38,11 +37,11 @@ protected:
 
 
     /**
-     * Restores the heap property by moving the given node downwards in the heap.
-     * Starting from the given node, this method swaps its data with the smallest
-     * child's data if the smallest child's value is less than the current node's
-     * value, continuing recursively until the heap property is restored or the node
-     * has no children that violate the property.
+     * Restores the heap property by moving the given node downwards in the
+     * heap. Starting from the given node, this method swaps its data with the
+     * smallest child's data if the smallest child's value is less than the
+     * current node's value, continuing recursively until the heap property is
+     * restored or the node has no children that violate the property.
      *
      * @param node A pointer to the node that needs to be adjusted downwards.
      */
@@ -65,8 +64,7 @@ protected:
     }
 
 
-
-public:
+  public:
     MinHeap() = default;
 
     MinHeap(const MinHeap& other) = default;
@@ -137,7 +135,6 @@ public:
 
 
     ~MinHeap() override = default;
-
 };
 
 #endif // MINHEAP_HPP

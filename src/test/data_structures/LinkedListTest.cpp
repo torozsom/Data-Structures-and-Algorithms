@@ -4,7 +4,8 @@
 /**
  * @brief Tests various functionalities of a doubly linked list implementation.
  *
- * This method evaluates the correctness of a LinkedList class with the following operations:
+ * This method evaluates the correctness of a LinkedList class with the
+ * following operations:
  * - Checking if the list is empty and getting its size.
  * - Adding elements to the beginning and end of the list.
  * - Printing the list contents in both forward and backward order.
@@ -15,16 +16,18 @@
  * - Handling edge cases such as invalid indices and operating on an empty list.
  * - Clearing the list and verifying its state afterward.
  *
- * The function uses try-catch blocks to handle exceptions caused by out-of-range access or removal.
+ * The function uses try-catch blocks to handle exceptions caused by
+ * out-of-range access or removal.
  */
 void testLinkedList() {
-     // Create a LinkedList of integers
+    // Create a LinkedList of integers
     LinkedList<int> list;
 
     std::cout << "\n\n==== Testing Doubly Linked List ====" << std::endl;
 
     // Test isEmpty and getSize on an empty list
-    std::cout << "Is the list empty? " << (list.isEmpty() ? "Yes" : "No") << std::endl;
+    std::cout << "Is the list empty? " << (list.isEmpty() ? "Yes" : "No")
+              << std::endl;
     std::cout << "Size of the list: " << list.getSize() << std::endl;
 
     // Add elements to the list
@@ -93,7 +96,8 @@ void testLinkedList() {
     list.clear();
     std::cout << "List after clearing (Forward): ";
     list.printForward();
-    std::cout << "Is the list empty? " << (list.isEmpty() ? "Yes" : "No") << std::endl;
+    std::cout << "Is the list empty? " << (list.isEmpty() ? "Yes" : "No")
+              << std::endl;
 
     // Test edge cases for get on an empty list
     try {

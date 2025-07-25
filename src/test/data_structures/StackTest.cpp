@@ -5,7 +5,8 @@
 /**
  * @brief Tests various functionalities of a stack implementation.
  *
- * This method evaluates the correctness of a generic stack implementation using the following operations:
+ * This method evaluates the correctness of a generic stack implementation using
+ * the following operations:
  * - Checking if the stack is empty and retrieving its size.
  * - Pushing elements onto the stack.
  * - Printing the contents of the stack from top to bottom.
@@ -13,8 +14,8 @@
  * - Popping elements from the stack and retrieving the updated state.
  * - Clearing the stack and verifying its empty state.
  *
- * The method includes scenarios to ensure correct behavior during typical stack operations
- * and edge cases such as empty stack conditions.
+ * The method includes scenarios to ensure correct behavior during typical stack
+ * operations and edge cases such as empty stack conditions.
  */
 void testStack() {
     Stack<int> stack;
@@ -22,7 +23,8 @@ void testStack() {
     std::cout << "\n\n==== Testing Stack Implementation ====" << std::endl;
 
     // Test isEmpty and getSize
-    std::cout << "Is stack empty? " << (stack.isEmpty() ? "Yes" : "No") << std::endl;
+    std::cout << "Is stack empty? " << (stack.isEmpty() ? "Yes" : "No")
+              << std::endl;
     std::cout << "Stack size: " << stack.getSize() << std::endl;
 
     // Push elements
@@ -43,12 +45,14 @@ void testStack() {
 
     // Check size and empty status
     std::cout << "Stack size: " << stack.getSize() << std::endl;
-    std::cout << "Is stack empty? " << (stack.isEmpty() ? "Yes" : "No") << std::endl;
+    std::cout << "Is stack empty? " << (stack.isEmpty() ? "Yes" : "No")
+              << std::endl;
 
     // Clear stack
     stack.clear();
     std::cout << "\nStack after clearing:" << std::endl;
     stack.print();
 
-    std::cout << "Is stack empty? " << (stack.isEmpty() ? "Yes" : "No") << std::endl;
+    std::cout << "Is stack empty? " << (stack.isEmpty() ? "Yes" : "No")
+              << std::endl;
 }
