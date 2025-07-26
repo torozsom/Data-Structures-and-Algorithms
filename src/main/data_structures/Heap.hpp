@@ -47,22 +47,25 @@ class Heap : public BinaryTree<Type> {
         if (this->isEmpty())
             return nullptr;
 
-        unsigned int n = this->size();
-        std::bitset<32> binary(n);
+        const unsigned int n = this->size();
+        const std::bitset<32> binary(n);
         std::string path = binary.to_string();
 
-        unsigned int index = path.find('1');
+        const unsigned int index = path.find('1');
+        if (index == std::string::npos)
+            return this->root_;
+
         path = path.substr(index + 1);
 
         Node<Type>* current = this->root_;
         for (char direction : path) {
+            if (current == nullptr)
+                break;
+
             if (direction == '0')
                 current = current->left;
             else
                 current = current->right;
-
-            if (current == nullptr)
-                break;
         }
 
         return current;
@@ -93,6 +96,7 @@ class Heap : public BinaryTree<Type> {
     void insertRight(const Type& element) = delete;
 
     virtual void insert(const Type& element) = 0;
+    virtual bool isValidHeap() const = 0;
 
 
     /**
@@ -117,6 +121,7 @@ class Heap : public BinaryTree<Type> {
         if (lastNode == this->root_) {
             delete this->root_;
             this->root_ = nullptr;
+            this->size_ = 0;
         } else {
             this->root_->data = lastNode->data;
 
@@ -126,10 +131,10 @@ class Heap : public BinaryTree<Type> {
                 lastNode->parent->right = nullptr;
 
             delete lastNode;
+            --this->size_;
             heapifyDown(this->root_);
         }
 
-        --this->size_;
         return rootValue;
     }
 

@@ -54,7 +54,7 @@ class Stack {
      * @return A reference to the top element of the stack.
      * @throws std::out_of_range If the stack is empty.
      */
-    Type& pop() {
+    Type pop() {
         if (array_.isEmpty())
             throw std::out_of_range("Stack is empty");
 
@@ -68,11 +68,11 @@ class Stack {
      * @return A reference to the top element of the stack.
      * @throws std::out_of_range If the stack is empty.
      */
-    Type& peek() {
+    Type& top() {
         if (array_.isEmpty())
             throw std::out_of_range("Stack is empty");
 
-        return array_[array_.getSize() - 1];
+        return array_.getLast();
     }
 
 
@@ -82,11 +82,11 @@ class Stack {
      * @return A constant reference to the top element of the stack.
      * @throws std::out_of_range If the stack is empty.
      */
-    const Type& peek() const {
+    const Type& top() const {
         if (array_.isEmpty())
             throw std::out_of_range("Stack is empty");
 
-        return array_[array_.getSize() - 1];
+        return array_.getLast();
     }
 
 

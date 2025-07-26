@@ -4,6 +4,7 @@
 #define BINARYTREE_HPP
 
 
+#include "Queue.hpp"
 #include <iostream>
 
 
@@ -88,9 +89,9 @@ class BinaryTree {
         if (node == nullptr)
             return 0;
 
-        unsigned leftHeight = recursiveHeight(node->left);
-        unsigned rightHeight = recursiveHeight(node->right);
-        return 1 + std::max(leftHeight, rightHeight);
+        const unsigned leftHeight = recursiveHeight(node->left);
+        const unsigned rightHeight = recursiveHeight(node->right);
+        return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
     }
 
 
@@ -147,6 +148,36 @@ class BinaryTree {
 
 
     /**
+     * Performs a level-order traversal of the binary tree using a queue to
+     * visit nodes level by level, from left to right.
+     *
+     * @param node Pointer to the root node of the binary tree.
+     */
+    void levelOrder() const {
+        if (isEmpty()) {
+            std::cout << "Tree is empty" << std::endl;
+            return;
+        }
+
+        Queue<Node<Type>*> queue;
+        queue.enqueue(root_);
+
+        std::cout << "Level-order: ";
+        while (!queue.isEmpty()) {
+            Node<Type>* current = queue.dequeue();
+            std::cout << current->data << " ";
+
+            if (current->left != nullptr)
+                queue.enqueue(current->left);
+            if (current->right != nullptr)
+                queue.enqueue(current->right);
+        }
+
+        std::cout << std::endl;
+    }
+
+
+    /**
      * Recursively clears the binary tree by deallocating memory occupied by all
      * nodes.
      *
@@ -185,9 +216,46 @@ class BinaryTree {
     }
 
 
+    /**
+     * Recursively searches for a node with a specific value in the binary tree.
+     *
+     * @param node Pointer to the current node being visited in the recursive
+     * process.
+     * @param value The value to search for in the binary tree.
+     * @return A pointer to the node containing the value, or nullptr if not
+     * found.
+     */
+    Node<Type>* recursiveFindNode(Node<Type>* node, const Type& value) const {
+        if (node == nullptr)
+            return nullptr;
+
+        if (node->data == value)
+            return node;
+
+        // ✅ Search both subtrees and return first match found
+        Node<Type>* leftResult = recursiveFindNode(node->left, value);
+        if (leftResult != nullptr)
+            return leftResult;
+
+        return recursiveFindNode(node->right, value);
+    }
+
+
   public:
     /// Default constructor
     BinaryTree() : root_(nullptr), size_(0) {}
+
+    /**
+     * Constructor that creates a binary tree from an array using level-order
+     * insertion.
+     * @param array Pointer to the array of elements.
+     * @param arraySize Number of elements in the array.
+     */
+    BinaryTree(const Type* array, const unsigned int size)
+        : root_(nullptr), size_(0) {
+        for (unsigned int i = 0; i < size; i++)
+            insert(array[i]);
+    }
 
     /// Copy constructor
     BinaryTree(const BinaryTree& other) : root_(nullptr), size_(other.size_) {
@@ -237,6 +305,31 @@ class BinaryTree {
     unsigned getHeight() const { return recursiveHeight(root_); }
 
 
+    /// Checks if the binary tree is a complete binary tree.
+    bool isCompleteTree() const {
+        if (this->isEmpty())
+            return true;
+
+        Queue<Node<Type>*> queue;
+        queue.enqueue(this->root_);
+        bool foundNull = false;
+
+        while (!queue.isEmpty()) {
+            Node<Type>* current = queue.dequeue();
+
+            if (current == nullptr) {
+                foundNull = true;
+            } else {
+                if (foundNull) // Found non-null after null
+                    return false;
+                queue.enqueue(current->left);
+                queue.enqueue(current->right);
+            }
+        }
+        return true;
+    }
+
+
     /**
      * Inserts an element as the rightmost node of the binary tree.
      *
@@ -244,7 +337,7 @@ class BinaryTree {
      */
     void insertRight(const Type& element) {
         if (this->isEmpty()) {
-            root_ = new Node(element);
+            root_ = new Node<Type>(element);
             size_++;
             return;
         }
@@ -252,9 +345,8 @@ class BinaryTree {
         Node<Type>* current = root_;
         while (current->right != nullptr)
             current = current->right;
-        current->right = new Node(element);
 
-        Node<Type>* newNode = new Node(element);
+        Node<Type>* newNode = new Node<Type>(element);
         newNode->parent = current;
         current->right = newNode;
         size_++;
@@ -264,12 +356,11 @@ class BinaryTree {
     /**
      * Inserts an element as the leftmost child of the binary tree.
      *
-     * @param element The element to be inserted at the leftmost position of the
-     * binary tree.
+     * @param element The element to be inserted at the leftmost position.
      */
     void insertLeft(const Type& element) {
         if (this->isEmpty()) {
-            root_ = new Node(element);
+            root_ = new Node<Type>(element);
             size_++;
             return;
         }
@@ -278,10 +369,57 @@ class BinaryTree {
         while (current->left != nullptr)
             current = current->left;
 
-        Node<Type>* newNode = new Node(element);
+        Node<Type>* newNode = new Node<Type>(element);
         newNode->parent = current;
         current->left = newNode;
         size_++;
+    }
+
+
+    /**
+     * Inserts an element into the binary tree using level-order insertion.
+     * The insertion maintains the complete binary tree property. If the tree is
+     * empty, the element becomes the root node. Otherwise, the element is
+     * inserted as the first available position when traversing level by level
+     * from left to right.
+     *
+     * @param element The element to be inserted into the binary tree.
+     */
+    void insert(const Type& element) {
+        if (this->isEmpty()) {
+            root_ = new Node<Type>(element);
+            size_++;
+            return;
+        }
+
+        Queue<Node<Type>*> queue;
+        queue.enqueue(root_);
+
+        while (!queue.isEmpty()) {
+            Node<Type>* current = queue.dequeue();
+
+            // Check if left child is available
+            if (current->left == nullptr) {
+                Node<Type>* newNode = new Node<Type>(element);
+                newNode->parent = current;
+                current->left = newNode;
+                size_++;
+                return;
+            }
+
+            // Check if right child is available
+            if (current->right == nullptr) {
+                Node<Type>* newNode = new Node<Type>(element);
+                newNode->parent = current;
+                current->right = newNode;
+                size_++;
+                return;
+            }
+
+            // Both children exist, add them to queue for next level
+            queue.enqueue(current->left);
+            queue.enqueue(current->right);
+        }
     }
 
 
@@ -296,16 +434,88 @@ class BinaryTree {
     }
 
 
+    /**
+     * Finds a node with a specific value in the binary tree.
+     *
+     * @param value The value to search for in the binary tree.
+     * @return A pointer to the node containing the value, or nullptr if not
+     * found.
+     */
+    Node<Type>* findNode(const Type& value) const {
+        return recursiveFindNode(root_, value);
+    }
+
+
+    /**
+     * Finds a node with a specific value using level-order traversal.
+     *
+     * @param value The value to search for in the binary tree.
+     * @return A pointer to the node containing the value, or nullptr if not
+     * found.
+     */
+    Node<Type>* findNodeLevelOrder(const Type& value) const {
+        if (isEmpty())
+            return nullptr;
+
+        Queue<Node<Type>*> queue;
+        queue.enqueue(root_);
+
+        while (!queue.isEmpty()) {
+            Node<Type>* current = queue.dequeue();
+
+            if (current->data == value)
+                return current;
+
+            if (current->left != nullptr)
+                queue.enqueue(current->left);
+
+            if (current->right != nullptr)
+                queue.enqueue(current->right);
+        }
+
+        return nullptr;
+    }
+
+
     /// Prints the elements of the binary tree in in-order traversal.
     void printInOrder() const { recursiveInOrder(root_); }
-
 
     /// Prints the elements of the binary tree in pre-order traversal.
     void printPreOrder() const { recursivePreOrder(root_); }
 
-
     /// Prints the elements of the binary tree in post-order traversal.
     void printPostOrder() const { recursivePostOrder(root_); }
+
+    /// Prints the elements of the binary tree in level-order traversal.
+    void printLevelOrder() const { levelOrder(); }
+
+
+    /// Prints the structure and contents of the binary tree.
+    void print() const {
+        if (isEmpty()) {
+            std::cout << "Binary Tree is empty" << std::endl;
+            return;
+        }
+
+        std::cout << "\n=== Binary Tree Structure ===" << std::endl;
+        std::cout << "Size: " << size_ << ", Height: " << getHeight()
+                  << std::endl;
+
+        std::cout << "Level-order: ";
+        printLevelOrder();
+
+        std::cout << "In-order:    ";
+        printInOrder();
+        std::cout << std::endl;
+
+        std::cout << "Pre-order:   ";
+        printPreOrder();
+        std::cout << std::endl;
+
+        std::cout << "Post-order:  ";
+        printPostOrder();
+        std::cout << std::endl;
+    }
 
 
     /**

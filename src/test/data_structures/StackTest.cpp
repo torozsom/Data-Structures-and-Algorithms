@@ -36,7 +36,7 @@ void testStack() {
     stack.print();
 
     // Peek at the top
-    std::cout << "Top element: " << stack.peek() << std::endl;
+    std::cout << "Top element: " << stack.top() << std::endl;
 
     // Pop an element
     stack.pop();

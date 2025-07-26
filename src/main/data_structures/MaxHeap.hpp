@@ -64,6 +64,21 @@ class MaxHeap final : public Heap<Type> {
         }
     }
 
+
+    /// Checks if the heap maintains the max-heap property.
+    bool isValidMaxHeap(Node<Type>* node) const {
+        if (node == nullptr)
+            return true;
+
+        if (node->left && node->left->data > node->data)
+            return false;
+        if (node->right && node->right->data > node->data)
+            return false;
+
+        return isValidMaxHeap(node->left) && isValidMaxHeap(node->right);
+    }
+
+
   public:
     MaxHeap() = default;
 
@@ -129,6 +144,10 @@ class MaxHeap final : public Heap<Type> {
         ++this->size_;
         heapifyUp(newNode);
     }
+
+
+    /// Checks if the heap maintains the correct heap property.
+    bool isValidHeap() const override { return isValidMaxHeap(this->root_); }
 
 
     ~MaxHeap() override = default;

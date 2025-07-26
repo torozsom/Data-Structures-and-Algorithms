@@ -40,7 +40,8 @@ class LinkedList {
         : head_(nullptr), tail_(nullptr), size_(0) {
 
         if (size > 0 && array == nullptr)
-            throw std::invalid_argument("Initial data cannot be null if size is positive.");
+            throw std::invalid_argument(
+                "Initial data cannot be null if size is positive.");
 
         try {
             for (unsigned int i = 0; i < size; ++i)
@@ -403,9 +404,7 @@ class LinkedList {
      * @throws std::out_of_range If the provided index is outside the bounds of
      * the list.
      */
-    Type& operator[](const unsigned int idx) {
-        return get(idx);
-    }
+    Type& operator[](const unsigned int idx) { return get(idx); }
 
 
     /**
@@ -416,9 +415,7 @@ class LinkedList {
      * @throws std::out_of_range If the provided index is outside the bounds of
      * the list.
      */
-    const Type& operator[](const unsigned int idx) const {
-        return get(idx);
-    }
+    const Type& operator[](const unsigned int idx) const { return get(idx); }
 
 
     /**

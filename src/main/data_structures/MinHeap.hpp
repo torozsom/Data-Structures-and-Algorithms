@@ -65,6 +65,20 @@ class MinHeap final : public Heap<Type> {
     }
 
 
+    /// Checks if the heap maintains the min-heap property.
+    bool isValidMinHeap(Node<Type>* node) const {
+        if (node == nullptr)
+            return true;
+
+        if (node->left && node->left->data < node->data)
+            return false;
+        if (node->right && node->right->data < node->data)
+            return false;
+
+        return isValidMinHeap(node->left) && isValidMinHeap(node->right);
+    }
+
+
   public:
     MinHeap() = default;
 
@@ -133,6 +147,10 @@ class MinHeap final : public Heap<Type> {
         ++this->size_;
         heapifyUp(newNode);
     }
+
+
+    /// Checks if the heap maintains the correct heap property.
+    bool isValidHeap() const override { return isValidMinHeap(this->root_); }
 
 
     ~MinHeap() override = default;

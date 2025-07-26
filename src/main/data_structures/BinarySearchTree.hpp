@@ -50,6 +50,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
         if (node == nullptr) {
             node = new Node<Type>(element);
             node->parent = parent;
+            ++this->size_;
             return;
         }
 
@@ -84,6 +85,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
         } else if (element > node->data) {
             recursiveRemove(node->right, element);
         } else {
+            --this->size_;
             if (node->left == nullptr && node->right == nullptr) {
                 delete node;
                 node = nullptr;
@@ -98,7 +100,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
                 node->parent = temp->parent;
                 delete temp;
             } else {
-                Node<Type>* temp = findMin(node->right);
+                Node<Type>* temp = findMinNode(node->right);
                 node->data = temp->data;
                 recursiveRemove(node->right, temp->data);
             }
@@ -119,7 +121,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
      * @return A pointer to the node containing the minimum value in the
      * subtree, or nullptr if the subtree is empty.
      */
-    Node<Type>* findMin(Node<Type>* node) const {
+    Node<Type>* findMinNode(Node<Type>* node) const {
         if (node == nullptr)
             return nullptr;
 
@@ -129,11 +131,49 @@ class BinarySearchTree final : public BinaryTree<Type> {
     }
 
 
+    /**
+     * Finds the node with the maximum value in a subtree.
+     *
+     * This method traverses the right children of a given node
+     * to locate the rightmost node, which contains the largest value
+     * in the subtree. If the provided node is nullptr, the method
+     * returns nullptr.
+     *
+     * @param node A pointer to the root of the subtree in which to find the
+     * maximum node.
+     * @return A pointer to the node containing the maximum value in the
+     * subtree, or nullptr if the subtree is empty.
+     */
+    Node<Type>* findMaxNode(Node<Type>* node) const {
+        if (node == nullptr)
+            return nullptr;
+
+        while (node->right != nullptr)
+            node = node->right;
+        return node;
+    }
+
+
+    /// Checks if the binary tree is a valid BST.
+    bool isValidBSTHelper(Node<Type>* node, const Type* minVal = nullptr,
+                          const Type* maxVal = nullptr) const {
+        if (node == nullptr)
+            return true;
+
+        if ((minVal != nullptr && node->data <= *minVal) ||
+            (maxVal != nullptr && node->data >= *maxVal))
+            return false;
+
+        return isValidBSTHelper(node->left, minVal, &node->data) &&
+               isValidBSTHelper(node->right, &node->data, maxVal);
+    }
+
+
   public:
     BinarySearchTree() = default;
 
     BinarySearchTree(const Type* array, const unsigned int size) {
-        for (int i = 0; i < size; i++)
+        for (unsigned i = 0; i < size; i++)
             insert(array[i]);
     }
 
@@ -144,6 +184,10 @@ class BinarySearchTree final : public BinaryTree<Type> {
     BinarySearchTree& operator=(const BinarySearchTree& other) = default;
 
     BinarySearchTree& operator=(BinarySearchTree&& other) noexcept = default;
+
+
+    /// Checks if the binary tree is a valid BST.
+    bool isValidBST() const { return isValidBSTHelper(this->root_); }
 
 
     /**
@@ -202,6 +246,40 @@ class BinarySearchTree final : public BinaryTree<Type> {
             }
         }
         return false;
+    }
+
+
+    /**
+     * Finds the node with the minimum value in the binary search tree.
+     *
+     * This method traverses the left children of the root node to find
+     * the leftmost node, which contains the smallest value in the tree.
+     * If the tree is empty, it throws an exception.
+     *
+     * @return The minimum value in the binary search tree.
+     * @throws std::runtime_error If the tree is empty.
+     */
+    Type findMinimum() const {
+        if (this->isEmpty())
+            throw std::runtime_error("Tree is empty");
+        return findMinNode(this->root_)->data;
+    }
+
+
+    /**
+     * Finds the node with the maximum value in the binary search tree.
+     *
+     * This method traverses the right children of the root node to find
+     * the rightmost node, which contains the largest value in the tree.
+     * If the tree is empty, it throws an exception.
+     *
+     * @return The maximum value in the binary search tree.
+     * @throws std::runtime_error If the tree is empty.
+     */
+    Type findMaximum() const {
+        if (this->isEmpty())
+            throw std::runtime_error("Tree is empty");
+        return findMaxNode(this->root_)->data;
     }
 
 

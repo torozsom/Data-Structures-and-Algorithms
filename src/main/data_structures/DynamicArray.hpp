@@ -36,7 +36,7 @@ class DynamicArray {
      * destination.
      */
     void copyData(const Type* source, Type* destination,
-                  const unsigned int count) {
+                  const unsigned int count) const {
         for (unsigned int i = 0; i < count; ++i)
             destination[i] = source[i];
     }
@@ -129,7 +129,7 @@ class DynamicArray {
         if (this == &other)
             return *this;
 
-        Type* new_data;
+        Type* new_data = nullptr;
         try {
             new_data = new Type[other.capacity_];
             copyData(other.data_, new_data, other.size_);
@@ -226,7 +226,7 @@ class DynamicArray {
      * to the size of the array.
      * @return The removed element
      */
-    Type& removeAt(const unsigned int idx) {
+    Type removeAt(const unsigned int idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -245,19 +245,24 @@ class DynamicArray {
 
 
     /**
-     * Removes the first element of the array.
+     * Removes the first element from the dynamic array. All subsequent
+     * elements are shifted one position to the left. Reduces the size of the
+     * array. If the size falls below one-fourth of the capacity, the array is
+     * resized to half of its current capacity.
      *
-     * @return The first element
+     * @return The removed first element.
      */
-    Type& removeFirst() { return removeAt(0); }
+    Type removeFirst() { return removeAt(0); }
 
 
     /**
-     * Removes the last element of the array.
+     * Removes the last element from the dynamic array. Reduces the size of the
+     * array. If the size falls below one-fourth of the capacity, the array is
+     * resized to half of its current capacity.
      *
-     * @return The last element
+     * @return The removed last element.
      */
-    Type& removeLast() { return removeAt(size_ - 1); }
+    Type removeLast() { return removeAt(size_ - 1); }
 
 
     /**
@@ -321,6 +326,62 @@ class DynamicArray {
      * to the size of the array.
      */
     const Type& operator[](const unsigned int idx) const { return get(idx); }
+
+
+    /**
+     * Retrieves the first element of the dynamic array.
+     *
+     * @return The first element of the dynamic array.
+     * @throws std::out_of_range If the array is empty.
+     */
+    Type& getFirst() {
+        if (isEmpty())
+            throw std::out_of_range("Array is empty");
+
+        return data_[0];
+    }
+
+
+    /**
+     * Retrieves the first element of the dynamic array.
+     *
+     * @return A constant reference to the first element of the dynamic array.
+     * @throws std::out_of_range If the array is empty.
+     */
+    const Type& getFirst() const {
+        if (isEmpty())
+            throw std::out_of_range("Array is empty");
+
+        return data_[0];
+    }
+
+
+    /**
+     * Retrieves the last element of the dynamic array.
+     *
+     * @return The last element of the dynamic array.
+     * @throws std::out_of_range If the array is empty.
+     */
+    Type& getLast() {
+        if (isEmpty())
+            throw std::out_of_range("Array is empty");
+
+        return data_[size_ - 1];
+    }
+
+
+    /**
+     * Retrieves the last element of the dynamic array.
+     *
+     * @return A constant reference to the last element of the dynamic array.
+     * @throws std::out_of_range If the array is empty.
+     */
+    const Type& getLast() const {
+        if (isEmpty())
+            throw std::out_of_range("Array is empty");
+
+        return data_[size_ - 1];
+    }
 
 
     /**
