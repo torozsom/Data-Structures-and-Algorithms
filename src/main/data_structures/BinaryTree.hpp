@@ -13,8 +13,7 @@
  *
  * @tparam Type The data type stored in the node.
  */
-template <typename Type>
-struct Node {
+template <typename Type> struct Node {
     Type data;
     Node* parent;
     Node* left;
@@ -34,8 +33,7 @@ struct Node {
  *
  * @tparam Type The type of elements stored in the binary tree.
  */
-template <typename Type>
-class BinaryTree {
+template <typename Type> class BinaryTree {
 
   protected:
     Node<Type>* root_;

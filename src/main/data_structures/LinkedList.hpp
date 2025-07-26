@@ -14,8 +14,7 @@
  * removing, and accessing elements. The internal storage is implemented using
  * a doubly linked list structure.
  */
-template <typename Type>
-class LinkedList {
+template <typename Type> class LinkedList {
 
   private:
     struct Node {

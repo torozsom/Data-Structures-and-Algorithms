@@ -19,8 +19,7 @@
  *
  * @tparam Type The type of elements stored in the queue.
  */
-template <typename Type>
-class Queue {
+template <typename Type> class Queue {
 
   private:
     DynamicArray<Type> array_;

@@ -15,8 +15,7 @@
  * from the stack. Elements can only be added to or removed from the top
  * of the stack.
  */
-template <typename Type>
-class Stack {
+template <typename Type> class Stack {
 
   private:
     DynamicArray<Type> array_;

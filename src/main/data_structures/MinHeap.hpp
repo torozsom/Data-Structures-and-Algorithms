@@ -17,8 +17,7 @@
  *
  * @tparam Type The type of elements stored in the heap.
  */
-template <typename Type>
-class MinHeap final : public Heap<Type> {
+template <typename Type> class MinHeap final : public Heap<Type> {
 
   private:
     /**

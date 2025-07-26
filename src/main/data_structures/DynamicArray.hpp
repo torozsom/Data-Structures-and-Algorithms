@@ -14,8 +14,7 @@
  * inserting, removing, and accessing elements. The internal storage is
  * dynamically resized as needed to accommodate changes in size.
  */
-template <typename Type>
-class DynamicArray {
+template <typename Type> class DynamicArray {
 
   private:
     Type* data_;

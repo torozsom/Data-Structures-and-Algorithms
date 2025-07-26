@@ -1,8 +1,8 @@
 
-#include "data_structures/Tests.h"
+#include "integration/Tests.h"
 
 
-enum Choice {
+enum class DataStructure {
     DYNAMIC_ARRAY = 1,
     LINKED_LIST,
     STACK,
@@ -36,36 +36,36 @@ int main() {
         printMenu();
         std::cout << "\nEnter a number:  ";
         std::cin >> num;
-        switch (static_cast<Choice>(num)) {
-        case DYNAMIC_ARRAY:
+        switch (static_cast<DataStructure>(num)) {
+        case DataStructure::DYNAMIC_ARRAY:
             testDynamicArray();
             break;
 
-        case LINKED_LIST:
+        case DataStructure::LINKED_LIST:
             testLinkedList();
             break;
 
-        case STACK:
+        case DataStructure::STACK:
             testStack();
             break;
 
-        case BINARY_TREE:
+        case DataStructure::BINARY_TREE:
             testBinaryTree();
             break;
 
-        case BINARY_SEARCH_TREE:
+        case DataStructure::BINARY_SEARCH_TREE:
             testBinarySearchTree();
             break;
 
-        case MIN_HEAP:
+        case DataStructure::MIN_HEAP:
             testMinHeap();
             break;
 
-        case MAX_HEAP:
+        case DataStructure::MAX_HEAP:
             testMaxHeap();
             break;
 
-        case ALL:
+        case DataStructure::ALL:
             testDynamicArray();
             testLinkedList();
             testStack();
@@ -75,14 +75,14 @@ int main() {
             testMaxHeap();
             break;
 
-        case EXIT:
+        case DataStructure::EXIT:
             break;
 
         default:
             std::cout << "Invalid input" << std::endl;
             break;
         }
-    } while (num != EXIT);
+    } while (num != 9);
 
     return 0;
 }

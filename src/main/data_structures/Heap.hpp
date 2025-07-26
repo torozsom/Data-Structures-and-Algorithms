@@ -24,8 +24,7 @@
  *
  * @tparam Type The type of elements stored in the heap.
  */
-template <typename Type>
-class Heap : public BinaryTree<Type> {
+template <typename Type> class Heap : public BinaryTree<Type> {
 
   protected:
     virtual void heapifyUp(Node<Type>* node) = 0;
