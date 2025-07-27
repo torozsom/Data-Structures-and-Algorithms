@@ -1,5 +1,3 @@
-
-
 #ifndef BINARYSEARCHTREE_HPP
 #define BINARYSEARCHTREE_HPP
 
@@ -85,19 +83,21 @@ class BinarySearchTree final : public BinaryTree<Type> {
         } else if (element > node->data) {
             recursiveRemove(node->right, element);
         } else {
-            --this->size_;
             if (node->left == nullptr && node->right == nullptr) {
+                --this->size_;
                 delete node;
                 node = nullptr;
             } else if (node->left == nullptr) {
+                --this->size_;
                 Node<Type>* temp = node;
                 node = node->right;
-                node->parent = temp->parent;
+                if (node) node->parent = temp->parent;
                 delete temp;
             } else if (node->right == nullptr) {
+                --this->size_;
                 Node<Type>* temp = node;
                 node = node->left;
-                node->parent = temp->parent;
+                if (node) node->parent = temp->parent;
                 delete temp;
             } else {
                 Node<Type>* temp = findMinNode(node->right);
@@ -170,20 +170,29 @@ class BinarySearchTree final : public BinaryTree<Type> {
 
 
   public:
-    BinarySearchTree() = default;
+    BinarySearchTree() : BinaryTree<Type>() {}
 
-    BinarySearchTree(const Type* array, const std::size_t size) {
-        for (std::size_t i = 0; i < size; i++)
-            insert(array[i]);
+    BinarySearchTree(const Type* array, const std::size_t size)
+        : BinaryTree<Type>() {
+        for (std::size_t i = 0; i < size; ++i) {
+            this->insert(array[i]);
+        }
     }
 
-    BinarySearchTree(const BinarySearchTree& other) = default;
+    BinarySearchTree(const BinarySearchTree& other) : BinaryTree<Type>(other) {}
 
-    BinarySearchTree(BinarySearchTree&& other) noexcept = default;
+    BinarySearchTree(BinarySearchTree&& other) noexcept
+        : BinaryTree<Type>(std::move(other)) {}
 
-    BinarySearchTree& operator=(const BinarySearchTree& other) = default;
+    BinarySearchTree& operator=(const BinarySearchTree& other) {
+        BinaryTree<Type>::operator=(other);
+        return *this;
+    }
 
-    BinarySearchTree& operator=(BinarySearchTree&& other) noexcept = default;
+    BinarySearchTree& operator=(BinarySearchTree&& other) noexcept {
+        BinaryTree<Type>::operator=(std::move(other));
+        return *this;
+    }
 
 
     /// Checks if the binary tree is a valid BST.
@@ -201,7 +210,9 @@ class BinarySearchTree final : public BinaryTree<Type> {
      *
      * @param element The element to be inserted into the tree.
      */
-    void insert(const Type& element) { recursiveInsert(this->root_, element); }
+    void insert(const Type& element) override {
+        recursiveInsert(this->root_, element);
+    }
 
 
     void insertLeft(const Type& element) = delete;

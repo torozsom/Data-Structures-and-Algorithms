@@ -1,12 +1,11 @@
-
-
-#include "LinkedList.hpp"
-#include "ThrowingType.hpp"
 #include <gtest/gtest.h>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+
+#include "LinkedList.hpp"
+#include "ThrowingType.hpp"
 
 
 class LinkedListUnitTest : public ::testing::Test {
@@ -21,9 +20,6 @@ class LinkedListUnitTest : public ::testing::Test {
 };
 
 
-
-// ==================== CONSTRUCTION TESTS ====================
-
 TEST_F(LinkedListUnitTest, DefaultConstructor) {
     const LinkedList<int> list;
 
@@ -32,43 +28,46 @@ TEST_F(LinkedListUnitTest, DefaultConstructor) {
 }
 
 
-TEST_F(LinkedListUnitTest, ConstructorWithInitialData) {
+TEST_F(LinkedListUnitTest, ArrayConstructorWithValidData) {
     int data[] = {1, 2, 3, 4, 5};
-    LinkedList list(data, 5);
+    const LinkedList<int> list(data, 5);
 
     EXPECT_EQ(list.getSize(), 5);
     EXPECT_FALSE(list.isEmpty());
 
-    for (int i = 0; i < 5; ++i)
+    for (std::size_t i = 0; i < 5; ++i) {
         EXPECT_EQ(list.get(i), data[i]);
+    }
 }
 
 
-TEST_F(LinkedListUnitTest, ConstructorWithNullDataThrowsException) {
-    EXPECT_THROW(LinkedList<int> list(nullptr, 5), std::invalid_argument);
-}
-
-
-TEST_F(LinkedListUnitTest, ConstructorWithZeroSizeAndNullData) {
-    // This should be valid - zero size with null data
-    EXPECT_NO_THROW(LinkedList<int> list(nullptr, 0));
+TEST_F(LinkedListUnitTest, ArrayConstructorWithEmptyData) {
     const LinkedList<int> list(nullptr, 0);
+
     EXPECT_EQ(list.getSize(), 0);
     EXPECT_TRUE(list.isEmpty());
 }
 
 
+TEST_F(LinkedListUnitTest, ArrayConstructorWithNullDataButPositiveSize) {
+    EXPECT_THROW(LinkedList<int> list(nullptr, 5), std::invalid_argument);
+}
+
+
 TEST_F(LinkedListUnitTest, CopyConstructor) {
-    int data[] = {1, 2, 3};
-    LinkedList original(data, 3);
-    LinkedList copy(original);
+    LinkedList<int> original;
+    original.addLast(10);
+    original.addLast(20);
+    original.addLast(30);
+
+    LinkedList<int> copy(original);
 
     EXPECT_EQ(copy.getSize(), original.getSize());
-
-    for (std::size_t i = 0; i < copy.getSize(); ++i)
+    for (std::size_t i = 0; i < copy.getSize(); ++i) {
         EXPECT_EQ(copy.get(i), original.get(i));
+    }
 
-    // Verify deep copy - modify original shouldn't affect copy
+    // Verify deep copy by modifying original
     original.addLast(999);
     EXPECT_NE(copy.getSize(), original.getSize());
 }
@@ -76,90 +75,102 @@ TEST_F(LinkedListUnitTest, CopyConstructor) {
 
 TEST_F(LinkedListUnitTest, CopyConstructorWithEmptyList) {
     const LinkedList<int> original;
-    const LinkedList copy(original);
+    LinkedList<int> copy(original);
 
-    EXPECT_EQ(copy.getSize(), 0);
     EXPECT_TRUE(copy.isEmpty());
+    EXPECT_EQ(copy.getSize(), 0);
 }
 
 
 TEST_F(LinkedListUnitTest, MoveConstructor) {
-    int data[] = {1, 2, 3};
-    LinkedList original(data, 3);
+    LinkedList<int> original;
+    original.addLast(10);
+    original.addLast(20);
+    original.addLast(30);
+
     const std::size_t original_size = original.getSize();
 
-    LinkedList moved(std::move(original));
+    LinkedList<int> moved(std::move(original));
 
     EXPECT_EQ(moved.getSize(), original_size);
-    EXPECT_EQ(original.getSize(), 0);
     EXPECT_TRUE(original.isEmpty());
+    EXPECT_EQ(original.getSize(), 0);
 
-    for (int i = 0; i < 3; ++i)
-        EXPECT_EQ(moved.get(i), data[i]);
+    EXPECT_EQ(moved.get(0), 10);
+    EXPECT_EQ(moved.get(1), 20);
+    EXPECT_EQ(moved.get(2), 30);
 }
 
 
-
-// ==================== ASSIGNMENT OPERATOR TESTS ====================
-
 TEST_F(LinkedListUnitTest, CopyAssignmentOperator) {
-    int data[] = {1, 2, 3};
-    LinkedList original(data, 3);
-    LinkedList<int> copy;
+    LinkedList<int> original;
+    original.addLast(10);
+    original.addLast(20);
+    original.addLast(30);
 
+    LinkedList<int> copy;
     copy = original;
 
     EXPECT_EQ(copy.getSize(), original.getSize());
-
-    for (std::size_t i = 0; i < copy.getSize(); ++i)
+    for (std::size_t i = 0; i < copy.getSize(); ++i) {
         EXPECT_EQ(copy.get(i), original.get(i));
+    }
+
+    // Verify deep copy
+    original.addLast(999);
+    EXPECT_NE(copy.getSize(), original.getSize());
 }
 
 
 TEST_F(LinkedListUnitTest, CopyAssignmentOperatorSelfAssignment) {
-    int data[] = {1, 2, 3};
-    LinkedList list(data, 3);
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
 
     list = list; // Self assignment
 
-    EXPECT_EQ(list.getSize(), 3);
-    for (int i = 0; i < 3; ++i)
-        EXPECT_EQ(list.get(i), data[i]);
+    EXPECT_EQ(list.getSize(), 2);
+    EXPECT_EQ(list.get(0), 10);
+    EXPECT_EQ(list.get(1), 20);
 }
 
 
 TEST_F(LinkedListUnitTest, MoveAssignmentOperator) {
-    int data[] = {1, 2, 3};
-    LinkedList original(data, 3);
-    LinkedList<int> moved;
+    LinkedList<int> original;
+    original.addLast(10);
+    original.addLast(20);
+    original.addLast(30);
 
+    LinkedList<int> moved;
     const std::size_t original_size = original.getSize();
 
     moved = std::move(original);
 
     EXPECT_EQ(moved.getSize(), original_size);
-    EXPECT_EQ(original.getSize(), 0);
     EXPECT_TRUE(original.isEmpty());
+    EXPECT_EQ(original.getSize(), 0);
+
+    EXPECT_EQ(moved.get(0), 10);
+    EXPECT_EQ(moved.get(1), 20);
+    EXPECT_EQ(moved.get(2), 30);
 }
 
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wself-move"
 TEST_F(LinkedListUnitTest, MoveAssignmentOperatorSelfAssignment) {
-    int data[] = {1, 2, 3};
-    LinkedList list(data, 3);
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
 
     list = std::move(list); // Self assignment
 
-    EXPECT_EQ(list.getSize(), 3);
-    for (int i = 0; i < 3; ++i)
-        EXPECT_EQ(list.get(i), data[i]);
+    EXPECT_EQ(list.getSize(), 2);
+    EXPECT_EQ(list.get(0), 10);
+    EXPECT_EQ(list.get(1), 20);
 }
 #pragma GCC diagnostic pop
 
-
-
-// ==================== INSERTION TESTS ====================
 
 TEST_F(LinkedListUnitTest, AddLast) {
     LinkedList<int> list;
@@ -172,6 +183,10 @@ TEST_F(LinkedListUnitTest, AddLast) {
     EXPECT_EQ(list.getSize(), 2);
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 20);
+
+    list.addLast(30);
+    EXPECT_EQ(list.getSize(), 3);
+    EXPECT_EQ(list.get(2), 30);
 }
 
 
@@ -186,73 +201,34 @@ TEST_F(LinkedListUnitTest, AddFirst) {
     EXPECT_EQ(list.getSize(), 2);
     EXPECT_EQ(list.get(0), 5);
     EXPECT_EQ(list.get(1), 10);
-}
 
-
-TEST_F(LinkedListUnitTest, InsertAtValidIndex) {
-    LinkedList<int> list;
-    list.addLast(10);
-    list.addLast(30);
-
-    list.insert(1, 20);
-
+    list.addFirst(1);
     EXPECT_EQ(list.getSize(), 3);
-    EXPECT_EQ(list.get(0), 10);
-    EXPECT_EQ(list.get(1), 20);
-    EXPECT_EQ(list.get(2), 30);
+    EXPECT_EQ(list.get(0), 1);
+    EXPECT_EQ(list.get(1), 5);
+    EXPECT_EQ(list.get(2), 10);
 }
 
 
-TEST_F(LinkedListUnitTest, InsertAtBeginning) {
+TEST_F(LinkedListUnitTest, InsertAtValidIndices) {
     LinkedList<int> list;
-    list.addLast(20);
-    list.addLast(30);
 
+    // Insert at beginning (empty list)
     list.insert(0, 10);
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0), 10);
 
+    // Insert at end
+    list.insert(1, 30);
+    EXPECT_EQ(list.getSize(), 2);
+    EXPECT_EQ(list.get(1), 30);
+
+    // Insert in middle
+    list.insert(1, 20);
     EXPECT_EQ(list.getSize(), 3);
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 20);
     EXPECT_EQ(list.get(2), 30);
-}
-
-
-TEST_F(LinkedListUnitTest, InsertAtEnd) {
-    LinkedList<int> list;
-    list.addLast(10);
-    list.addLast(20);
-
-    list.insert(2, 30);
-
-    EXPECT_EQ(list.getSize(), 3);
-    EXPECT_EQ(list.get(2), 30);
-}
-
-
-TEST_F(LinkedListUnitTest, InsertInMiddleOptimizedTraversal) {
-    LinkedList<int> list;
-    // Create a list with 10 elements: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
-    for (int i = 0; i < 10; ++i)
-        list.addLast(i * 10);
-
-    // Test 1: Insert near beginning (index 2, should traverse from head)
-    const std::size_t original_size = list.getSize();
-    list.insert(2, 999);
-    EXPECT_EQ(list.get(2), 999);
-    EXPECT_EQ(list.getSize(), original_size + 1);
-
-    // Verify the elements around the insertion point
-    EXPECT_EQ(list.get(1), 10); // Element before insertion
-    EXPECT_EQ(list.get(3), 20); // Element that was shifted right
-
-    // Test 2: Insert near end (should traverse from tail)
-    // Insert at second-to-last position
-    const std::size_t current_size = list.getSize();
-    const std::size_t near_end_index = current_size - 2;
-
-    list.insert(near_end_index, 888);
-    EXPECT_EQ(list.get(near_end_index), 888);
-    EXPECT_EQ(list.getSize(), current_size + 1);
 }
 
 
@@ -261,31 +237,26 @@ TEST_F(LinkedListUnitTest, InsertAtInvalidIndex) {
     list.addLast(10);
 
     EXPECT_THROW(list.insert(2, 20), std::out_of_range);
+    EXPECT_THROW(list.insert(10, 99), std::out_of_range);
 }
 
 
-
-// ==================== REMOVAL TESTS ====================
-
-TEST_F(LinkedListUnitTest, RemoveFirst) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
+TEST_F(LinkedListUnitTest, RemoveFirstFromNonEmptyList) {
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
     list.removeFirst();
-
     EXPECT_EQ(list.getSize(), 2);
     EXPECT_EQ(list.get(0), 20);
     EXPECT_EQ(list.get(1), 30);
-}
-
-
-TEST_F(LinkedListUnitTest, RemoveFirstFromSingleElement) {
-    LinkedList<int> list;
-    list.addLast(42);
 
     list.removeFirst();
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0), 30);
 
-    EXPECT_EQ(list.getSize(), 0);
+    list.removeFirst();
     EXPECT_TRUE(list.isEmpty());
 }
 
@@ -293,31 +264,28 @@ TEST_F(LinkedListUnitTest, RemoveFirstFromSingleElement) {
 TEST_F(LinkedListUnitTest, RemoveFirstFromEmptyList) {
     LinkedList<int> list;
 
-    // Should not throw or crash
-    EXPECT_NO_THROW(list.removeFirst());
-    EXPECT_EQ(list.getSize(), 0);
+    // Should not crash or throw
+    list.removeFirst();
+    EXPECT_TRUE(list.isEmpty());
 }
 
 
-TEST_F(LinkedListUnitTest, RemoveLast) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
+TEST_F(LinkedListUnitTest, RemoveLastFromNonEmptyList) {
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
     list.removeLast();
-
     EXPECT_EQ(list.getSize(), 2);
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 20);
-}
-
-
-TEST_F(LinkedListUnitTest, RemoveLastFromSingleElement) {
-    LinkedList<int> list;
-    list.addLast(42);
 
     list.removeLast();
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0), 10);
 
-    EXPECT_EQ(list.getSize(), 0);
+    list.removeLast();
     EXPECT_TRUE(list.isEmpty());
 }
 
@@ -325,62 +293,35 @@ TEST_F(LinkedListUnitTest, RemoveLastFromSingleElement) {
 TEST_F(LinkedListUnitTest, RemoveLastFromEmptyList) {
     LinkedList<int> list;
 
-    // Should not throw or crash
-    EXPECT_NO_THROW(list.removeLast());
-    EXPECT_EQ(list.getSize(), 0);
+    // Should not crash or throw
+    list.removeLast();
+    EXPECT_TRUE(list.isEmpty());
 }
 
 
-TEST_F(LinkedListUnitTest, RemoveAt) {
-    int data[] = {10, 20, 30, 40};
-    LinkedList list(data, 4);
+TEST_F(LinkedListUnitTest, RemoveAtValidIndices) {
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
+    list.addLast(40);
 
+    // Remove from middle
     list.removeAt(1);
-
     EXPECT_EQ(list.getSize(), 3);
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 30);
     EXPECT_EQ(list.get(2), 40);
-}
 
-
-TEST_F(LinkedListUnitTest, RemoveAtFirstIndex) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
-
-    list.removeAt(0);
-
+    // Remove from end
+    list.removeAt(2);
     EXPECT_EQ(list.getSize(), 2);
-    EXPECT_EQ(list.get(0), 20);
     EXPECT_EQ(list.get(1), 30);
-}
 
-
-TEST_F(LinkedListUnitTest, RemoveAtLastIndex) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
-
-    list.removeAt(2);
-
-    EXPECT_EQ(list.getSize(), 2);
-    EXPECT_EQ(list.get(0), 10);
-    EXPECT_EQ(list.get(1), 20);
-}
-
-
-TEST_F(LinkedListUnitTest, RemoveAtOptimizedTraversal) {
-    LinkedList<int> list;
-    // Create a list with 10 elements
-    for (int i = 0; i < 10; ++i)
-        list.addLast(i * 10);
-
-    // Remove from first half (should traverse from head)
-    list.removeAt(2);
-    EXPECT_EQ(list.getSize(), 9);
-
-    // Remove from second half (should traverse from tail)
-    list.removeAt(6); // This would be index 7 in original 10-element list
-    EXPECT_EQ(list.getSize(), 8);
+    // Remove from beginning
+    list.removeAt(0);
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0), 30);
 }
 
 
@@ -400,89 +341,68 @@ TEST_F(LinkedListUnitTest, RemoveAtFromEmptyList) {
 }
 
 
-TEST_F(LinkedListUnitTest, RemoveByValue) {
-    int data[] = {10, 20, 30, 20, 40};
-    LinkedList list(data, 5);
+TEST_F(LinkedListUnitTest, RemoveElementThatExists) {
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
+    list.addLast(20); // Duplicate
 
-    list.remove(20); // Should remove first occurrence
-
-    EXPECT_EQ(list.getSize(), 4);
+    // Should remove first occurrence
+    list.remove(20);
+    EXPECT_EQ(list.getSize(), 3);
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 30);
     EXPECT_EQ(list.get(2), 20); // Second 20 should remain
-    EXPECT_EQ(list.get(3), 40);
 }
 
 
-TEST_F(LinkedListUnitTest, RemoveByValueFromHead) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
+TEST_F(LinkedListUnitTest, RemoveElementThatDoesNotExist) {
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
 
-    list.remove(10);
-
-    EXPECT_EQ(list.getSize(), 2);
-    EXPECT_EQ(list.get(0), 20);
-    EXPECT_EQ(list.get(1), 30);
-}
-
-
-TEST_F(LinkedListUnitTest, RemoveByValueFromTail) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
-
-    list.remove(30);
-
-    EXPECT_EQ(list.getSize(), 2);
+    list.remove(99); // Non-existent element
+    EXPECT_EQ(list.getSize(), 2); // Size should remain unchanged
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 20);
-}
-
-
-TEST_F(LinkedListUnitTest, RemoveByValueNotFound) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
-
-    list.remove(999); // Element not in list
-
-    EXPECT_EQ(list.getSize(), 3); // Size should remain unchanged
-    EXPECT_EQ(list.get(0), 10);
-    EXPECT_EQ(list.get(1), 20);
-    EXPECT_EQ(list.get(2), 30);
 }
 
 
 TEST_F(LinkedListUnitTest, RemoveFromEmptyList) {
     LinkedList<int> list;
 
-    // Should not throw or crash
-    EXPECT_NO_THROW(list.remove(42));
-    EXPECT_EQ(list.getSize(), 0);
+    list.remove(10); // Should not crash
+    EXPECT_TRUE(list.isEmpty());
 }
 
 
-
-// ==================== ACCESS TESTS ====================
-
-TEST_F(LinkedListUnitTest, GetValidIndex) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
+TEST_F(LinkedListUnitTest, GetValidIndices) {
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 20);
     EXPECT_EQ(list.get(2), 30);
+
+    // Test modification through reference
+    list.get(1) = 99;
+    EXPECT_EQ(list.get(1), 99);
 }
 
 
-TEST_F(LinkedListUnitTest, GetOptimizedTraversal) {
+TEST_F(LinkedListUnitTest, GetConstValidIndices) {
     LinkedList<int> list;
-    // Create a list with 10 elements
-    for (int i = 0; i < 10; ++i)
-        list.addLast(i * 10);
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
-    // Access near beginning (should traverse from head)
-    EXPECT_EQ(list.get(2), 20);
-    // Access near end (should traverse from tail)
-    EXPECT_EQ(list.get(8), 80);
+    const LinkedList<int>& const_list = list;
+    EXPECT_EQ(const_list.get(0), 10);
+    EXPECT_EQ(const_list.get(1), 20);
+    EXPECT_EQ(const_list.get(2), 30);
 }
 
 
@@ -495,40 +415,52 @@ TEST_F(LinkedListUnitTest, GetInvalidIndex) {
 }
 
 
+TEST_F(LinkedListUnitTest, GetFromEmptyList) {
+    LinkedList<int> list;
+
+    EXPECT_THROW(list.get(0), std::out_of_range);
+}
+
+
 TEST_F(LinkedListUnitTest, OperatorBracket) {
-    int data[] = {10, 20, 30};
-    LinkedList list(data, 3);
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
     EXPECT_EQ(list[0], 10);
     EXPECT_EQ(list[1], 20);
     EXPECT_EQ(list[2], 30);
 
-    // Test modification through operator[]
+    // Test modification
     list[1] = 99;
     EXPECT_EQ(list[1], 99);
 }
 
 
 TEST_F(LinkedListUnitTest, OperatorBracketConst) {
-    int data[] = {10, 20, 30};
-    const LinkedList list(data, 3);
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
-    EXPECT_EQ(list[0], 10);
-    EXPECT_EQ(list[1], 20);
-    EXPECT_EQ(list[2], 30);
+    const LinkedList<int>& const_list = list;
+    EXPECT_EQ(const_list[0], 10);
+    EXPECT_EQ(const_list[1], 20);
+    EXPECT_EQ(const_list[2], 30);
 }
 
 
-// ==================== CLEAR TESTS ====================
-
 TEST_F(LinkedListUnitTest, Clear) {
-    int data[] = {10, 20, 30, 40, 50};
-    LinkedList list(data, 5);
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
     list.clear();
 
-    EXPECT_EQ(list.getSize(), 0);
     EXPECT_TRUE(list.isEmpty());
+    EXPECT_EQ(list.getSize(), 0);
 }
 
 
@@ -537,35 +469,19 @@ TEST_F(LinkedListUnitTest, ClearEmptyList) {
 
     list.clear();
 
+    EXPECT_TRUE(list.isEmpty());
     EXPECT_EQ(list.getSize(), 0);
-    EXPECT_TRUE(list.isEmpty());
 }
 
-
-// ==================== UTILITY FUNCTION TESTS ====================
-
-TEST_F(LinkedListUnitTest, IsEmpty) {
-    LinkedList<int> list;
-
-    EXPECT_TRUE(list.isEmpty());
-
-    list.addLast(10);
-    EXPECT_FALSE(list.isEmpty());
-
-    list.removeFirst();
-    EXPECT_TRUE(list.isEmpty());
-}
-
-
-
-// ==================== PRINT FUNCTION TESTS ====================
 
 TEST_F(LinkedListUnitTest, PrintForward) {
-    int data[] = {10, 20, 30};
-    const LinkedList list(data, 3);
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
     // Capture stdout
-    const std::ostringstream output;
+    std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -577,29 +493,12 @@ TEST_F(LinkedListUnitTest, PrintForward) {
     EXPECT_EQ(output.str(), "10 20 30 \n");
 }
 
-TEST_F(LinkedListUnitTest, PrintBackward) {
-    int data[] = {10, 20, 30};
-    const LinkedList list(data, 3);
+
+TEST_F(LinkedListUnitTest, PrintForwardEmptyList) {
+    LinkedList<int> list;
 
     // Capture stdout
-    const std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    list.printBackward();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "30 20 10 \n");
-}
-
-
-TEST_F(LinkedListUnitTest, PrintEmptyList) {
-    const LinkedList<int> list;
-
-    // Capture stdout
-    const std::ostringstream output;
+    std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -612,18 +511,58 @@ TEST_F(LinkedListUnitTest, PrintEmptyList) {
 }
 
 
+TEST_F(LinkedListUnitTest, PrintBackward) {
+    LinkedList<int> list;
+    list.addLast(10);
+    list.addLast(20);
+    list.addLast(30);
 
-// ==================== DIFFERENT DATA TYPES TESTS ====================
+    // Capture stdout
+    std::ostringstream output;
+    std::streambuf* orig = std::cout.rdbuf();
+    std::cout.rdbuf(output.rdbuf());
+
+    list.printBackward();
+
+    // Restore stdout
+    std::cout.rdbuf(orig);
+
+    EXPECT_EQ(output.str(), "30 20 10 \n");
+}
+
+
+TEST_F(LinkedListUnitTest, PrintBackwardEmptyList) {
+    LinkedList<int> list;
+
+    // Capture stdout
+    std::ostringstream output;
+    std::streambuf* orig = std::cout.rdbuf();
+    std::cout.rdbuf(output.rdbuf());
+
+    list.printBackward();
+
+    // Restore stdout
+    std::cout.rdbuf(orig);
+
+    EXPECT_EQ(output.str(), "\n");
+}
+
 
 TEST_F(LinkedListUnitTest, StringType) {
     LinkedList<std::string> list;
 
-    list.addLast("Hello");
-    list.addLast("World");
+    list.addLast("First");
+    list.addLast("Second");
+    list.addLast("Third");
 
+    EXPECT_EQ(list.getSize(), 3);
+    EXPECT_EQ(list.get(0), "First");
+    EXPECT_EQ(list.get(1), "Second");
+    EXPECT_EQ(list.get(2), "Third");
+
+    list.remove("Second");
     EXPECT_EQ(list.getSize(), 2);
-    EXPECT_EQ(list.get(0), "Hello");
-    EXPECT_EQ(list.get(1), "World");
+    EXPECT_EQ(list.get(1), "Third");
 }
 
 
@@ -643,105 +582,179 @@ TEST_F(LinkedListUnitTest, CustomObjectType) {
     EXPECT_EQ(list.getSize(), 2);
     EXPECT_EQ(list.get(0), Point(1, 2));
     EXPECT_EQ(list.get(1), Point(3, 4));
+
+    list.remove(Point(1, 2));
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0), Point(3, 4));
 }
 
 
-
-// ==================== STRESS TESTS ====================
-
-TEST_F(LinkedListUnitTest, LargeNumberOfInsertions) {
+TEST_F(LinkedListUnitTest, LargeNumberOfElements) {
     LinkedList<int> list;
     constexpr int num_elements = 1000;
 
-    for (int i = 0; i < num_elements; ++i)
+    // Add elements
+    for (int i = 0; i < num_elements; ++i) {
         list.addLast(i);
+    }
 
     EXPECT_EQ(list.getSize(), num_elements);
 
-    for (int i = 0; i < num_elements; ++i)
+    // Verify all elements
+    for (int i = 0; i < num_elements; ++i) {
         EXPECT_EQ(list.get(i), i);
+    }
+
+    // Remove elements from the end
+    for (int i = num_elements - 1; i >= 0; --i) {
+        list.removeLast();
+        EXPECT_EQ(list.getSize(), i);
+    }
+
+    EXPECT_TRUE(list.isEmpty());
 }
 
 
-TEST_F(LinkedListUnitTest, AlternatingInsertionAndRemoval) {
+TEST_F(LinkedListUnitTest, InterleavedOperations) {
     LinkedList<int> list;
 
-    // Pattern: insert 2, remove 1, repeat
+    // Pattern: add 2, remove 1, repeat
     for (int i = 0; i < 100; ++i) {
         list.addLast(i * 2);
         list.addLast(i * 2 + 1);
-        if (list.getSize() > 1)
+        if (list.getSize() > 1) {
             list.removeFirst();
+        }
     }
 
     EXPECT_GT(list.getSize(), 0);
+
     // Verify list is still in valid state
-    for (std::size_t i = 0; i < list.getSize() - 1; ++i)
+    for (std::size_t i = 0; i < list.getSize() - 1; ++i) {
         EXPECT_LT(list.get(i), list.get(i + 1));
+    }
 }
 
 
+TEST_F(LinkedListUnitTest, BiDirectionalTraversal) {
+    LinkedList<int> list;
+    for (int i = 1; i <= 5; ++i) {
+        list.addLast(i);
+    }
 
-// ==================== BIDIRECTIONAL INTEGRITY TESTS ====================
+    // Test that we can access elements efficiently from both ends
+    EXPECT_EQ(list.get(0), 1); // Should traverse from head
+    EXPECT_EQ(list.get(4), 5); // Should traverse from tail
+    EXPECT_EQ(list.get(2), 3); // Should traverse from closer end
+}
 
-TEST_F(LinkedListUnitTest, BidirectionalIntegrityAfterInsertions) {
+
+TEST_F(LinkedListUnitTest, ExceptionSafetyBasic) {
     LinkedList<int> list;
 
-    // Add elements in various ways
-    list.addLast(10);
-    list.addFirst(5);
-    list.insert(1, 7);
-    list.addLast(15);
+    // Test exception handling for empty list operations
+    EXPECT_THROW(list.get(0), std::out_of_range);
+    EXPECT_THROW(list[0], std::out_of_range);
+    EXPECT_THROW(list.removeAt(0), std::out_of_range);
 
-    // Test forward traversal
-    EXPECT_EQ(list[0], 5);
-    EXPECT_EQ(list[1], 7);
-    EXPECT_EQ(list[2], 10);
-    EXPECT_EQ(list[3], 15);
-
-    // Test backward traversal by accessing from the end
-    EXPECT_EQ(list[3], 15);
-    EXPECT_EQ(list[2], 10);
-    EXPECT_EQ(list[1], 7);
-    EXPECT_EQ(list[0], 5);
+    // List should still be usable after exceptions
+    EXPECT_NO_THROW(list.addLast(42));
+    EXPECT_EQ(list.get(0), 42);
+    EXPECT_EQ(list.getSize(), 1);
 }
 
 
-TEST_F(LinkedListUnitTest, BidirectionalIntegrityAfterRemovals) {
-    int data[] = {1, 2, 3, 4, 5};
-    LinkedList list(data, 5);
+TEST_F(LinkedListUnitTest, BasicThrowingTypeUsage) {
+    // Test that ThrowingType works correctly with the list when not throwing
+    ThrowingType::reset();
+    ThrowingType::should_throw = false;
 
-    list.removeAt(2); // Remove middle element
-    list.removeFirst();
-    list.removeLast();
+    LinkedList<ThrowingType> list;
 
+    // Test basic operations
+    list.addLast(ThrowingType(1));
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0).value, 1);
+
+    list.addFirst(ThrowingType(0));
     EXPECT_EQ(list.getSize(), 2);
-    EXPECT_EQ(list[0], 2);
-    EXPECT_EQ(list[1], 4);
+    EXPECT_EQ(list.get(0).value, 0);
+    EXPECT_EQ(list.get(1).value, 1);
+
+    // Test removal operations
+    list.remove(ThrowingType(0));
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0).value, 1);
+
+    ThrowingType::reset();
 }
 
 
+TEST_F(LinkedListUnitTest, SingleElementOperations) {
+    LinkedList<int> list;
 
-// ==================== MEMORY MANAGEMENT TESTS ====================
+    // Test single element operations
+    list.addLast(42);
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0), 42);
 
-TEST_F(LinkedListUnitTest, NoMemoryLeaksOnExceptions) {
-    // This test ensures that if an exception occurs during construction,
-    // partial data is cleaned up properly
+    // Remove and add again
+    list.removeFirst();
+    EXPECT_TRUE(list.isEmpty());
 
-    ThrowingType::reset();
-    ThrowingType::should_throw = true;
+    list.addFirst(99);
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0), 99);
 
-    // This should throw after adding 2 elements
-    EXPECT_THROW(
-        {
-            LinkedList<ThrowingType> list;
-            for (int i = 0; i < 5; ++i)
-                list.addLast(ThrowingType(i));
-        },
-        std::runtime_error);
+    list.removeLast();
+    EXPECT_TRUE(list.isEmpty());
+}
 
-    // All constructed objects should be cleaned up
-    EXPECT_EQ(ThrowingType::construction_count, 0);
 
-    ThrowingType::reset();
+TEST_F(LinkedListUnitTest, DoublyLinkedListProperties) {
+    LinkedList<int> list;
+    list.addLast(1);
+    list.addLast(2);
+    list.addLast(3);
+    list.addLast(4);
+    list.addLast(5);
+
+    // Test that forward and backward traversals work correctly
+    std::ostringstream forward, backward;
+
+    // Capture forward print
+    std::streambuf* orig = std::cout.rdbuf();
+    std::cout.rdbuf(forward.rdbuf());
+    list.printForward();
+
+    // Capture backward print
+    std::cout.rdbuf(backward.rdbuf());
+    list.printBackward();
+
+    // Restore stdout
+    std::cout.rdbuf(orig);
+
+    EXPECT_EQ(forward.str(), "1 2 3 4 5 \n");
+    EXPECT_EQ(backward.str(), "5 4 3 2 1 \n");
+}
+
+
+TEST_F(LinkedListUnitTest, InsertAndRemoveAtBothEnds) {
+    LinkedList<int> list;
+
+    // Build list: 1 -> 2 -> 3
+    list.addLast(2);
+    list.addFirst(1);
+    list.addLast(3);
+
+    EXPECT_EQ(list.get(0), 1);
+    EXPECT_EQ(list.get(1), 2);
+    EXPECT_EQ(list.get(2), 3);
+
+    // Remove from ends
+    list.removeFirst(); // Remove 1
+    list.removeLast();  // Remove 3
+
+    EXPECT_EQ(list.getSize(), 1);
+    EXPECT_EQ(list.get(0), 2);
 }

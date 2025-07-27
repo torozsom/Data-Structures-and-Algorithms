@@ -1,5 +1,3 @@
-
-
 #ifndef THROWING_TYPE_HPP
 #define THROWING_TYPE_HPP
 
@@ -15,12 +13,14 @@ class ThrowingType {
 
     int value;
 
-    explicit ThrowingType(int v = 0) : value(v) {
-        if (should_throw && construction_count >= 2) {
+
+    explicit ThrowingType(const int v = 0) : value(v) {
+        if (should_throw && construction_count >= 2)
             throw std::runtime_error("Throwing constructor");
-        }
+
         construction_count++;
     }
+
 
     ThrowingType(const ThrowingType& other) : value(other.value) {
         if (should_throw && construction_count >= 2) {
@@ -29,23 +29,34 @@ class ThrowingType {
         construction_count++;
     }
 
+
     ThrowingType& operator=(const ThrowingType& other) {
+        if (should_throw) {
+            throw std::runtime_error("Throwing assignment operator");
+        }
         if (this != &other) {
             value = other.value;
         }
         return *this;
     }
 
-    ~ThrowingType() { construction_count--; }
+
+    bool operator==(const ThrowingType& other) const {
+        return value == other.value;
+    }
+
 
     static void reset() {
         should_throw = false;
         construction_count = 0;
     }
+
+    ~ThrowingType() { construction_count--; }
 };
 
-// Define static members using inline to avoid multiple definition errors
+
 inline int ThrowingType::construction_count = 0;
 inline bool ThrowingType::should_throw = false;
+
 
 #endif // THROWING_TYPE_HPP

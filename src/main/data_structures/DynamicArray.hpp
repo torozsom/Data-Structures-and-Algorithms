@@ -1,5 +1,3 @@
-
-
 #ifndef DYNAMICARRAY_HPP
 #define DYNAMICARRAY_HPP
 
@@ -26,12 +24,12 @@ class DynamicArray {
 
     /**
      * Copies a specific number of elements from the source array to the
-     * destination array.
+     * destination array using assignment.
      *
      * @param source Pointer to the source array from which elements will be
      * copied.
      * @param destination Pointer to the destination array where elements will
-     * be copied to.
+     * be copied to. Must be already constructed.
      * @param count The number of elements to copy from the source to the
      * destination.
      */

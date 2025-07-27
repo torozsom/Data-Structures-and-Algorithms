@@ -1,5 +1,3 @@
-
-
 #include <gtest/gtest.h>
 #include <memory>
 #include <stdexcept>
@@ -21,9 +19,6 @@ class DynamicArrayUnitTest : public ::testing::Test {
 };
 
 
-
-// ==================== CONSTRUCTION TESTS ====================
-
 TEST_F(DynamicArrayUnitTest, DefaultConstructor) {
     const DynamicArray<int> arr;
 
@@ -41,9 +36,8 @@ TEST_F(DynamicArrayUnitTest, ConstructorWithInitialData) {
     EXPECT_EQ(arr.getCapacity(), 5);
     EXPECT_FALSE(arr.isEmpty());
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; ++i)
         EXPECT_EQ(arr.get(i), data[i]);
-    }
 }
 
 
@@ -106,67 +100,57 @@ TEST_F(DynamicArrayUnitTest, MoveConstructor) {
 }
 
 
-
-// ==================== ASSIGNMENT OPERATOR TESTS ====================
-
 TEST_F(DynamicArrayUnitTest, CopyAssignmentOperator) {
     int data[] = {1, 2, 3};
     DynamicArray original(data, 3);
     DynamicArray<int> copy;
-
     copy = original;
 
     EXPECT_EQ(copy.getSize(), original.getSize());
     EXPECT_EQ(copy.getCapacity(), original.getCapacity());
 
+    // Verify deep copy
     for (std::size_t i = 0; i < copy.getSize(); ++i)
         EXPECT_EQ(copy.get(i), original.get(i));
-}
 
-
-TEST_F(DynamicArrayUnitTest, CopyAssignmentOperatorSelfAssignment) {
-    int data[] = {1, 2, 3};
-    DynamicArray arr(data, 3);
-
-    arr = arr; // Self assignment
-
-    EXPECT_EQ(arr.getSize(), 3);
+    // Self-assignment should work correctly
+    original = original;
+    EXPECT_EQ(original.getSize(), 3);
     for (int i = 0; i < 3; ++i)
-        EXPECT_EQ(arr.get(i), data[i]);
+        EXPECT_EQ(original.get(i), data[i]);
 }
 
 
 TEST_F(DynamicArrayUnitTest, MoveAssignmentOperator) {
     int data[] = {1, 2, 3};
     DynamicArray original(data, 3);
-    DynamicArray<int> moved;
-
     const std::size_t original_size = original.getSize();
     const std::size_t original_capacity = original.getCapacity();
 
+    DynamicArray<int> moved;
     moved = std::move(original);
 
     EXPECT_EQ(moved.getSize(), original_size);
     EXPECT_EQ(moved.getCapacity(), original_capacity);
     EXPECT_EQ(original.getSize(), 0);
     EXPECT_EQ(original.getCapacity(), 0);
-}
 
-
-TEST_F(DynamicArrayUnitTest, MoveAssignmentOperatorSelfAssignment) {
-    int data[] = {1, 2, 3};
-    DynamicArray arr(data, 3);
-
-    arr = std::move(arr); // Self assignment
-
-    EXPECT_EQ(arr.getSize(), 3);
+    // Self-move assignment should work correctly
+    moved = std::move(moved);
+    EXPECT_EQ(moved.getSize(), original_size);
     for (int i = 0; i < 3; ++i)
-        EXPECT_EQ(arr.get(i), data[i]);
+        EXPECT_EQ(moved.get(i), data[i]);
 }
 
 
+TEST_F(DynamicArrayUnitTest, ConstructorWithNegativeSize) {
+    // Test with very large size that would cause bad_alloc during construction
+    EXPECT_THROW({
+        int* dummy_data = reinterpret_cast<int*>(1); // Non-null but invalid pointer
+        DynamicArray<int> arr(dummy_data, SIZE_MAX);
+    }, std::bad_alloc);
+}
 
-// ==================== INSERTION TESTS ====================
 
 TEST_F(DynamicArrayUnitTest, AddLast) {
     DynamicArray<int> arr;
@@ -243,9 +227,6 @@ TEST_F(DynamicArrayUnitTest, InsertAtInvalidIndex) {
 }
 
 
-
-// ==================== CAPACITY EXPANSION TESTS ====================
-
 TEST_F(DynamicArrayUnitTest, CapacityExpansionOnInsertion) {
     DynamicArray<int> arr;
     const std::size_t initial_capacity = arr.getCapacity();
@@ -264,9 +245,6 @@ TEST_F(DynamicArrayUnitTest, CapacityExpansionOnInsertion) {
     EXPECT_EQ(arr.get(initial_capacity), 999);
 }
 
-
-
-// ==================== REMOVAL TESTS ====================
 
 TEST_F(DynamicArrayUnitTest, RemoveAt) {
     int data[] = {10, 20, 30, 40};
@@ -324,9 +302,6 @@ TEST_F(DynamicArrayUnitTest, RemoveLast) {
 }
 
 
-
-// ==================== CAPACITY REDUCTION TESTS ====================
-
 TEST_F(DynamicArrayUnitTest, CapacityReductionOnRemoval) {
     DynamicArray<int> arr;
 
@@ -359,9 +334,6 @@ TEST_F(DynamicArrayUnitTest, CapacityDoesNotReduceBelowDefault) {
     EXPECT_EQ(arr.getCapacity(), 5); // Should remain at DEFAULT_CAPACITY
 }
 
-
-
-// ==================== ACCESS TESTS ====================
 
 TEST_F(DynamicArrayUnitTest, GetValidIndex) {
     int data[] = {10, 20, 30};
@@ -444,9 +416,6 @@ TEST_F(DynamicArrayUnitTest, GetLastFromEmptyArray) {
 }
 
 
-
-// ==================== CLEAR TESTS ====================
-
 TEST_F(DynamicArrayUnitTest, Clear) {
     int data[] = {10, 20, 30, 40, 50};
     DynamicArray arr(data, 5);
@@ -470,9 +439,6 @@ TEST_F(DynamicArrayUnitTest, ClearEmptyArray) {
 }
 
 
-
-// ==================== UTILITY FUNCTION TESTS ====================
-
 TEST_F(DynamicArrayUnitTest, IsEmpty) {
     DynamicArray<int> arr;
 
@@ -485,9 +451,6 @@ TEST_F(DynamicArrayUnitTest, IsEmpty) {
     EXPECT_TRUE(arr.isEmpty());
 }
 
-
-
-// ==================== DIFFERENT DATA TYPES TESTS ====================
 
 TEST_F(DynamicArrayUnitTest, StringType) {
     DynamicArray<std::string> arr;
@@ -520,9 +483,6 @@ TEST_F(DynamicArrayUnitTest, CustomObjectType) {
 }
 
 
-
-// ==================== STRESS TESTS ====================
-
 TEST_F(DynamicArrayUnitTest, LargeNumberOfInsertions) {
     DynamicArray<int> arr;
     constexpr int num_elements = 1000;
@@ -554,9 +514,6 @@ TEST_F(DynamicArrayUnitTest, AlternatingInsertionAndRemoval) {
         EXPECT_LT(arr.get(i), arr.get(i + 1));
 }
 
-
-
-// ==================== EXCEPTION SAFETY TESTS ====================
 
 TEST_F(DynamicArrayUnitTest, ExceptionSafetyDuringExpansion) {
     ThrowingType::reset();

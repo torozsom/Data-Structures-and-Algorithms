@@ -1,12 +1,11 @@
-
-
-#include "Stack.hpp"
-#include "ThrowingType.hpp"
 #include <gtest/gtest.h>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+
+#include "Stack.hpp"
+#include "ThrowingType.hpp"
 
 
 class StackUnitTest : public ::testing::Test {
@@ -20,9 +19,6 @@ class StackUnitTest : public ::testing::Test {
     }
 };
 
-
-
-// ==================== CONSTRUCTION TESTS ====================
 
 TEST_F(StackUnitTest, DefaultConstructor) {
     const Stack<int> stack;
@@ -74,9 +70,6 @@ TEST_F(StackUnitTest, MoveConstructor) {
     EXPECT_TRUE(original.isEmpty());
 }
 
-
-
-// ==================== ASSIGNMENT OPERATOR TESTS ====================
 
 TEST_F(StackUnitTest, CopyAssignmentOperator) {
     Stack<int> original;
@@ -141,9 +134,6 @@ TEST_F(StackUnitTest, MoveAssignmentOperatorSelfAssignment) {
 #pragma GCC diagnostic pop
 
 
-
-// ==================== PUSH TESTS ====================
-
 TEST_F(StackUnitTest, PushSingleElement) {
     Stack<int> stack;
 
@@ -178,9 +168,6 @@ TEST_F(StackUnitTest, PushLargeNumberOfElements) {
     EXPECT_EQ(stack.top(), num_elements - 1);
 }
 
-
-
-// ==================== POP TESTS ====================
 
 TEST_F(StackUnitTest, PopSingleElement) {
     Stack<int> stack;
@@ -235,9 +222,6 @@ TEST_F(StackUnitTest, PopAllElementsThenPushAgain) {
 }
 
 
-
-// ==================== TOP TESTS ====================
-
 TEST_F(StackUnitTest, TopNonConstAccess) {
     Stack<int> stack;
     stack.push(42);
@@ -280,20 +264,15 @@ TEST_F(StackUnitTest, TopWithMultipleElements) {
 
 TEST_F(StackUnitTest, TopFromEmptyStack) {
     Stack<int> stack;
-
     EXPECT_THROW(stack.top(), std::out_of_range);
 }
 
 
 TEST_F(StackUnitTest, TopFromEmptyConstStack) {
     const Stack<int> stack;
-
     EXPECT_THROW(stack.top(), std::out_of_range);
 }
 
-
-
-// ==================== UTILITY FUNCTION TESTS ====================
 
 TEST_F(StackUnitTest, IsEmpty) {
     Stack<int> stack;
@@ -351,9 +330,6 @@ TEST_F(StackUnitTest, ClearEmptyStack) {
 }
 
 
-
-// ==================== PRINT FUNCTION TESTS ====================
-
 TEST_F(StackUnitTest, PrintStack) {
     Stack<int> stack;
     stack.push(10);
@@ -361,7 +337,7 @@ TEST_F(StackUnitTest, PrintStack) {
     stack.push(30);
 
     // Capture stdout
-    const std::ostringstream output;
+    std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -378,7 +354,7 @@ TEST_F(StackUnitTest, PrintEmptyStack) {
     const Stack<int> stack;
 
     // Capture stdout
-    const std::ostringstream output;
+    std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -396,7 +372,7 @@ TEST_F(StackUnitTest, PrintSingleElement) {
     stack.push(42);
 
     // Capture stdout
-    const std::ostringstream output;
+    std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -408,9 +384,6 @@ TEST_F(StackUnitTest, PrintSingleElement) {
     EXPECT_EQ(output.str(), "Stack (top to bottom): 42 \n");
 }
 
-
-
-// ==================== DIFFERENT DATA TYPES TESTS ====================
 
 TEST_F(StackUnitTest, StringType) {
     Stack<std::string> stack;
@@ -450,9 +423,6 @@ TEST_F(StackUnitTest, CustomObjectType) {
 }
 
 
-
-// ==================== LIFO BEHAVIOR TESTS ====================
-
 TEST_F(StackUnitTest, LIFOBehavior) {
     Stack<int> stack;
 
@@ -484,9 +454,6 @@ TEST_F(StackUnitTest, InterleavedPushPop) {
     EXPECT_TRUE(stack.isEmpty());
 }
 
-
-
-// ==================== STRESS TESTS ====================
 
 TEST_F(StackUnitTest, LargeNumberOfOperations) {
     Stack<int> stack;
@@ -529,9 +496,6 @@ TEST_F(StackUnitTest, AlternatingPushPop) {
 }
 
 
-
-// ==================== EXCEPTION SAFETY TESTS ====================
-
 TEST_F(StackUnitTest, ExceptionSafetyBasic) {
     // Test basic exception handling for empty stack operations
     Stack<int> stack;
@@ -549,9 +513,6 @@ TEST_F(StackUnitTest, ExceptionSafetyBasic) {
     EXPECT_EQ(stack.size(), 1);
 }
 
-
-
-// ==================== EXCEPTION SAFETY TESTS ====================
 
 TEST_F(StackUnitTest, BasicThrowingTypeUsage) {
     // Test that ThrowingType works correctly with the stack when not throwing
@@ -581,9 +542,6 @@ TEST_F(StackUnitTest, BasicThrowingTypeUsage) {
     ThrowingType::reset();
 }
 
-
-
-// ==================== EDGE CASE TESTS ====================
 
 TEST_F(StackUnitTest, PushPopSingleElementMultipleTimes) {
     Stack<int> stack;

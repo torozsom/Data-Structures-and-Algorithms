@@ -1,11 +1,9 @@
-
-
 #ifndef BINARYTREE_HPP
 #define BINARYTREE_HPP
 
 
-#include "Queue.hpp"
 #include <iostream>
+#include "Queue.hpp"
 
 
 /**
@@ -53,15 +51,16 @@ class BinaryTree {
      * @return A pointer to the newly created node, which is a copy of the input
      * node along with its subtree.
      */
-    Node<Type>* recursiveCopyNode(Node<Type>* otherNode, Node<Type>* parent = nullptr) {
+    Node<Type>* recursiveCopyNode(Node<Type>* otherNode,
+                                  Node<Type>* parent = nullptr) {
         if (otherNode == nullptr)
             return nullptr;
 
         Node<Type>* newNode = new Node(otherNode->data);
         newNode->parent = parent;
 
-        newNode->left = copyNode(otherNode->left, newNode);
-        newNode->right = copyNode(otherNode->right, newNode);
+        newNode->left = recursiveCopyNode(otherNode->left, newNode);
+        newNode->right = recursiveCopyNode(otherNode->right, newNode);
         return newNode;
     }
 
@@ -74,7 +73,7 @@ class BinaryTree {
      * current tree.
      */
     void recursiveCopy(const BinaryTree& other) {
-        root_ = copyNode(other.root_);
+        root_ = recursiveCopyNode(other.root_);
     }
 
 
@@ -253,7 +252,7 @@ class BinaryTree {
     BinaryTree(const Type* array, const std::size_t size)
         : root_(nullptr), size_(0) {
         for (std::size_t i = 0; i < size; i++)
-            insert(array[i]);
+            BinaryTree::insert(array[i]);
     }
 
     /// Copy constructor
@@ -384,7 +383,7 @@ class BinaryTree {
      *
      * @param element The element to be inserted into the binary tree.
      */
-    void insert(const Type& element) {
+    virtual void insert(const Type& element) {
         if (this->isEmpty()) {
             root_ = new Node<Type>(element);
             size_++;

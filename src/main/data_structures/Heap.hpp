@@ -1,13 +1,9 @@
-
-
 #ifndef HEAP_HPP
 #define HEAP_HPP
 
 
-#include <bitset>
-#include <limits>
-
 #include "BinaryTree.hpp"
+#include <limits>
 
 
 /**
@@ -34,11 +30,13 @@ class Heap : public BinaryTree<Type> {
 
 
     /**
-     * @brief Finds a node in the complete binary tree (heap) using bit manipulation.
+     * @brief Finds a node in the complete binary tree (heap) using bit
+     * manipulation.
      *
-     * This method determines the path to the node by examining the binary representation
-     * of the node's index. After finding the most significant bit (MSB), it uses the remaining
-     * bits to navigate the tree: 0 for left child and 1 for right child.
+     * This method determines the path to the node by examining the binary
+     * representation of the node's index. After finding the most significant
+     * bit (MSB), it uses the remaining bits to navigate the tree: 0 for left
+     * child and 1 for right child.
      *
      * The implementation uses efficient bit manipulation operations:
      * - MSB detection through right-shifting
@@ -54,7 +52,8 @@ class Heap : public BinaryTree<Type> {
         if (this->isEmpty())
             return nullptr;
 
-        std::size_t msb = static_cast<size_t>(1) << (std::numeric_limits<size_t>::digits - 1);
+        std::size_t msb = static_cast<size_t>(1)
+                          << (std::numeric_limits<size_t>::digits - 1);
         while (msb > 0 && !(path & msb))
             msb >>= 1;
 
@@ -80,11 +79,10 @@ class Heap : public BinaryTree<Type> {
      * heap. It uses a binary representation of the size to determine the
      * correct path in the complete binary tree structure of the heap.
      *
-     * @return Pointer to the last node in the heap, or nullptr if the heap is empty.
+     * @return Pointer to the last node in the heap, or nullptr if the heap is
+     * empty.
      */
-    Node<Type>* findLastNode() const {
-        return findNodeByPath(this->size());
-    }
+    Node<Type>* findLastNode() const { return findNodeByPath(this->size()); }
 
 
     /**
@@ -107,10 +105,27 @@ class Heap : public BinaryTree<Type> {
 
 
   public:
+    Heap() : BinaryTree<Type>() {}
+
+    Heap(const Heap& other) : BinaryTree<Type>(other) {}
+
+    Heap(Heap&& other) noexcept : BinaryTree<Type>(std::move(other)) {}
+
+    Heap& operator=(const Heap& other) {
+        BinaryTree<Type>::operator=(other);
+        return *this;
+    }
+
+    Heap& operator=(Heap&& other) noexcept {
+        BinaryTree<Type>::operator=(std::move(other));
+        return *this;
+    }
+
+
     void insertLeft(const Type& element) = delete;
     void insertRight(const Type& element) = delete;
 
-    virtual void insert(const Type& element) = 0;
+    virtual void insert(const Type& element) override = 0;
     virtual bool isValidHeap() const = 0;
 
 

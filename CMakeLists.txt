@@ -42,12 +42,12 @@ add_executable(unit_tests
         # Unit test files
         src/test/unit/DynamicArrayUnitTest.cpp
         src/test/unit/LinkedListUnitTest.cpp
-        src/test/unit/StackUnitTest.cpp
         src/test/unit/QueueUnitTest.cpp
-        #src/test/unit/BinaryTreeUnitTest.cpp
-        #src/test/unit/BinarySearchTreeUnitTest.cpp
-        #src/test/unit/MinHeapUnitTest.cpp
-        #src/test/unit/MaxHeapUnitTest.cpp
+        src/test/unit/StackUnitTest.cpp
+        src/test/unit/BinaryTreeUnitTest.cpp
+        src/test/unit/BinarySearchTreeUnitTest.cpp
+        src/test/unit/MinHeapUnitTest.cpp
+        src/test/unit/MaxHeapUnitTest.cpp
         # Header files (for IDE support)
         src/main/data_structures/DynamicArray.hpp
         src/main/data_structures/LinkedList.hpp
@@ -122,6 +122,13 @@ add_custom_target(run_all_tests
         COMMENT "Running all tests"
 )
 
+set(CMAKE_BUILD_TYPE Debug)
+
+set(CMAKE_C_FLAGS_RELEASE "-O3 -fno-fast-math -fno-unsafe-math-optimizations -frounding-math -march=native")
+#set(CMAKE_C_FLAGS_DEBUG "-O2 -fno-fast-math -fno-unsafe-math-optimizations -frounding-math -march=native")
+
+message(STATUS "Current build type: ${CMAKE_BUILD_TYPE}")
+
 # Compiler-specific options for better testing
 if (MSVC)
     target_compile_options(unit_tests PRIVATE /W4)
@@ -135,7 +142,7 @@ endif ()
 
 # Optional: Code coverage support (for GCC/Clang)
 if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT MSVC)
-    option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
+    option(ENABLE_COVERAGE "Enable coverage reporting" ON)
     if (ENABLE_COVERAGE)
         target_compile_options(unit_tests PRIVATE --coverage)
         target_link_libraries(unit_tests --coverage)

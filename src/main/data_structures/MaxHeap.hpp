@@ -1,5 +1,3 @@
-
-
 #ifndef MAXHEAP_HPP
 #define MAXHEAP_HPP
 
@@ -80,15 +78,27 @@ class MaxHeap final : public Heap<Type> {
 
 
   public:
-    MaxHeap() = default;
+    MaxHeap() : Heap<Type>() {}
 
-    MaxHeap(const MaxHeap& other) = default;
+    MaxHeap(const Type* array, const std::size_t size) : Heap<Type>() {
+        for (std::size_t i = 0; i < size; ++i) {
+            this->insert(array[i]);
+        }
+    }
 
-    MaxHeap(MaxHeap&& other) noexcept = default;
+    MaxHeap(const MaxHeap& other) : Heap<Type>(other) {}
 
-    MaxHeap& operator=(const MaxHeap& other) = default;
+    MaxHeap(MaxHeap&& other) noexcept : Heap<Type>(std::move(other)) {}
 
-    MaxHeap& operator=(MaxHeap&& other) noexcept = default;
+    MaxHeap& operator=(const MaxHeap& other) {
+        Heap<Type>::operator=(other);
+        return *this;
+    }
+
+    MaxHeap& operator=(MaxHeap&& other) noexcept {
+        Heap<Type>::operator=(std::move(other));
+        return *this;
+    }
 
 
     /**
@@ -107,13 +117,14 @@ class MaxHeap final : public Heap<Type> {
             return;
         }
 
-        Node<Type>* parent = this->findNodeByPath((this->size() + 1) >> 1);
+        std::size_t path = this->size() + 1;
+        Node<Type>* parent = this->findNodeByPath(path >> 1);
         newNode->parent = parent;
 
-        if ((this->size() + 1) & 1)
-            parent->left = newNode;
-        else
+        if (path & 1)
             parent->right = newNode;
+        else
+            parent->left = newNode;
 
         ++this->size_;
         heapifyUp(newNode);

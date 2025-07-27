@@ -1,5 +1,3 @@
-
-
 #ifndef STACK_HPP
 #define STACK_HPP
 
@@ -15,21 +13,32 @@
  * from the stack. Elements can only be added to or removed from the top
  * of the stack.
  */
-template <typename Type> class Stack {
+template <typename Type>
+class Stack {
 
   private:
     DynamicArray<Type> array_;
 
   public:
-    Stack() = default;
+    Stack() : array_() {}
 
-    Stack(const Stack& other) = default;
+    Stack(const Stack& other) : array_(other.array_) {}
 
-    Stack(Stack&& other) noexcept = default;
+    Stack(Stack&& other) noexcept : array_(std::move(other.array_)) {}
 
-    Stack& operator=(const Stack& other) = default;
+    Stack& operator=(const Stack& other) {
+        if (this == &other)
+            return *this;
+        array_ = other.array_;
+        return *this;
+    }
 
-    Stack& operator=(Stack&& other) noexcept = default;
+    Stack& operator=(Stack&& other) noexcept {
+        if (this == &other)
+            return *this;
+        array_ = std::move(other.array_);
+        return *this;
+    }
 
 
     bool isEmpty() const noexcept { return array_.isEmpty(); }

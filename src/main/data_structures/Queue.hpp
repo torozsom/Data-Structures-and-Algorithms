@@ -1,12 +1,11 @@
-
-
 #ifndef QUEUE_HPP
 #define QUEUE_HPP
 
 
-#include "DynamicArray.hpp"
 #include <iostream>
 #include <stdexcept>
+
+#include "DynamicArray.hpp"
 
 
 /**
@@ -26,15 +25,25 @@ class Queue {
     DynamicArray<Type> array_;
 
   public:
-    Queue() = default;
+    Queue() : array_() {};
 
-    Queue(const Queue& other) = default;
+    Queue(const Queue& other) : array_(other.array_) {}
 
-    Queue(Queue&& other) noexcept = default;
+    Queue(Queue&& other) noexcept : array_(std::move(other.array_)) {}
 
-    Queue& operator=(const Queue& other) = default;
+    Queue& operator=(const Queue& other) {
+        if (this == &other)
+            return *this;
+        array_ = other.array_;
+        return *this;
+    }
 
-    Queue& operator=(Queue&& other) noexcept = default;
+    Queue& operator=(Queue&& other) noexcept {
+        if (this == &other)
+            return *this;
+        array_ = std::move(other.array_);
+        return *this;
+    }
 
 
     /// Checks if the queue is empty.

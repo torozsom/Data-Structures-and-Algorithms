@@ -3,6 +3,9 @@
 #ifndef DEBUGTEST_H
 #define DEBUGTEST_H
 
+
+#include <iostream>
+
 #include "BinarySearchTree.hpp"
 #include "BinaryTree.hpp"
 #include "DynamicArray.hpp"
@@ -10,7 +13,6 @@
 #include "MaxHeap.hpp"
 #include "MinHeap.hpp"
 #include "Stack.hpp"
-#include <iostream>
 
 
 void testLinkedList();
@@ -28,5 +30,6 @@ void testMinHeap();
 void testMaxHeap();
 
 void testAllDataStructures();
+
 
 #endif // DEBUGTEST_H

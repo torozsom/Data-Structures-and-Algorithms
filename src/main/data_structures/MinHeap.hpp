@@ -1,5 +1,3 @@
-
-
 #ifndef MINHEAP_HPP
 #define MINHEAP_HPP
 
@@ -80,15 +78,27 @@ class MinHeap final : public Heap<Type> {
 
 
   public:
-    MinHeap() = default;
+    MinHeap() : Heap<Type>() {}
 
-    MinHeap(const MinHeap& other) = default;
+    MinHeap(const Type* array, const std::size_t size) : Heap<Type>() {
+        for (std::size_t i = 0; i < size; ++i) {
+            this->insert(array[i]);
+        }
+    }
 
-    MinHeap(MinHeap&& other) noexcept = default;
+    MinHeap(const MinHeap& other) : Heap<Type>(other) {}
 
-    MinHeap& operator=(const MinHeap& other) = default;
+    MinHeap(MinHeap&& other) noexcept : Heap<Type>(std::move(other)) {}
 
-    MinHeap& operator=(MinHeap&& other) noexcept = default;
+    MinHeap& operator=(const MinHeap& other) {
+        Heap<Type>::operator=(other);
+        return *this;
+    }
+
+    MinHeap& operator=(MinHeap&& other) noexcept {
+        Heap<Type>::operator=(std::move(other));
+        return *this;
+    }
 
 
     /**

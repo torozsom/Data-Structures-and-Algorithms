@@ -1,17 +1,15 @@
-
-
 #include <gtest/gtest.h>
+#include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sstream>
-#include <iostream>
 
 #include "Queue.hpp"
 #include "ThrowingType.hpp"
 
 
 class QueueUnitTest : public ::testing::Test {
-protected:
+  protected:
     void SetUp() override {
         // Setup code that runs before each test
     }
@@ -21,9 +19,6 @@ protected:
     }
 };
 
-
-
-// ==================== CONSTRUCTION TESTS ====================
 
 TEST_F(QueueUnitTest, DefaultConstructor) {
     const Queue<int> queue;
@@ -77,9 +72,6 @@ TEST_F(QueueUnitTest, MoveConstructor) {
     EXPECT_TRUE(original.isEmpty());
 }
 
-
-
-// ==================== ASSIGNMENT OPERATOR TESTS ====================
 
 TEST_F(QueueUnitTest, CopyAssignmentOperator) {
     Queue<int> original;
@@ -148,9 +140,6 @@ TEST_F(QueueUnitTest, MoveAssignmentOperatorSelfAssignment) {
 #pragma GCC diagnostic pop
 
 
-
-// ==================== ENQUEUE TESTS ====================
-
 TEST_F(QueueUnitTest, EnqueueSingleElement) {
     Queue<int> queue;
 
@@ -189,9 +178,6 @@ TEST_F(QueueUnitTest, EnqueueLargeNumberOfElements) {
 }
 
 
-
-// ==================== DEQUEUE TESTS ====================
-
 TEST_F(QueueUnitTest, DequeueSingleElement) {
     Queue<int> queue;
     queue.enqueue(42);
@@ -226,7 +212,6 @@ TEST_F(QueueUnitTest, DequeueMultipleElements) {
 
 TEST_F(QueueUnitTest, DequeueFromEmptyQueue) {
     Queue<int> queue;
-
     EXPECT_THROW(queue.dequeue(), std::out_of_range);
 }
 
@@ -247,9 +232,6 @@ TEST_F(QueueUnitTest, DequeueAllElementsThenEnqueueAgain) {
     EXPECT_EQ(queue.size(), 1);
 }
 
-
-
-// ==================== FRONT TESTS ====================
 
 TEST_F(QueueUnitTest, FrontNonConstAccess) {
     Queue<int> queue;
@@ -293,17 +275,14 @@ TEST_F(QueueUnitTest, FrontWithMultipleElements) {
 
 TEST_F(QueueUnitTest, FrontFromEmptyQueue) {
     Queue<int> queue;
-
     EXPECT_THROW(queue.front(), std::out_of_range);
 }
 
 
 TEST_F(QueueUnitTest, FrontFromEmptyConstQueue) {
     const Queue<int> queue;
-
     EXPECT_THROW(queue.front(), std::out_of_range);
 }
-
 
 
 // ==================== BACK TESTS ====================
@@ -350,17 +329,14 @@ TEST_F(QueueUnitTest, BackWithMultipleElements) {
 
 TEST_F(QueueUnitTest, BackFromEmptyQueue) {
     Queue<int> queue;
-
     EXPECT_THROW(queue.back(), std::out_of_range);
 }
 
 
 TEST_F(QueueUnitTest, BackFromEmptyConstQueue) {
     const Queue<int> queue;
-
     EXPECT_THROW(queue.back(), std::out_of_range);
 }
-
 
 
 // ==================== UTILITY FUNCTION TESTS ====================
@@ -437,9 +413,6 @@ TEST_F(QueueUnitTest, ClearEmptyQueue) {
 }
 
 
-
-// ==================== PRINT FUNCTION TESTS ====================
-
 TEST_F(QueueUnitTest, PrintQueue) {
     Queue<int> queue;
     queue.enqueue(10);
@@ -447,7 +420,7 @@ TEST_F(QueueUnitTest, PrintQueue) {
     queue.enqueue(30);
 
     // Capture stdout
-    const std::ostringstream output;
+    std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -464,7 +437,7 @@ TEST_F(QueueUnitTest, PrintEmptyQueue) {
     const Queue<int> queue;
 
     // Capture stdout
-    const std::ostringstream output;
+    std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -482,7 +455,7 @@ TEST_F(QueueUnitTest, PrintSingleElement) {
     queue.enqueue(42);
 
     // Capture stdout
-    const std::ostringstream output;
+    std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -494,9 +467,6 @@ TEST_F(QueueUnitTest, PrintSingleElement) {
     EXPECT_EQ(output.str(), "Queue (front to back): 42 \n");
 }
 
-
-
-// ==================== DIFFERENT DATA TYPES TESTS ====================
 
 TEST_F(QueueUnitTest, StringType) {
     Queue<std::string> queue;
@@ -538,9 +508,6 @@ TEST_F(QueueUnitTest, CustomObjectType) {
 }
 
 
-
-// ==================== FIFO BEHAVIOR TESTS ====================
-
 TEST_F(QueueUnitTest, FIFOBehavior) {
     Queue<int> queue;
 
@@ -572,9 +539,6 @@ TEST_F(QueueUnitTest, InterleavedEnqueueDequeue) {
     EXPECT_TRUE(queue.isEmpty());
 }
 
-
-
-// ==================== STRESS TESTS ====================
 
 TEST_F(QueueUnitTest, LargeNumberOfOperations) {
     Queue<int> queue;
@@ -616,9 +580,6 @@ TEST_F(QueueUnitTest, AlternatingEnqueueDequeue) {
     }
 }
 
-
-
-// ==================== EXCEPTION SAFETY TESTS ====================
 
 TEST_F(QueueUnitTest, ExceptionSafetyBasic) {
     // Test basic exception handling for empty queue operations
@@ -672,9 +633,6 @@ TEST_F(QueueUnitTest, BasicThrowingTypeUsage) {
     ThrowingType::reset();
 }
 
-
-
-// ==================== EDGE CASE TESTS ====================
 
 TEST_F(QueueUnitTest, EnqueueDequeueSingleElementMultipleTimes) {
     Queue<int> queue;
