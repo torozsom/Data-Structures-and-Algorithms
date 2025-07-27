@@ -14,7 +14,8 @@
  * removing, and accessing elements. The internal storage is implemented using
  * a doubly linked list structure.
  */
-template <typename Type> class LinkedList {
+template <typename Type>
+class LinkedList {
 
   private:
     struct Node {
@@ -27,7 +28,7 @@ template <typename Type> class LinkedList {
 
     Node* head_;
     Node* tail_;
-    unsigned int size_;
+    std::size_t size_;
 
 
   public:
@@ -35,7 +36,7 @@ template <typename Type> class LinkedList {
     LinkedList() : head_(nullptr), tail_(nullptr), size_(0) {}
 
 
-    LinkedList(const Type* array, const unsigned int size)
+    LinkedList(const Type* array, const std::size_t size)
         : head_(nullptr), tail_(nullptr), size_(0) {
 
         if (size > 0 && array == nullptr)
@@ -43,7 +44,7 @@ template <typename Type> class LinkedList {
                 "Initial data cannot be null if size is positive.");
 
         try {
-            for (unsigned int i = 0; i < size; ++i)
+            for (std::size_t i = 0; i < size; ++i)
                 addLast(array[i]);
         } catch (...) {
             clear();
@@ -76,11 +77,6 @@ template <typename Type> class LinkedList {
         other.tail_ = nullptr;
         other.size_ = 0;
     }
-
-
-    unsigned int getSize() const { return size_; }
-
-    bool isEmpty() const { return size_ == 0; }
 
 
     /// Copy assignment operator
@@ -123,6 +119,11 @@ template <typename Type> class LinkedList {
 
         return *this;
     }
+
+
+    std::size_t getSize() const noexcept { return size_; }
+
+    bool isEmpty() const noexcept { return size_ == 0; }
 
 
     /**
@@ -179,7 +180,7 @@ template <typename Type> class LinkedList {
      * @throws std::out_of_range If the specified index is greater than the
      * current size.
      */
-    void insert(const unsigned int idx, const Type& element) {
+    void insert(const std::size_t idx, const Type& element) {
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
@@ -193,11 +194,11 @@ template <typename Type> class LinkedList {
 
                 if (idx < size_ / 2) {
                     current = head_;
-                    for (unsigned int i = 0; i < idx; ++i)
+                    for (std::size_t i = 0; i < idx; ++i)
                         current = current->next;
                 } else {
                     current = tail_;
-                    for (unsigned int i = size_ - 1; i > idx; --i)
+                    for (std::size_t i = size_ - 1; i > idx; --i)
                         current = current->prev;
                 }
 
@@ -277,7 +278,7 @@ template <typename Type> class LinkedList {
      * @throws std::out_of_range If the specified index is out of range (greater
      * than or equal to the size of the list).
      */
-    void removeAt(const unsigned int idx) {
+    void removeAt(const std::size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -288,7 +289,7 @@ template <typename Type> class LinkedList {
 
         } else if (idx < size_ / 2) {
             Node* current = head_;
-            for (unsigned int i = 0; i < idx; ++i)
+            for (std::size_t i = 0; i < idx; ++i)
                 current = current->next;
 
             current->prev->next = current->next;
@@ -298,7 +299,7 @@ template <typename Type> class LinkedList {
 
         } else if (idx >= size_ / 2) {
             Node* current = tail_;
-            for (unsigned int i = size_ - 1; i > idx; --i)
+            for (std::size_t i = size_ - 1; i > idx; --i)
                 current = current->prev;
 
             current->prev->next = current->next;
@@ -349,18 +350,18 @@ template <typename Type> class LinkedList {
      * @throws std::out_of_range If the provided index is outside the bounds of
      * the list.
      */
-    Type& get(const unsigned int idx) {
+    Type& get(const std::size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
         Node* current;
         if (idx < size_ / 2) {
             current = head_;
-            for (unsigned int i = 0; i < idx; ++i)
+            for (std::size_t i = 0; i < idx; ++i)
                 current = current->next;
         } else {
             current = tail_;
-            for (unsigned int i = size_ - 1; i > idx; --i)
+            for (std::size_t i = size_ - 1; i > idx; --i)
                 current = current->prev;
         }
 
@@ -376,18 +377,18 @@ template <typename Type> class LinkedList {
      * @throws std::out_of_range If the provided index is outside the bounds of
      * the list.
      */
-    const Type& get(const unsigned int idx) const {
+    const Type& get(const std::size_t idx) const {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
         Node* current;
         if (idx < size_ / 2) {
             current = head_;
-            for (unsigned int i = 0; i < idx; ++i)
+            for (std::size_t i = 0; i < idx; ++i)
                 current = current->next;
         } else {
             current = tail_;
-            for (unsigned int i = size_ - 1; i > idx; --i)
+            for (std::size_t i = size_ - 1; i > idx; --i)
                 current = current->prev;
         }
 
@@ -403,7 +404,7 @@ template <typename Type> class LinkedList {
      * @throws std::out_of_range If the provided index is outside the bounds of
      * the list.
      */
-    Type& operator[](const unsigned int idx) { return get(idx); }
+    Type& operator[](const std::size_t idx) { return get(idx); }
 
 
     /**
@@ -414,7 +415,7 @@ template <typename Type> class LinkedList {
      * @throws std::out_of_range If the provided index is outside the bounds of
      * the list.
      */
-    const Type& operator[](const unsigned int idx) const { return get(idx); }
+    const Type& operator[](const std::size_t idx) const { return get(idx); }
 
 
     /**

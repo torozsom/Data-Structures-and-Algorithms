@@ -19,7 +19,8 @@
  *
  * @tparam Type The type of elements stored in the queue.
  */
-template <typename Type> class Queue {
+template <typename Type>
+class Queue {
 
   private:
     DynamicArray<Type> array_;
@@ -40,10 +41,10 @@ template <typename Type> class Queue {
     bool isEmpty() const { return array_.isEmpty(); }
 
     /// Returns the number of elements in the queue.
-    unsigned int size() const { return array_.getSize(); }
+    std::size_t size() const { return array_.getSize(); }
 
     /// Returns the current capacity of the queue.
-    unsigned int capacity() const { return array_.getCapacity(); }
+    std::size_t capacity() const { return array_.getCapacity(); }
 
     /// Clears all elements from the queue.
     void clear() { array_.clear(); }
@@ -132,7 +133,7 @@ template <typename Type> class Queue {
         }
 
         std::cout << "Queue (front to back): ";
-        for (unsigned int i = 0; i < array_.getSize(); ++i)
+        for (std::size_t i = 0; i < array_.getSize(); ++i)
             std::cout << array_[i] << " ";
 
         std::cout << std::endl;

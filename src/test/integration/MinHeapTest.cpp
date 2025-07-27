@@ -22,7 +22,7 @@ void testMinHeap() {
 
     // Extract the root and check the new root
     std::cout << "\nExtracting the root...\n";
-    int extractedRoot = heap.extractRoot();
+    const int extractedRoot = heap.extractRoot();
     std::cout << "Extracted root value: " << extractedRoot
               << " (Expected: 3)\n";
     std::cout << "New root after extraction: " << heap.peekRoot()

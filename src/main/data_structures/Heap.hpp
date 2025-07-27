@@ -5,6 +5,7 @@
 
 
 #include <bitset>
+#include <limits>
 
 #include "BinaryTree.hpp"
 
@@ -24,7 +25,8 @@
  *
  * @tparam Type The type of elements stored in the heap.
  */
-template <typename Type> class Heap : public BinaryTree<Type> {
+template <typename Type>
+class Heap : public BinaryTree<Type> {
 
   protected:
     virtual void heapifyUp(Node<Type>* node) = 0;
@@ -32,42 +34,56 @@ template <typename Type> class Heap : public BinaryTree<Type> {
 
 
     /**
-     * Finds and returns the rightmost (last) node in the binary tree.
+     * @brief Finds a node in the complete binary tree (heap) using bit manipulation.
      *
-     * The method starts from the root node and repeatedly traverses to the
-     * right child until it reaches a node with no right child. The node at this
-     * position is considered the last node in the tree based on a binary
-     * structure where right children are considered after left children.
+     * This method determines the path to the node by examining the binary representation
+     * of the node's index. After finding the most significant bit (MSB), it uses the remaining
+     * bits to navigate the tree: 0 for left child and 1 for right child.
      *
-     * @return A pointer to the last node in the tree, or nullptr if the tree is
-     * empty.
+     * The implementation uses efficient bit manipulation operations:
+     * - MSB detection through right-shifting
+     * - Bitwise AND for path determination
+     *
+     * @param path The index of the node to find.
+     * @return Pointer to the node at index n, or nullptr if not found.
+     *
+     * @complexity Time: O(log n) where n is the number of nodes
+     * @complexity Space: O(1) - uses only a constant amount of extra space
      */
-    Node<Type>* findLastNode() const {
+    Node<Type>* findNodeByPath(const std::size_t path) const {
         if (this->isEmpty())
             return nullptr;
 
-        const unsigned int n = this->size();
-        const std::bitset<32> binary(n);
-        std::string path = binary.to_string();
-
-        const unsigned int index = path.find('1');
-        if (index == std::string::npos)
-            return this->root_;
-
-        path = path.substr(index + 1);
+        std::size_t msb = static_cast<size_t>(1) << (std::numeric_limits<size_t>::digits - 1);
+        while (msb > 0 && !(path & msb))
+            msb >>= 1;
 
         Node<Type>* current = this->root_;
-        for (char direction : path) {
-            if (current == nullptr)
-                break;
+        msb >>= 1;
 
-            if (direction == '0')
-                current = current->left;
-            else
+        while (msb && current) {
+            if (path & msb)
                 current = current->right;
+            else
+                current = current->left;
+            msb >>= 1;
         }
 
         return current;
+    }
+
+
+    /**
+     * Finds the last node in the heap based on the current size.
+     *
+     * This method calculates the path to the last node using the size of the
+     * heap. It uses a binary representation of the size to determine the
+     * correct path in the complete binary tree structure of the heap.
+     *
+     * @return Pointer to the last node in the heap, or nullptr if the heap is empty.
+     */
+    Node<Type>* findLastNode() const {
+        return findNodeByPath(this->size());
     }
 
 

@@ -172,8 +172,8 @@ class BinarySearchTree final : public BinaryTree<Type> {
   public:
     BinarySearchTree() = default;
 
-    BinarySearchTree(const Type* array, const unsigned int size) {
-        for (unsigned i = 0; i < size; i++)
+    BinarySearchTree(const Type* array, const std::size_t size) {
+        for (std::size_t i = 0; i < size; i++)
             insert(array[i]);
     }
 
@@ -187,7 +187,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
 
 
     /// Checks if the binary tree is a valid BST.
-    bool isValidBST() const { return isValidBSTHelper(this->root_); }
+    bool isValidBST() const noexcept { return isValidBSTHelper(this->root_); }
 
 
     /**
@@ -234,7 +234,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
      * @param element The element to check for presence in the tree.
      * @return True if the element is found, false otherwise.
      */
-    bool contains(const Type& element) const {
+    bool contains(const Type& element) const noexcept {
         Node<Type>* current = this->root_;
         while (current != nullptr) {
             if (element < current->data) {

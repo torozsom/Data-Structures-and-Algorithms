@@ -32,9 +32,9 @@ template <typename Type> class Stack {
     Stack& operator=(Stack&& other) noexcept = default;
 
 
-    bool isEmpty() const { return array_.isEmpty(); }
+    bool isEmpty() const noexcept { return array_.isEmpty(); }
 
-    unsigned int size() const { return array_.getSize(); }
+    std::size_t size() const noexcept { return array_.getSize(); }
 
     void clear() { array_.clear(); }
 
@@ -95,7 +95,7 @@ template <typename Type> class Stack {
      */
     void print() const {
         std::cout << "Stack (top to bottom): ";
-        for (unsigned int i = array_.getSize(); i > 0; --i)
+        for (std::size_t i = array_.getSize(); i > 0; --i)
             std::cout << array_[i - 1] << " ";
         std::cout << std::endl;
     }

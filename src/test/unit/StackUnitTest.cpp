@@ -20,14 +20,17 @@ class StackUnitTest : public ::testing::Test {
     }
 };
 
+
+
 // ==================== CONSTRUCTION TESTS ====================
 
 TEST_F(StackUnitTest, DefaultConstructor) {
-    Stack<int> stack;
+    const Stack<int> stack;
 
     EXPECT_TRUE(stack.isEmpty());
     EXPECT_EQ(stack.size(), 0);
 }
+
 
 TEST_F(StackUnitTest, CopyConstructor) {
     Stack<int> original;
@@ -35,7 +38,7 @@ TEST_F(StackUnitTest, CopyConstructor) {
     original.push(20);
     original.push(30);
 
-    Stack<int> copy(original);
+    Stack copy(original);
 
     EXPECT_EQ(copy.size(), original.size());
     EXPECT_EQ(copy.top(), 30);
@@ -46,13 +49,15 @@ TEST_F(StackUnitTest, CopyConstructor) {
     EXPECT_EQ(copy.top(), 30);
 }
 
+
 TEST_F(StackUnitTest, CopyConstructorWithEmptyStack) {
-    Stack<int> original;
-    Stack<int> copy(original);
+    const Stack<int> original;
+    const Stack copy(original);
 
     EXPECT_TRUE(copy.isEmpty());
     EXPECT_EQ(copy.size(), 0);
 }
+
 
 TEST_F(StackUnitTest, MoveConstructor) {
     Stack<int> original;
@@ -60,14 +65,16 @@ TEST_F(StackUnitTest, MoveConstructor) {
     original.push(20);
     original.push(30);
 
-    unsigned int original_size = original.size();
+    const std::size_t original_size = original.size();
 
-    Stack<int> moved(std::move(original));
+    Stack moved(std::move(original));
 
     EXPECT_EQ(moved.size(), original_size);
     EXPECT_EQ(moved.top(), 30);
     EXPECT_TRUE(original.isEmpty());
 }
+
+
 
 // ==================== ASSIGNMENT OPERATOR TESTS ====================
 
@@ -89,6 +96,7 @@ TEST_F(StackUnitTest, CopyAssignmentOperator) {
     EXPECT_EQ(copy.top(), 30);
 }
 
+
 TEST_F(StackUnitTest, CopyAssignmentOperatorSelfAssignment) {
     Stack<int> stack;
     stack.push(10);
@@ -100,6 +108,7 @@ TEST_F(StackUnitTest, CopyAssignmentOperatorSelfAssignment) {
     EXPECT_EQ(stack.top(), 20);
 }
 
+
 TEST_F(StackUnitTest, MoveAssignmentOperator) {
     Stack<int> original;
     original.push(10);
@@ -107,7 +116,7 @@ TEST_F(StackUnitTest, MoveAssignmentOperator) {
     original.push(30);
 
     Stack<int> moved;
-    unsigned int original_size = original.size();
+    const std::size_t original_size = original.size();
 
     moved = std::move(original);
 
@@ -115,6 +124,7 @@ TEST_F(StackUnitTest, MoveAssignmentOperator) {
     EXPECT_EQ(moved.top(), 30);
     EXPECT_TRUE(original.isEmpty());
 }
+
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wself-move"
@@ -130,6 +140,8 @@ TEST_F(StackUnitTest, MoveAssignmentOperatorSelfAssignment) {
 }
 #pragma GCC diagnostic pop
 
+
+
 // ==================== PUSH TESTS ====================
 
 TEST_F(StackUnitTest, PushSingleElement) {
@@ -142,6 +154,7 @@ TEST_F(StackUnitTest, PushSingleElement) {
     EXPECT_EQ(stack.top(), 42);
 }
 
+
 TEST_F(StackUnitTest, PushMultipleElements) {
     Stack<int> stack;
 
@@ -153,17 +166,19 @@ TEST_F(StackUnitTest, PushMultipleElements) {
     EXPECT_EQ(stack.top(), 30); // LIFO - last pushed should be on top
 }
 
+
 TEST_F(StackUnitTest, PushLargeNumberOfElements) {
     Stack<int> stack;
-    const int num_elements = 1000;
+    constexpr int num_elements = 1000;
 
-    for (int i = 0; i < num_elements; ++i) {
+    for (int i = 0; i < num_elements; ++i)
         stack.push(i);
-    }
 
     EXPECT_EQ(stack.size(), num_elements);
     EXPECT_EQ(stack.top(), num_elements - 1);
 }
+
+
 
 // ==================== POP TESTS ====================
 
@@ -171,12 +186,13 @@ TEST_F(StackUnitTest, PopSingleElement) {
     Stack<int> stack;
     stack.push(42);
 
-    int popped = stack.pop();
+    const int popped = stack.pop();
 
     EXPECT_EQ(popped, 42);
     EXPECT_TRUE(stack.isEmpty());
     EXPECT_EQ(stack.size(), 0);
 }
+
 
 TEST_F(StackUnitTest, PopMultipleElements) {
     Stack<int> stack;
@@ -195,11 +211,13 @@ TEST_F(StackUnitTest, PopMultipleElements) {
     EXPECT_TRUE(stack.isEmpty());
 }
 
+
 TEST_F(StackUnitTest, PopFromEmptyStack) {
     Stack<int> stack;
 
     EXPECT_THROW(stack.pop(), std::out_of_range);
 }
+
 
 TEST_F(StackUnitTest, PopAllElementsThenPushAgain) {
     Stack<int> stack;
@@ -216,6 +234,8 @@ TEST_F(StackUnitTest, PopAllElementsThenPushAgain) {
     EXPECT_EQ(stack.size(), 1);
 }
 
+
+
 // ==================== TOP TESTS ====================
 
 TEST_F(StackUnitTest, TopNonConstAccess) {
@@ -230,6 +250,7 @@ TEST_F(StackUnitTest, TopNonConstAccess) {
     EXPECT_EQ(stack.top(), 99);
 }
 
+
 TEST_F(StackUnitTest, TopConstAccess) {
     Stack<int> stack;
     stack.push(42);
@@ -239,6 +260,7 @@ TEST_F(StackUnitTest, TopConstAccess) {
 
     EXPECT_EQ(top_ref, 42);
 }
+
 
 TEST_F(StackUnitTest, TopWithMultipleElements) {
     Stack<int> stack;
@@ -255,17 +277,21 @@ TEST_F(StackUnitTest, TopWithMultipleElements) {
     EXPECT_EQ(stack.top(), 99);
 }
 
+
 TEST_F(StackUnitTest, TopFromEmptyStack) {
     Stack<int> stack;
 
     EXPECT_THROW(stack.top(), std::out_of_range);
 }
 
+
 TEST_F(StackUnitTest, TopFromEmptyConstStack) {
     const Stack<int> stack;
 
     EXPECT_THROW(stack.top(), std::out_of_range);
 }
+
+
 
 // ==================== UTILITY FUNCTION TESTS ====================
 
@@ -280,6 +306,7 @@ TEST_F(StackUnitTest, IsEmpty) {
     stack.pop();
     EXPECT_TRUE(stack.isEmpty());
 }
+
 
 TEST_F(StackUnitTest, Size) {
     Stack<int> stack;
@@ -300,6 +327,7 @@ TEST_F(StackUnitTest, Size) {
     EXPECT_EQ(stack.size(), 0);
 }
 
+
 TEST_F(StackUnitTest, Clear) {
     Stack<int> stack;
     stack.push(10);
@@ -312,6 +340,7 @@ TEST_F(StackUnitTest, Clear) {
     EXPECT_EQ(stack.size(), 0);
 }
 
+
 TEST_F(StackUnitTest, ClearEmptyStack) {
     Stack<int> stack;
 
@@ -320,6 +349,8 @@ TEST_F(StackUnitTest, ClearEmptyStack) {
     EXPECT_TRUE(stack.isEmpty());
     EXPECT_EQ(stack.size(), 0);
 }
+
+
 
 // ==================== PRINT FUNCTION TESTS ====================
 
@@ -330,7 +361,7 @@ TEST_F(StackUnitTest, PrintStack) {
     stack.push(30);
 
     // Capture stdout
-    std::ostringstream output;
+    const std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -342,11 +373,12 @@ TEST_F(StackUnitTest, PrintStack) {
     EXPECT_EQ(output.str(), "Stack (top to bottom): 30 20 10 \n");
 }
 
+
 TEST_F(StackUnitTest, PrintEmptyStack) {
-    Stack<int> stack;
+    const Stack<int> stack;
 
     // Capture stdout
-    std::ostringstream output;
+    const std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -358,12 +390,13 @@ TEST_F(StackUnitTest, PrintEmptyStack) {
     EXPECT_EQ(output.str(), "Stack (top to bottom): \n");
 }
 
+
 TEST_F(StackUnitTest, PrintSingleElement) {
     Stack<int> stack;
     stack.push(42);
 
     // Capture stdout
-    std::ostringstream output;
+    const std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -374,6 +407,8 @@ TEST_F(StackUnitTest, PrintSingleElement) {
 
     EXPECT_EQ(output.str(), "Stack (top to bottom): 42 \n");
 }
+
+
 
 // ==================== DIFFERENT DATA TYPES TESTS ====================
 
@@ -392,10 +427,11 @@ TEST_F(StackUnitTest, StringType) {
     EXPECT_EQ(stack.pop(), "First");
 }
 
+
 TEST_F(StackUnitTest, CustomObjectType) {
     struct Point {
         int x, y;
-        Point(int x = 0, int y = 0) : x(x), y(y) {}
+        explicit Point(int x = 0, int y = 0) : x(x), y(y) {}
         bool operator==(const Point& other) const {
             return x == other.x && y == other.y;
         }
@@ -408,10 +444,12 @@ TEST_F(StackUnitTest, CustomObjectType) {
     EXPECT_EQ(stack.size(), 2);
     EXPECT_EQ(stack.top(), Point(3, 4));
 
-    Point popped = stack.pop();
+    const Point popped = stack.pop();
     EXPECT_EQ(popped, Point(3, 4));
     EXPECT_EQ(stack.top(), Point(1, 2));
 }
+
+
 
 // ==================== LIFO BEHAVIOR TESTS ====================
 
@@ -419,17 +457,16 @@ TEST_F(StackUnitTest, LIFOBehavior) {
     Stack<int> stack;
 
     // Push elements in order
-    for (int i = 1; i <= 5; ++i) {
+    for (int i = 1; i <= 5; ++i)
         stack.push(i * 10);
-    }
 
     // Pop elements should be in reverse order (LIFO)
-    for (int i = 5; i >= 1; --i) {
+    for (int i = 5; i >= 1; --i)
         EXPECT_EQ(stack.pop(), i * 10);
-    }
 
     EXPECT_TRUE(stack.isEmpty());
 }
+
 
 TEST_F(StackUnitTest, InterleavedPushPop) {
     Stack<int> stack;
@@ -447,26 +484,27 @@ TEST_F(StackUnitTest, InterleavedPushPop) {
     EXPECT_TRUE(stack.isEmpty());
 }
 
+
+
 // ==================== STRESS TESTS ====================
 
 TEST_F(StackUnitTest, LargeNumberOfOperations) {
     Stack<int> stack;
-    const int num_operations = 1000;
+    constexpr int num_operations = 1000;
 
     // Push many elements
-    for (int i = 0; i < num_operations; ++i) {
+    for (int i = 0; i < num_operations; ++i)
         stack.push(i);
-    }
 
     EXPECT_EQ(stack.size(), num_operations);
 
     // Pop all elements and verify LIFO order
-    for (int i = num_operations - 1; i >= 0; --i) {
+    for (int i = num_operations - 1; i >= 0; --i)
         EXPECT_EQ(stack.pop(), i);
-    }
 
     EXPECT_TRUE(stack.isEmpty());
 }
+
 
 TEST_F(StackUnitTest, AlternatingPushPop) {
     Stack<int> stack;
@@ -475,9 +513,8 @@ TEST_F(StackUnitTest, AlternatingPushPop) {
     for (int i = 0; i < 100; ++i) {
         stack.push(i * 2);
         stack.push(i * 2 + 1);
-        if (stack.size() > 1) {
+        if (stack.size() > 1)
             stack.pop();
-        }
     }
 
     EXPECT_GT(stack.size(), 0);
@@ -490,6 +527,8 @@ TEST_F(StackUnitTest, AlternatingPushPop) {
         previous = current;
     }
 }
+
+
 
 // ==================== EXCEPTION SAFETY TESTS ====================
 
@@ -510,8 +549,9 @@ TEST_F(StackUnitTest, ExceptionSafetyBasic) {
     EXPECT_EQ(stack.size(), 1);
 }
 
-// ==================== EXCEPTION SAFETY TESTS ====================
 
+
+// ==================== EXCEPTION SAFETY TESTS ====================
 
 TEST_F(StackUnitTest, BasicThrowingTypeUsage) {
     // Test that ThrowingType works correctly with the stack when not throwing
@@ -541,6 +581,8 @@ TEST_F(StackUnitTest, BasicThrowingTypeUsage) {
     ThrowingType::reset();
 }
 
+
+
 // ==================== EDGE CASE TESTS ====================
 
 TEST_F(StackUnitTest, PushPopSingleElementMultipleTimes) {
@@ -553,6 +595,7 @@ TEST_F(StackUnitTest, PushPopSingleElementMultipleTimes) {
         EXPECT_TRUE(stack.isEmpty());
     }
 }
+
 
 TEST_F(StackUnitTest, TopDoesNotModifyStack) {
     Stack<int> stack;
@@ -570,13 +613,13 @@ TEST_F(StackUnitTest, TopDoesNotModifyStack) {
     EXPECT_EQ(stack.top(), 10);
 }
 
+
 TEST_F(StackUnitTest, CopyConstructorPreservesOrder) {
     Stack<int> original;
-    for (int i = 1; i <= 5; ++i) {
+    for (int i = 1; i <= 5; ++i)
         original.push(i);
-    }
 
-    Stack<int> copy(original);
+    Stack copy(original);
 
     // Both stacks should pop elements in the same order
     for (int i = 5; i >= 1; --i) {

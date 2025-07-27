@@ -14,13 +14,14 @@
  * inserting, removing, and accessing elements. The internal storage is
  * dynamically resized as needed to accommodate changes in size.
  */
-template <typename Type> class DynamicArray {
+template <typename Type>
+class DynamicArray {
 
   private:
     Type* data_;
-    unsigned int size_;
-    unsigned int capacity_;
-    static constexpr unsigned int DEFAULT_CAPACITY = 5;
+    std::size_t size_;
+    std::size_t capacity_;
+    static constexpr std::size_t DEFAULT_CAPACITY = 5;
 
 
     /**
@@ -35,8 +36,8 @@ template <typename Type> class DynamicArray {
      * destination.
      */
     void copyData(const Type* source, Type* destination,
-                  const unsigned int count) const {
-        for (unsigned int i = 0; i < count; ++i)
+                  const std::size_t count) const {
+        for (std::size_t i = 0; i < count; ++i)
             destination[i] = source[i];
     }
 
@@ -49,7 +50,7 @@ template <typename Type> class DynamicArray {
      *
      * @param new_capacity The new desired capacity for the dynamic array.
      */
-    void resize(unsigned int new_capacity) {
+    void resize(std::size_t new_capacity) {
         if (new_capacity < DEFAULT_CAPACITY)
             new_capacity = DEFAULT_CAPACITY;
 
@@ -78,7 +79,7 @@ template <typename Type> class DynamicArray {
     }
 
     /// Constructor with initial size
-    DynamicArray(const Type* initial_data, const unsigned int initial_size)
+    DynamicArray(const Type* initial_data, const std::size_t initial_size)
         : data_(nullptr), size_(initial_size),
           capacity_(initial_size < DEFAULT_CAPACITY ? DEFAULT_CAPACITY
                                                     : initial_size) {
@@ -114,14 +115,6 @@ template <typename Type> class DynamicArray {
         other.size_ = 0;
         other.capacity_ = 0;
     }
-
-
-    unsigned int getSize() const { return size_; }
-
-    unsigned int getCapacity() const { return capacity_; }
-
-    bool isEmpty() const { return size_ == 0; }
-
 
     /// Copy assignment operator
     DynamicArray& operator=(const DynamicArray& other) {
@@ -164,6 +157,13 @@ template <typename Type> class DynamicArray {
     }
 
 
+    std::size_t getSize() const noexcept { return size_; }
+
+    std::size_t getCapacity() const noexcept { return capacity_; }
+
+    bool isEmpty() const noexcept { return size_ == 0; }
+
+
     /**
      * Adds an element to the end of the dynamic array. If the array is at full
      * capacity, it resizes to accommodate the new element.
@@ -195,7 +195,7 @@ template <typename Type> class DynamicArray {
      * @throws std::out_of_range If the specified index is greater than the size
      * of the array.
      */
-    void insert(const unsigned int idx, const Type& element) {
+    void insert(const std::size_t idx, const Type& element) {
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
@@ -205,7 +205,7 @@ template <typename Type> class DynamicArray {
             resize(capacity_ * 2);
         }
 
-        for (unsigned int i = size_; i > idx; --i)
+        for (std::size_t i = size_; i > idx; --i)
             data_[i] = data_[i - 1];
 
         data_[idx] = element;
@@ -225,13 +225,13 @@ template <typename Type> class DynamicArray {
      * to the size of the array.
      * @return The removed element
      */
-    Type removeAt(const unsigned int idx) {
+    Type removeAt(const std::size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
         Type element = data_[idx];
 
-        for (unsigned int i = idx; i < size_ - 1; ++i)
+        for (std::size_t i = idx; i < size_ - 1; ++i)
             data_[i] = data_[i + 1];
 
         --size_;
@@ -274,7 +274,7 @@ template <typename Type> class DynamicArray {
      * @throws std::out_of_range If the specified index is greater than or equal
      * to the size of the array.
      */
-    Type& get(const unsigned int idx) {
+    Type& get(const std::size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -292,7 +292,7 @@ template <typename Type> class DynamicArray {
      * @throws std::out_of_range If the specified index is greater than or equal
      * to the size of the array.
      */
-    const Type& get(const unsigned int idx) const {
+    const Type& get(const std::size_t idx) const {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -310,7 +310,7 @@ template <typename Type> class DynamicArray {
      * @throws std::out_of_range If the specified index is greater than or equal
      * to the size of the array.
      */
-    Type& operator[](const unsigned int idx) { return get(idx); }
+    Type& operator[](const std::size_t idx) { return get(idx); }
 
 
     /**
@@ -324,7 +324,7 @@ template <typename Type> class DynamicArray {
      * @throws std::out_of_range If the specified index is greater than or equal
      * to the size of the array.
      */
-    const Type& operator[](const unsigned int idx) const { return get(idx); }
+    const Type& operator[](const std::size_t idx) const { return get(idx); }
 
 
     /**

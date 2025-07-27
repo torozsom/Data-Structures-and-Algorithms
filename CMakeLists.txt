@@ -43,6 +43,7 @@ add_executable(unit_tests
         src/test/unit/DynamicArrayUnitTest.cpp
         src/test/unit/LinkedListUnitTest.cpp
         src/test/unit/StackUnitTest.cpp
+        src/test/unit/QueueUnitTest.cpp
         #src/test/unit/BinaryTreeUnitTest.cpp
         #src/test/unit/BinarySearchTreeUnitTest.cpp
         #src/test/unit/MinHeapUnitTest.cpp

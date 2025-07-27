@@ -13,7 +13,8 @@
  *
  * @tparam Type The data type stored in the node.
  */
-template <typename Type> struct Node {
+template <typename Type>
+struct Node {
     Type data;
     Node* parent;
     Node* left;
@@ -33,11 +34,12 @@ template <typename Type> struct Node {
  *
  * @tparam Type The type of elements stored in the binary tree.
  */
-template <typename Type> class BinaryTree {
+template <typename Type>
+class BinaryTree {
 
   protected:
     Node<Type>* root_;
-    unsigned int size_;
+    std::size_t size_;
 
 
     /**
@@ -51,7 +53,7 @@ template <typename Type> class BinaryTree {
      * @return A pointer to the newly created node, which is a copy of the input
      * node along with its subtree.
      */
-    Node<Type>* copyNode(Node<Type>* otherNode, Node<Type>* parent = nullptr) {
+    Node<Type>* recursiveCopyNode(Node<Type>* otherNode, Node<Type>* parent = nullptr) {
         if (otherNode == nullptr)
             return nullptr;
 
@@ -83,12 +85,12 @@ template <typename Type> class BinaryTree {
      * process.
      * @return The height of the binary tree.
      */
-    unsigned recursiveHeight(Node<Type>* node) const {
+    std::size_t recursiveHeight(Node<Type>* node) const {
         if (node == nullptr)
             return 0;
 
-        const unsigned leftHeight = recursiveHeight(node->left);
-        const unsigned rightHeight = recursiveHeight(node->right);
+        const std::size_t leftHeight = recursiveHeight(node->left);
+        const std::size_t rightHeight = recursiveHeight(node->right);
         return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
     }
 
@@ -142,36 +144,6 @@ template <typename Type> class BinaryTree {
         recursivePostOrder(node->left);
         recursivePostOrder(node->right);
         std::cout << node->data << " ";
-    }
-
-
-    /**
-     * Performs a level-order traversal of the binary tree using a queue to
-     * visit nodes level by level, from left to right.
-     *
-     * @param node Pointer to the root node of the binary tree.
-     */
-    void levelOrder() const {
-        if (isEmpty()) {
-            std::cout << "Tree is empty" << std::endl;
-            return;
-        }
-
-        Queue<Node<Type>*> queue;
-        queue.enqueue(root_);
-
-        std::cout << "Level-order: ";
-        while (!queue.isEmpty()) {
-            Node<Type>* current = queue.dequeue();
-            std::cout << current->data << " ";
-
-            if (current->left != nullptr)
-                queue.enqueue(current->left);
-            if (current->right != nullptr)
-                queue.enqueue(current->right);
-        }
-
-        std::cout << std::endl;
     }
 
 
@@ -230,7 +202,6 @@ template <typename Type> class BinaryTree {
         if (node->data == value)
             return node;
 
-        // ✅ Search both subtrees and return first match found
         Node<Type>* leftResult = recursiveFindNode(node->left, value);
         if (leftResult != nullptr)
             return leftResult;
@@ -239,19 +210,49 @@ template <typename Type> class BinaryTree {
     }
 
 
+    /**
+     * Performs a level-order traversal of the binary tree using a queue to
+     * visit nodes level by level, from left to right.
+     *
+     * @param node Pointer to the root node of the binary tree.
+     */
+    void levelOrder() const {
+        if (isEmpty()) {
+            std::cout << "Tree is empty" << std::endl;
+            return;
+        }
+
+        Queue<Node<Type>*> queue;
+        queue.enqueue(root_);
+
+        std::cout << "Level-order: ";
+        while (!queue.isEmpty()) {
+            Node<Type>* current = queue.dequeue();
+            std::cout << current->data << " ";
+
+            if (current->left != nullptr)
+                queue.enqueue(current->left);
+            if (current->right != nullptr)
+                queue.enqueue(current->right);
+        }
+
+        std::cout << std::endl;
+    }
+
+
   public:
     /// Default constructor
-    BinaryTree() : root_(nullptr), size_(0) {}
+    BinaryTree() noexcept : root_(nullptr), size_(0) {}
 
     /**
      * Constructor that creates a binary tree from an array using level-order
      * insertion.
      * @param array Pointer to the array of elements.
-     * @param arraySize Number of elements in the array.
+     * @param size Number of elements in the array.
      */
-    BinaryTree(const Type* array, const unsigned int size)
+    BinaryTree(const Type* array, const std::size_t size)
         : root_(nullptr), size_(0) {
-        for (unsigned int i = 0; i < size; i++)
+        for (std::size_t i = 0; i < size; i++)
             insert(array[i]);
     }
 
@@ -294,13 +295,13 @@ template <typename Type> class BinaryTree {
     }
 
 
-    bool isEmpty() const { return root_ == nullptr; }
+    bool isEmpty() const noexcept { return root_ == nullptr; }
 
-    unsigned int size() const { return size_; }
+    std::size_t size() const noexcept { return size_; }
 
-    const Node<Type>* getRoot() const { return root_; }
+    const Node<Type>* getRoot() const noexcept { return root_; }
 
-    unsigned getHeight() const { return recursiveHeight(root_); }
+    std::size_t getHeight() const noexcept { return recursiveHeight(root_); }
 
 
     /// Checks if the binary tree is a complete binary tree.
@@ -427,7 +428,7 @@ template <typename Type> class BinaryTree {
      * @param value The value to search for in the binary tree.
      * @return True if the value is found in the binary tree, false otherwise.
      */
-    bool containsNode(const Type& value) const {
+    bool containsNode(const Type& value) const noexcept {
         return recursiveContainsNode(root_, value);
     }
 

@@ -17,7 +17,8 @@
  *
  * @tparam Type The type of elements stored in the heap.
  */
-template <typename Type> class MaxHeap final : public Heap<Type> {
+template <typename Type>
+class MaxHeap final : public Heap<Type> {
 
   private:
     /**
@@ -99,47 +100,21 @@ template <typename Type> class MaxHeap final : public Heap<Type> {
      */
     void insert(const Type& element) override {
         Node<Type>* newNode = new Node<Type>(element);
+
         if (this->isEmpty()) {
             this->root_ = newNode;
             ++this->size_;
             return;
         }
 
-        unsigned int n = this->size() + 1;
-        std::bitset<32> binary(n);
-        std::string path = binary.to_string();
-        unsigned int index = path.find('1');
-        path = path.substr(index + 1);
+        Node<Type>* parent = this->findNodeByPath((this->size() + 1) >> 1);
+        newNode->parent = parent;
 
-        Node<Type>* current = this->root_;
-        for (size_t i = 0; i < path.size() - 1; ++i) {
-            if (path[i] == '0') {
-                if (!current->left) {
-                    current->left = newNode;
-                    newNode->parent = current;
-                    ++this->size_;
-                    heapifyUp(newNode);
-                    return;
-                }
-                current = current->left;
-            } else {
-                if (!current->right) {
-                    current->right = newNode;
-                    newNode->parent = current;
-                    ++this->size_;
-                    heapifyUp(newNode);
-                    return;
-                }
-                current = current->right;
-            }
-        }
-
-        if (path.back() == '0')
-            current->left = newNode;
+        if ((this->size() + 1) & 1)
+            parent->left = newNode;
         else
-            current->right = newNode;
+            parent->right = newNode;
 
-        newNode->parent = current;
         ++this->size_;
         heapifyUp(newNode);
     }
