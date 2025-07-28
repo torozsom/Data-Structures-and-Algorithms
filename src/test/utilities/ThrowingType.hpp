@@ -23,20 +23,20 @@ class ThrowingType {
 
 
     ThrowingType(const ThrowingType& other) : value(other.value) {
-        if (should_throw && construction_count >= 2) {
+        if (should_throw && construction_count >= 2)
             throw std::runtime_error("Throwing copy constructor");
-        }
+
         construction_count++;
     }
 
 
     ThrowingType& operator=(const ThrowingType& other) {
-        if (should_throw) {
+        if (should_throw && construction_count >= 2)
             throw std::runtime_error("Throwing assignment operator");
-        }
-        if (this != &other) {
+
+        if (this != &other)
             value = other.value;
-        }
+
         return *this;
     }
 

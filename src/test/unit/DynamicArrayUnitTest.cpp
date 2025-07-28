@@ -22,8 +22,8 @@ class DynamicArrayUnitTest : public ::testing::Test {
 TEST_F(DynamicArrayUnitTest, DefaultConstructor) {
     const DynamicArray<int> arr;
 
-    EXPECT_EQ(arr.getSize(), 0);
-    EXPECT_EQ(arr.getCapacity(), 5); // DEFAULT_CAPACITY
+    EXPECT_EQ(arr.size(), 0);
+    EXPECT_EQ(arr.capacity(), 5); // DEFAULT_CAPACITY
     EXPECT_TRUE(arr.isEmpty());
 }
 
@@ -32,8 +32,8 @@ TEST_F(DynamicArrayUnitTest, ConstructorWithInitialData) {
     int data[] = {1, 2, 3, 4, 5};
     DynamicArray arr(data, 5);
 
-    EXPECT_EQ(arr.getSize(), 5);
-    EXPECT_EQ(arr.getCapacity(), 5);
+    EXPECT_EQ(arr.size(), 5);
+    EXPECT_EQ(arr.capacity(), 5);
     EXPECT_FALSE(arr.isEmpty());
 
     for (int i = 0; i < 5; ++i)
@@ -45,8 +45,8 @@ TEST_F(DynamicArrayUnitTest, ConstructorWithInitialDataSmallerThanDefault) {
     int data[] = {1, 2};
     const DynamicArray arr(data, 2);
 
-    EXPECT_EQ(arr.getSize(), 2);
-    EXPECT_EQ(arr.getCapacity(), 5); // Should use DEFAULT_CAPACITY
+    EXPECT_EQ(arr.size(), 2);
+    EXPECT_EQ(arr.capacity(), 5); // Should use DEFAULT_CAPACITY
     EXPECT_FALSE(arr.isEmpty());
 }
 
@@ -60,8 +60,8 @@ TEST_F(DynamicArrayUnitTest, ConstructorWithZeroSizeAndNullData) {
     // This should be valid - zero size with null data
     EXPECT_NO_THROW(DynamicArray<int> arr(nullptr, 0));
     const DynamicArray<int> arr(nullptr, 0);
-    EXPECT_EQ(arr.getSize(), 0);
-    EXPECT_EQ(arr.getCapacity(), 5);
+    EXPECT_EQ(arr.size(), 0);
+    EXPECT_EQ(arr.capacity(), 5);
 }
 
 
@@ -70,30 +70,30 @@ TEST_F(DynamicArrayUnitTest, CopyConstructor) {
     DynamicArray original(data, 3);
     DynamicArray copy(original);
 
-    EXPECT_EQ(copy.getSize(), original.getSize());
-    EXPECT_EQ(copy.getCapacity(), original.getCapacity());
+    EXPECT_EQ(copy.size(), original.size());
+    EXPECT_EQ(copy.capacity(), original.capacity());
 
-    for (std::size_t i = 0; i < copy.getSize(); ++i)
+    for (std::size_t i = 0; i < copy.size(); ++i)
         EXPECT_EQ(copy.get(i), original.get(i));
 
     // Verify deep copy - modify original shouldn't affect copy
     original.addLast(999);
-    EXPECT_NE(copy.getSize(), original.getSize());
+    EXPECT_NE(copy.size(), original.size());
 }
 
 
 TEST_F(DynamicArrayUnitTest, MoveConstructor) {
     int data[] = {1, 2, 3};
     DynamicArray original(data, 3);
-    const std::size_t original_size = original.getSize();
-    const std::size_t original_capacity = original.getCapacity();
+    const std::size_t original_size = original.size();
+    const std::size_t original_capacity = original.capacity();
 
     DynamicArray moved(std::move(original));
 
-    EXPECT_EQ(moved.getSize(), original_size);
-    EXPECT_EQ(moved.getCapacity(), original_capacity);
-    EXPECT_EQ(original.getSize(), 0);
-    EXPECT_EQ(original.getCapacity(), 0);
+    EXPECT_EQ(moved.size(), original_size);
+    EXPECT_EQ(moved.capacity(), original_capacity);
+    EXPECT_EQ(original.size(), 0);
+    EXPECT_EQ(original.capacity(), 0);
 
     for (int i = 0; i < 3; ++i)
         EXPECT_EQ(moved.get(i), data[i]);
@@ -106,16 +106,16 @@ TEST_F(DynamicArrayUnitTest, CopyAssignmentOperator) {
     DynamicArray<int> copy;
     copy = original;
 
-    EXPECT_EQ(copy.getSize(), original.getSize());
-    EXPECT_EQ(copy.getCapacity(), original.getCapacity());
+    EXPECT_EQ(copy.size(), original.size());
+    EXPECT_EQ(copy.capacity(), original.capacity());
 
     // Verify deep copy
-    for (std::size_t i = 0; i < copy.getSize(); ++i)
+    for (std::size_t i = 0; i < copy.size(); ++i)
         EXPECT_EQ(copy.get(i), original.get(i));
 
     // Self-assignment should work correctly
     original = original;
-    EXPECT_EQ(original.getSize(), 3);
+    EXPECT_EQ(original.size(), 3);
     for (int i = 0; i < 3; ++i)
         EXPECT_EQ(original.get(i), data[i]);
 }
@@ -124,20 +124,20 @@ TEST_F(DynamicArrayUnitTest, CopyAssignmentOperator) {
 TEST_F(DynamicArrayUnitTest, MoveAssignmentOperator) {
     int data[] = {1, 2, 3};
     DynamicArray original(data, 3);
-    const std::size_t original_size = original.getSize();
-    const std::size_t original_capacity = original.getCapacity();
+    const std::size_t original_size = original.size();
+    const std::size_t original_capacity = original.capacity();
 
     DynamicArray<int> moved;
     moved = std::move(original);
 
-    EXPECT_EQ(moved.getSize(), original_size);
-    EXPECT_EQ(moved.getCapacity(), original_capacity);
-    EXPECT_EQ(original.getSize(), 0);
-    EXPECT_EQ(original.getCapacity(), 0);
+    EXPECT_EQ(moved.size(), original_size);
+    EXPECT_EQ(moved.capacity(), original_capacity);
+    EXPECT_EQ(original.size(), 0);
+    EXPECT_EQ(original.capacity(), 0);
 
     // Self-move assignment should work correctly
     moved = std::move(moved);
-    EXPECT_EQ(moved.getSize(), original_size);
+    EXPECT_EQ(moved.size(), original_size);
     for (int i = 0; i < 3; ++i)
         EXPECT_EQ(moved.get(i), data[i]);
 }
@@ -145,10 +145,13 @@ TEST_F(DynamicArrayUnitTest, MoveAssignmentOperator) {
 
 TEST_F(DynamicArrayUnitTest, ConstructorWithNegativeSize) {
     // Test with very large size that would cause bad_alloc during construction
-    EXPECT_THROW({
-        int* dummy_data = reinterpret_cast<int*>(1); // Non-null but invalid pointer
-        DynamicArray<int> arr(dummy_data, SIZE_MAX);
-    }, std::bad_alloc);
+    EXPECT_THROW(
+        {
+            int* dummy_data =
+                reinterpret_cast<int*>(1); // Non-null but invalid pointer
+            DynamicArray<int> arr(dummy_data, SIZE_MAX);
+        },
+        std::bad_alloc);
 }
 
 
@@ -156,11 +159,11 @@ TEST_F(DynamicArrayUnitTest, AddLast) {
     DynamicArray<int> arr;
 
     arr.addLast(10);
-    EXPECT_EQ(arr.getSize(), 1);
+    EXPECT_EQ(arr.size(), 1);
     EXPECT_EQ(arr.get(0), 10);
 
     arr.addLast(20);
-    EXPECT_EQ(arr.getSize(), 2);
+    EXPECT_EQ(arr.size(), 2);
     EXPECT_EQ(arr.get(1), 20);
 }
 
@@ -169,11 +172,11 @@ TEST_F(DynamicArrayUnitTest, AddFirst) {
     DynamicArray<int> arr;
 
     arr.addFirst(10);
-    EXPECT_EQ(arr.getSize(), 1);
+    EXPECT_EQ(arr.size(), 1);
     EXPECT_EQ(arr.get(0), 10);
 
     arr.addFirst(5);
-    EXPECT_EQ(arr.getSize(), 2);
+    EXPECT_EQ(arr.size(), 2);
     EXPECT_EQ(arr.get(0), 5);
     EXPECT_EQ(arr.get(1), 10);
 }
@@ -186,7 +189,7 @@ TEST_F(DynamicArrayUnitTest, InsertAtValidIndex) {
 
     arr.insert(1, 20);
 
-    EXPECT_EQ(arr.getSize(), 3);
+    EXPECT_EQ(arr.size(), 3);
     EXPECT_EQ(arr.get(0), 10);
     EXPECT_EQ(arr.get(1), 20);
     EXPECT_EQ(arr.get(2), 30);
@@ -200,7 +203,7 @@ TEST_F(DynamicArrayUnitTest, InsertAtBeginning) {
 
     arr.insert(0, 10);
 
-    EXPECT_EQ(arr.getSize(), 3);
+    EXPECT_EQ(arr.size(), 3);
     EXPECT_EQ(arr.get(0), 10);
     EXPECT_EQ(arr.get(1), 20);
     EXPECT_EQ(arr.get(2), 30);
@@ -214,7 +217,7 @@ TEST_F(DynamicArrayUnitTest, InsertAtEnd) {
 
     arr.insert(2, 30);
 
-    EXPECT_EQ(arr.getSize(), 3);
+    EXPECT_EQ(arr.size(), 3);
     EXPECT_EQ(arr.get(2), 30);
 }
 
@@ -229,19 +232,19 @@ TEST_F(DynamicArrayUnitTest, InsertAtInvalidIndex) {
 
 TEST_F(DynamicArrayUnitTest, CapacityExpansionOnInsertion) {
     DynamicArray<int> arr;
-    const std::size_t initial_capacity = arr.getCapacity();
+    const std::size_t initial_capacity = arr.capacity();
 
     // Fill to capacity
     for (std::size_t i = 0; i < initial_capacity; ++i)
         arr.addLast(i);
 
-    EXPECT_EQ(arr.getCapacity(), initial_capacity);
+    EXPECT_EQ(arr.capacity(), initial_capacity);
 
     // Add one more to trigger expansion
     arr.addLast(999);
 
-    EXPECT_EQ(arr.getCapacity(), initial_capacity * 2);
-    EXPECT_EQ(arr.getSize(), initial_capacity + 1);
+    EXPECT_EQ(arr.capacity(), initial_capacity * 2);
+    EXPECT_EQ(arr.size(), initial_capacity + 1);
     EXPECT_EQ(arr.get(initial_capacity), 999);
 }
 
@@ -253,7 +256,7 @@ TEST_F(DynamicArrayUnitTest, RemoveAt) {
     const int removed = arr.removeAt(1);
 
     EXPECT_EQ(removed, 20);
-    EXPECT_EQ(arr.getSize(), 3);
+    EXPECT_EQ(arr.size(), 3);
     EXPECT_EQ(arr.get(0), 10);
     EXPECT_EQ(arr.get(1), 30);
     EXPECT_EQ(arr.get(2), 40);
@@ -283,7 +286,7 @@ TEST_F(DynamicArrayUnitTest, RemoveFirst) {
     const int removed = arr.removeFirst();
 
     EXPECT_EQ(removed, 10);
-    EXPECT_EQ(arr.getSize(), 2);
+    EXPECT_EQ(arr.size(), 2);
     EXPECT_EQ(arr.get(0), 20);
     EXPECT_EQ(arr.get(1), 30);
 }
@@ -296,7 +299,7 @@ TEST_F(DynamicArrayUnitTest, RemoveLast) {
     const int removed = arr.removeLast();
 
     EXPECT_EQ(removed, 30);
-    EXPECT_EQ(arr.getSize(), 2);
+    EXPECT_EQ(arr.size(), 2);
     EXPECT_EQ(arr.get(0), 10);
     EXPECT_EQ(arr.get(1), 20);
 }
@@ -309,17 +312,17 @@ TEST_F(DynamicArrayUnitTest, CapacityReductionOnRemoval) {
     for (int i = 0; i < 10; ++i)
         arr.addLast(i);
 
-    const std::size_t expanded_capacity = arr.getCapacity();
+    const std::size_t expanded_capacity = arr.capacity();
 
     // Remove elements until size is 1/4 of capacity
-    while (arr.getSize() > expanded_capacity / 4)
+    while (arr.size() > expanded_capacity / 4)
         arr.removeLast();
 
-    std::size_t size_before_trigger = arr.getSize();
+    std::size_t size_before_trigger = arr.size();
     arr.removeLast(); // This should trigger capacity reduction
 
-    EXPECT_LT(arr.getCapacity(), expanded_capacity);
-    EXPECT_EQ(arr.getCapacity(), expanded_capacity / 2);
+    EXPECT_LT(arr.capacity(), expanded_capacity);
+    EXPECT_EQ(arr.capacity(), expanded_capacity / 2);
 }
 
 
@@ -331,7 +334,7 @@ TEST_F(DynamicArrayUnitTest, CapacityDoesNotReduceBelowDefault) {
     arr.removeLast();
     arr.removeLast();
 
-    EXPECT_EQ(arr.getCapacity(), 5); // Should remain at DEFAULT_CAPACITY
+    EXPECT_EQ(arr.capacity(), 5); // Should remain at DEFAULT_CAPACITY
 }
 
 
@@ -422,8 +425,8 @@ TEST_F(DynamicArrayUnitTest, Clear) {
 
     arr.clear();
 
-    EXPECT_EQ(arr.getSize(), 0);
-    EXPECT_EQ(arr.getCapacity(), 5); // Should reset to DEFAULT_CAPACITY
+    EXPECT_EQ(arr.size(), 0);
+    EXPECT_EQ(arr.capacity(), 5); // Should reset to DEFAULT_CAPACITY
     EXPECT_TRUE(arr.isEmpty());
 }
 
@@ -433,8 +436,8 @@ TEST_F(DynamicArrayUnitTest, ClearEmptyArray) {
 
     arr.clear();
 
-    EXPECT_EQ(arr.getSize(), 0);
-    EXPECT_EQ(arr.getCapacity(), 5);
+    EXPECT_EQ(arr.size(), 0);
+    EXPECT_EQ(arr.capacity(), 5);
     EXPECT_TRUE(arr.isEmpty());
 }
 
@@ -458,7 +461,7 @@ TEST_F(DynamicArrayUnitTest, StringType) {
     arr.addLast("Hello");
     arr.addLast("World");
 
-    EXPECT_EQ(arr.getSize(), 2);
+    EXPECT_EQ(arr.size(), 2);
     EXPECT_EQ(arr.get(0), "Hello");
     EXPECT_EQ(arr.get(1), "World");
 }
@@ -477,7 +480,7 @@ TEST_F(DynamicArrayUnitTest, CustomObjectType) {
     arr.addLast(Point(1, 2));
     arr.addLast(Point(3, 4));
 
-    EXPECT_EQ(arr.getSize(), 2);
+    EXPECT_EQ(arr.size(), 2);
     EXPECT_EQ(arr.get(0), Point(1, 2));
     EXPECT_EQ(arr.get(1), Point(3, 4));
 }
@@ -490,7 +493,7 @@ TEST_F(DynamicArrayUnitTest, LargeNumberOfInsertions) {
     for (int i = 0; i < num_elements; ++i)
         arr.addLast(i);
 
-    EXPECT_EQ(arr.getSize(), num_elements);
+    EXPECT_EQ(arr.size(), num_elements);
 
     for (int i = 0; i < num_elements; ++i)
         EXPECT_EQ(arr.get(i), i);
@@ -504,13 +507,13 @@ TEST_F(DynamicArrayUnitTest, AlternatingInsertionAndRemoval) {
     for (int i = 0; i < 100; ++i) {
         arr.addLast(i * 2);
         arr.addLast(i * 2 + 1);
-        if (arr.getSize() > 1)
+        if (arr.size() > 1)
             arr.removeFirst();
     }
 
-    EXPECT_GT(arr.getSize(), 0);
+    EXPECT_GT(arr.size(), 0);
     // Verify array is still in valid state
-    for (std::size_t i = 0; i < arr.getSize() - 1; ++i)
+    for (std::size_t i = 0; i < arr.size() - 1; ++i)
         EXPECT_LT(arr.get(i), arr.get(i + 1));
 }
 
@@ -530,8 +533,8 @@ TEST_F(DynamicArrayUnitTest, ExceptionSafetyDuringExpansion) {
     EXPECT_THROW(arr.addLast(ThrowingType(999)), std::runtime_error);
 
     // Array should still be in valid state
-    EXPECT_EQ(arr.getSize(), 4);
-    for (std::size_t i = 0; i < arr.getSize(); ++i)
+    EXPECT_EQ(arr.size(), 4);
+    for (std::size_t i = 0; i < arr.size(); ++i)
         EXPECT_EQ(arr.get(i).value, static_cast<int>(i));
 
     ThrowingType::reset();

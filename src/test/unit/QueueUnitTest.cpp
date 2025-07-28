@@ -413,61 +413,6 @@ TEST_F(QueueUnitTest, ClearEmptyQueue) {
 }
 
 
-TEST_F(QueueUnitTest, PrintQueue) {
-    Queue<int> queue;
-    queue.enqueue(10);
-    queue.enqueue(20);
-    queue.enqueue(30);
-
-    // Capture stdout
-    std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    queue.print();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "Queue (front to back): 10 20 30 \n");
-}
-
-
-TEST_F(QueueUnitTest, PrintEmptyQueue) {
-    const Queue<int> queue;
-
-    // Capture stdout
-    std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    queue.print();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "Queue is empty\n");
-}
-
-
-TEST_F(QueueUnitTest, PrintSingleElement) {
-    Queue<int> queue;
-    queue.enqueue(42);
-
-    // Capture stdout
-    std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    queue.print();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "Queue (front to back): 42 \n");
-}
-
-
 TEST_F(QueueUnitTest, StringType) {
     Queue<std::string> queue;
 

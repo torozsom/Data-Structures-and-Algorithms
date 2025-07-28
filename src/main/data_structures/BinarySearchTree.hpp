@@ -91,13 +91,15 @@ class BinarySearchTree final : public BinaryTree<Type> {
                 --this->size_;
                 Node<Type>* temp = node;
                 node = node->right;
-                if (node) node->parent = temp->parent;
+                if (node)
+                    node->parent = temp->parent;
                 delete temp;
             } else if (node->right == nullptr) {
                 --this->size_;
                 Node<Type>* temp = node;
                 node = node->left;
-                if (node) node->parent = temp->parent;
+                if (node)
+                    node->parent = temp->parent;
                 delete temp;
             } else {
                 Node<Type>* temp = findMinNode(node->right);

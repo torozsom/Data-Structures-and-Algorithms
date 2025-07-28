@@ -2,7 +2,11 @@
 #define DYNAMICARRAY_HPP
 
 
+#include <algorithm>
+#include <climits>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 
 
 /**
@@ -22,21 +26,10 @@ class DynamicArray {
     static constexpr std::size_t DEFAULT_CAPACITY = 5;
 
 
-    /**
-     * Copies a specific number of elements from the source array to the
-     * destination array using assignment.
-     *
-     * @param source Pointer to the source array from which elements will be
-     * copied.
-     * @param destination Pointer to the destination array where elements will
-     * be copied to. Must be already constructed.
-     * @param count The number of elements to copy from the source to the
-     * destination.
-     */
-    void copyData(const Type* source, Type* destination,
-                  const std::size_t count) const {
-        for (std::size_t i = 0; i < count; ++i)
-            destination[i] = source[i];
+    /// Destroys all elements in the dynamic array by calling their destructors.
+    void destroyElements() {
+        for (std::size_t i = 0; i < size_; ++i)
+            data_[i].~Type();
     }
 
 
@@ -49,22 +42,29 @@ class DynamicArray {
      * @param new_capacity The new desired capacity for the dynamic array.
      */
     void resize(std::size_t new_capacity) {
+        if (new_capacity == capacity_)
+            return;
+
         if (new_capacity < DEFAULT_CAPACITY)
             new_capacity = DEFAULT_CAPACITY;
+
+        if (new_capacity < size_)
+            throw std::invalid_argument("New capacity is too small");
 
         if (new_capacity > SIZE_MAX / sizeof(Type))
             throw std::bad_alloc();
 
-        Type* new_data = nullptr;
+        Type* new_data =
+            static_cast<Type*>(::operator new(sizeof(Type) * new_capacity));
         try {
-            new_data = new Type[new_capacity];
-            copyData(data_, new_data, size_);
+            std::uninitialized_copy(data_, data_ + size_, new_data);
         } catch (...) {
-            delete[] new_data;
+            ::operator delete(new_data);
             throw;
         }
 
-        delete[] data_;
+        destroyElements();
+        ::operator delete(data_);
         data_ = new_data;
         capacity_ = new_capacity;
     }
@@ -73,7 +73,7 @@ class DynamicArray {
   public:
     /// Default constructor
     DynamicArray() : data_(nullptr), size_(0), capacity_(DEFAULT_CAPACITY) {
-        data_ = new Type[capacity_];
+        data_ = static_cast<Type*>(::operator new(sizeof(Type) * capacity_));
     }
 
     /// Constructor with initial size
@@ -85,23 +85,25 @@ class DynamicArray {
             throw std::invalid_argument("Initial data cannot be null if "
                                         "initial size is greater than zero");
 
-        data_ = new Type[capacity_];
+        data_ = static_cast<Type*>(::operator new(sizeof(Type) * capacity_));
         try {
-            copyData(initial_data, data_, size_);
+            for (std::size_t i = 0; i < size_; ++i)
+                new (data_ + i) Type(initial_data[i]);
         } catch (...) {
-            delete[] data_;
+            ::operator delete(data_);
             throw;
         }
     }
 
     /// Copy constructor
     DynamicArray(const DynamicArray& other)
-        : data_(new Type[other.capacity_]), size_(other.size_),
-          capacity_(other.capacity_) {
+        : data_(static_cast<Type*>(
+              ::operator new(sizeof(Type) * other.capacity_))),
+          size_(other.size_), capacity_(other.capacity_) {
         try {
-            copyData(other.data_, data_, size_);
+            std::uninitialized_copy(other.data_, other.data_ + size_, data_);
         } catch (...) {
-            delete[] data_;
+            ::operator delete(data_);
             throw;
         }
     }
@@ -119,16 +121,17 @@ class DynamicArray {
         if (this == &other)
             return *this;
 
-        Type* new_data = nullptr;
+        Type* new_data =
+            static_cast<Type*>(::operator new(sizeof(Type) * other.capacity_));
         try {
-            new_data = new Type[other.capacity_];
-            copyData(other.data_, new_data, other.size_);
+            std::uninitialized_copy(other.data_, other.data_ + other.size_,
+                                    new_data);
         } catch (...) {
-            delete[] new_data;
+            ::operator delete(new_data);
             throw;
         }
 
-        delete[] data_;
+        ::operator delete(data_);
         data_ = new_data;
         size_ = other.size_;
         capacity_ = other.capacity_;
@@ -142,7 +145,7 @@ class DynamicArray {
         if (this == &other)
             return *this;
 
-        delete[] data_;
+        ::operator delete(data_);
         data_ = other.data_;
         size_ = other.size_;
         capacity_ = other.capacity_;
@@ -155,9 +158,9 @@ class DynamicArray {
     }
 
 
-    std::size_t getSize() const noexcept { return size_; }
+    std::size_t size() const noexcept { return size_; }
 
-    std::size_t getCapacity() const noexcept { return capacity_; }
+    std::size_t capacity() const noexcept { return capacity_; }
 
     bool isEmpty() const noexcept { return size_ == 0; }
 
@@ -197,16 +200,15 @@ class DynamicArray {
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
-        if (size_ == capacity_) {
-            if (capacity_ > SIZE_MAX / 2)
-                throw std::bad_alloc();
-            resize(capacity_ * 2);
+        if (size_ == capacity_)
+            resize(capacity_ > SIZE_MAX / 2 ? SIZE_MAX : capacity_ * 2);
+
+        for (std::size_t i = size_; i > idx; --i) {
+            new (data_ + i) Type(std::move(data_[i - 1]));
+            data_[i - 1].~Type();
         }
 
-        for (std::size_t i = size_; i > idx; --i)
-            data_[i] = data_[i - 1];
-
-        data_[idx] = element;
+        new (data_ + idx) Type(element);
         ++size_;
     }
 
@@ -229,13 +231,11 @@ class DynamicArray {
 
         Type element = data_[idx];
 
-        for (std::size_t i = idx; i < size_ - 1; ++i)
-            data_[i] = data_[i + 1];
-
+        std::copy(data_ + idx + 1, data_ + size_, data_ + idx);
         --size_;
 
-        if (size_ > 0 && size_ <= capacity_ / 4)
-            resize(capacity_ / 2);
+        if (size_ <= capacity_ / 4 && capacity_ > DEFAULT_CAPACITY)
+            resize(std::max(DEFAULT_CAPACITY, capacity_ / 2));
 
         return element;
     }
@@ -381,21 +381,46 @@ class DynamicArray {
     }
 
 
+    /// **** Iterators **** ///
+
+    // --- Iterator support for range-based for loops ---
+
+    Type* begin() noexcept { return data_; }
+    const Type* begin() const noexcept { return data_; }
+    Type* end() noexcept { return data_ + size_; }
+    const Type* end() const noexcept { return data_ + size_; }
+
+    // --- C++11 range-based for loop support ---
+
+    const Type* cbegin() const noexcept { return data_; }
+    const Type* cend() const noexcept { return data_ + size_; }
+
+    /// **** ///
+
+
     /**
      * Clears the contents of the dynamic array, deallocating the current
      * memory. Resets the array to its default capacity, size to zero, and
      * reinitializes the underlying data.
      */
     void clear() {
-        delete[] data_;
-        data_ = new Type[DEFAULT_CAPACITY];
+        destroyElements();
+        ::operator delete(data_);
+
+        data_ =
+            static_cast<Type*>(::operator new(sizeof(Type) * DEFAULT_CAPACITY));
         size_ = 0;
         capacity_ = DEFAULT_CAPACITY;
     }
 
 
     /// Destructor
-    ~DynamicArray() { delete[] data_; }
+    ~DynamicArray() noexcept {
+        if (data_) {
+            destroyElements();
+            ::operator delete(data_);
+        }
+    }
 };
 
 

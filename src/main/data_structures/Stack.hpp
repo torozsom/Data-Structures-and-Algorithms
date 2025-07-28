@@ -43,7 +43,7 @@ class Stack {
 
     bool isEmpty() const noexcept { return array_.isEmpty(); }
 
-    std::size_t size() const noexcept { return array_.getSize(); }
+    std::size_t size() const noexcept { return array_.size(); }
 
     void clear() { array_.clear(); }
 
@@ -95,18 +95,6 @@ class Stack {
             throw std::out_of_range("Stack is empty");
 
         return array_.getLast();
-    }
-
-
-    /**
-     * Prints the elements of the stack from top to bottom.
-     * Outputs the representation to the standard output stream.
-     */
-    void print() const {
-        std::cout << "Stack (top to bottom): ";
-        for (std::size_t i = array_.getSize(); i > 0; --i)
-            std::cout << array_[i - 1] << " ";
-        std::cout << std::endl;
     }
 
 

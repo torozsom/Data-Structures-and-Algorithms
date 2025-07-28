@@ -330,61 +330,6 @@ TEST_F(StackUnitTest, ClearEmptyStack) {
 }
 
 
-TEST_F(StackUnitTest, PrintStack) {
-    Stack<int> stack;
-    stack.push(10);
-    stack.push(20);
-    stack.push(30);
-
-    // Capture stdout
-    std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    stack.print();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "Stack (top to bottom): 30 20 10 \n");
-}
-
-
-TEST_F(StackUnitTest, PrintEmptyStack) {
-    const Stack<int> stack;
-
-    // Capture stdout
-    std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    stack.print();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "Stack (top to bottom): \n");
-}
-
-
-TEST_F(StackUnitTest, PrintSingleElement) {
-    Stack<int> stack;
-    stack.push(42);
-
-    // Capture stdout
-    std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    stack.print();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "Stack (top to bottom): 42 \n");
-}
-
-
 TEST_F(StackUnitTest, StringType) {
     Stack<std::string> stack;
 

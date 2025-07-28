@@ -20,136 +20,222 @@
  */
 template <typename Type>
 class Queue {
-
   private:
     DynamicArray<Type> array_;
+    std::size_t front_idx_;
+    std::size_t size_;
+
+
+    /// Helper method to get the actual index in the circular buffer
+    std::size_t getCircularIndex(std::size_t logical_index) const {
+        return (front_idx_ + logical_index) % array_.capacity();
+    }
+
+    /// Helper method to get the back index where next element will be inserted
+    std::size_t getBackIndex() const {
+        return (front_idx_ + size_) % array_.capacity();
+    }
+
 
   public:
-    Queue() : array_() {};
+    /// Default constructor
+    Queue() : array_(), front_idx_(0), size_(0) {}
 
-    Queue(const Queue& other) : array_(other.array_) {}
+    // Copy constructor
+    Queue(const Queue& other) : array_(), front_idx_(0), size_(0) {
+        for (std::size_t i = 0; i < other.size_; ++i) {
+            std::size_t src_idx = other.getCircularIndex(i);
+            array_.addLast(other.array_[src_idx]);
+        }
+        size_ = other.size_;
+    }
 
-    Queue(Queue&& other) noexcept : array_(std::move(other.array_)) {}
+    /// Move constructor
+    Queue(Queue&& other) noexcept
+        : array_(std::move(other.array_)), front_idx_(other.front_idx_),
+          size_(other.size_) {
+        other.front_idx_ = 0;
+        other.size_ = 0;
+    }
 
+    /// Assignment operator
     Queue& operator=(const Queue& other) {
         if (this == &other)
             return *this;
-        array_ = other.array_;
+
+        array_.clear();
+        front_idx_ = 0;
+        size_ = 0;
+
+        for (std::size_t i = 0; i < other.size_; ++i) {
+            std::size_t src_idx = other.getCircularIndex(i);
+            array_.addLast(other.array_[src_idx]);
+        }
+        size_ = other.size_;
+
         return *this;
     }
 
+    /// Move assignment operator
     Queue& operator=(Queue&& other) noexcept {
         if (this == &other)
             return *this;
+
         array_ = std::move(other.array_);
+        front_idx_ = other.front_idx_;
+        size_ = other.size_;
+
+        other.front_idx_ = 0;
+        other.size_ = 0;
+
         return *this;
     }
 
 
-    /// Checks if the queue is empty.
-    bool isEmpty() const { return array_.isEmpty(); }
-
     /// Returns the number of elements in the queue.
-    std::size_t size() const { return array_.getSize(); }
+    std::size_t size() const noexcept { return size_; }
 
-    /// Returns the current capacity of the queue.
-    std::size_t capacity() const { return array_.getCapacity(); }
+    /// Returns the capacity of the underlying data storage.
+    std::size_t capacity() const noexcept { return array_.capacity(); }
 
-    /// Clears all elements from the queue.
-    void clear() { array_.clear(); }
+    /// Checks if the queue is empty.
+    bool isEmpty() const noexcept { return size_ == 0; }
 
 
     /**
-     * Adds an element to the end of the queue.
+     * @brief Adds an element to the back of the queue.
+     *
+     * If the queue is full, it resizes the underlying array to accommodate
+     * more elements.
      *
      * @param element The element to be added to the queue.
+     * @complexity O(1) amortized for adding an element, O(n) for resizing.
      */
-    void enqueue(const Type& element) { array_.addLast(element); }
+    void enqueue(const Type& element) {
+        // Check if we need to resize
+        if (size_ == array_.capacity()) {
+            DynamicArray<Type> new_array;
+
+            for (std::size_t i = 0; i < size_; ++i) {
+                std::size_t circular_idx = getCircularIndex(i);
+                new_array.addLast(array_[circular_idx]);
+            }
+
+            new_array.addLast(element);
+            array_ = std::move(new_array);
+            front_idx_ = 0;
+            size_++;
+        } else {
+            std::size_t back_idx = getBackIndex();
+            if (back_idx >= array_.size())
+                array_.addLast(element);
+            else
+                array_[back_idx] = element;
+            size_++;
+        }
+    }
 
 
     /**
-     * Removes and returns the first element of the queue.
+     * @brief Removes and returns the front element of the queue.
      *
-     * @return The first element of the queue.
-     * @throws std::out_of_range If the queue is empty.
+     * If the queue is empty, it throws an out_of_range exception.
+     *
+     * @return The front element of the queue.
+     * @throws std::out_of_range if the queue is empty.
+     * @complexity O(1) for removing an element.
      */
     Type dequeue() {
-        if (array_.isEmpty())
+        if (isEmpty())
             throw std::out_of_range("Queue is empty");
-        return array_.removeFirst();
+
+        Type element = array_[front_idx_];
+        front_idx_ = (front_idx_ + 1) % array_.capacity();
+        size_--;
+
+        return element;
     }
 
 
     /**
-     * Retrieves the first element of the queue without removing it.
+     * @brief Returns the front element of the queue without removing it.
      *
-     * @return A reference to the first element of the queue.
-     * @throws std::out_of_range If the queue is empty.
+     * If the queue is empty, it throws an out_of_range exception.
+     *
+     * @return A reference to the front element of the queue.
+     * @throws std::out_of_range if the queue is empty.
+     * @complexity O(1) for accessing the front element.
      */
     Type& front() {
-        if (array_.isEmpty())
+        if (isEmpty())
             throw std::out_of_range("Queue is empty");
-        return array_.getFirst();
+
+        return array_[front_idx_];
     }
 
 
     /**
-     * Retrieves the first element of the queue without removing it.
+     * @brief Returns the front element of the queue without removing it.
      *
-     * @return A constant reference to the first element of the queue.
-     * @throws std::out_of_range If the queue is empty.
+     * If the queue is empty, it throws an out_of_range exception.
+     *
+     * @return A const reference to the front element of the queue.
+     * @throws std::out_of_range if the queue is empty.
+     * @complexity O(1) for accessing the front element.
      */
     const Type& front() const {
-        if (array_.isEmpty())
+        if (isEmpty())
             throw std::out_of_range("Queue is empty");
-        return array_.getFirst();
+
+        return array_[front_idx_];
     }
 
 
     /**
-     * Retrieves the last element of the queue without removing it.
+     * @brief Returns the back element of the queue without removing it.
      *
-     * @return A reference to the last element of the queue.
-     * @throws std::out_of_range If the queue is empty.
+     * If the queue is empty, it throws an out_of_range exception.
+     *
+     * @return A reference to the back element of the queue.
+     * @throws std::out_of_range if the queue is empty.
+     * @complexity O(1) for accessing the back element.
      */
     Type& back() {
-        if (array_.isEmpty())
+        if (isEmpty())
             throw std::out_of_range("Queue is empty");
-        return array_.getLast();
+
+        std::size_t back_idx = (front_idx_ + size_ - 1) % array_.capacity();
+        return array_[back_idx];
     }
 
 
     /**
-     * Retrieves the last element of the queue without removing it.
+     * @brief Returns the back element of the queue without removing it.
      *
-     * @return A constant reference to the last element of the queue.
-     * @throws std::out_of_range If the queue is empty.
+     * If the queue is empty, it throws an out_of_range exception.
+     *
+     * @return A const reference to the back element of the queue.
+     * @throws std::out_of_range if the queue is empty.
+     * @complexity O(1) for accessing the back element.
      */
     const Type& back() const {
-        if (array_.isEmpty())
+        if (isEmpty()) {
             throw std::out_of_range("Queue is empty");
-        return array_.getLast();
-    }
-
-
-    /**
-     * Prints all elements in the queue from front to back.
-     */
-    void print() const {
-        if (array_.isEmpty()) {
-            std::cout << "Queue is empty" << std::endl;
-            return;
         }
-
-        std::cout << "Queue (front to back): ";
-        for (std::size_t i = 0; i < array_.getSize(); ++i)
-            std::cout << array_[i] << " ";
-
-        std::cout << std::endl;
+        std::size_t back_idx = (front_idx_ + size_ - 1) % array_.capacity();
+        return array_[back_idx];
     }
 
 
-    ~Queue() = default;
+    /// Clears the queue, removing all elements.
+    void clear() {
+        array_.clear();
+        front_idx_ = 0;
+        size_ = 0;
+    }
+
+    /// Destructor
+    ~Queue() { clear(); }
 };
 
 #endif // QUEUE_HPP

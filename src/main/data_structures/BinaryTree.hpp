@@ -2,8 +2,8 @@
 #define BINARYTREE_HPP
 
 
-#include <iostream>
 #include "Queue.hpp"
+#include <iostream>
 
 
 /**

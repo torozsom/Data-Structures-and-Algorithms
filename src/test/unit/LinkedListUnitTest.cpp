@@ -362,7 +362,7 @@ TEST_F(LinkedListUnitTest, RemoveElementThatDoesNotExist) {
     list.addLast(10);
     list.addLast(20);
 
-    list.remove(99); // Non-existent element
+    list.remove(99);              // Non-existent element
     EXPECT_EQ(list.getSize(), 2); // Size should remain unchanged
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 20);
