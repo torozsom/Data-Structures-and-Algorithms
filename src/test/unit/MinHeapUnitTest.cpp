@@ -209,7 +209,7 @@ TEST_F(MinHeapUnitTest, ShouldWorkWithNonTrivialTypes) {
 
 TEST_F(MinHeapUnitTest, LargeHeapShouldMaintainProperty) {
     MinHeap<int> heap;
-    const int numElements = 100;
+    constexpr int numElements = 100;
 
     // Insert elements in reverse order
     for (int i = numElements; i >= 1; --i) {

@@ -209,7 +209,7 @@ TEST_F(BinaryTreeUnitTest, FindNodeMethodsShouldWorkCorrectly) {
 
 TEST_F(BinaryTreeUnitTest, IsCompleteTreeShouldWorkCorrectly) {
     // Empty tree is complete
-    BinaryTree<int> emptyTree;
+    const BinaryTree<int> emptyTree;
     EXPECT_TRUE(emptyTree.isCompleteTree());
 
     // Single node is complete

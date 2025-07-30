@@ -262,7 +262,7 @@ TEST_F(BinarySearchTreeUnitTest, RemoveNonExistentElementShouldNotAffectTree) {
     tree.insert(3);
     tree.insert(7);
 
-    size_t originalSize = tree.size();
+    const size_t originalSize = tree.size();
     tree.remove(99); // Non-existent element
 
     EXPECT_EQ(tree.size(), originalSize);
@@ -278,7 +278,7 @@ TEST_F(BinarySearchTreeUnitTest, DuplicateInsertsShouldNotIncreaseSize) {
     tree.insert(3);
     tree.insert(7);
 
-    size_t originalSize = tree.size();
+    const size_t originalSize = tree.size();
 
     // Insert duplicates
     tree.insert(5);

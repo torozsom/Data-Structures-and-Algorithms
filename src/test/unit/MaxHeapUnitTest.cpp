@@ -209,7 +209,7 @@ TEST_F(MaxHeapUnitTest, ShouldWorkWithNonTrivialTypes) {
 
 TEST_F(MaxHeapUnitTest, LargeHeapShouldMaintainProperty) {
     MaxHeap<int> heap;
-    const int numElements = 100;
+    constexpr int numElements = 100;
 
     // Insert elements in random order
     for (int i = numElements; i >= 1; --i) {

@@ -530,3 +530,18 @@ TEST_F(StackUnitTest, CopyConstructorPreservesOrder) {
         EXPECT_EQ(copy.pop(), i);
     }
 }
+
+
+struct EmplaceTest {
+    int x, y;
+    EmplaceTest(const int a, const int b) : x(a), y(b) {}
+};
+
+TEST_F(StackUnitTest, EmplaceConstructsInPlace) {
+    Stack<EmplaceTest> stack;
+    stack.emplace(3, 4);
+
+    EXPECT_EQ(stack.size(), 1);
+    EXPECT_EQ(stack.top().x, 3);
+    EXPECT_EQ(stack.top().y, 4);
+}

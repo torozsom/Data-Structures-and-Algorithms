@@ -75,7 +75,7 @@ TEST_F(LinkedListUnitTest, CopyConstructor) {
 
 TEST_F(LinkedListUnitTest, CopyConstructorWithEmptyList) {
     const LinkedList<int> original;
-    LinkedList<int> copy(original);
+    const LinkedList<int> copy(original);
 
     EXPECT_TRUE(copy.isEmpty());
     EXPECT_EQ(copy.getSize(), 0);
@@ -481,7 +481,7 @@ TEST_F(LinkedListUnitTest, PrintForward) {
     list.addLast(30);
 
     // Capture stdout
-    std::ostringstream output;
+    const std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -495,10 +495,10 @@ TEST_F(LinkedListUnitTest, PrintForward) {
 
 
 TEST_F(LinkedListUnitTest, PrintForwardEmptyList) {
-    LinkedList<int> list;
+    const LinkedList<int> list;
 
     // Capture stdout
-    std::ostringstream output;
+    const std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -518,7 +518,7 @@ TEST_F(LinkedListUnitTest, PrintBackward) {
     list.addLast(30);
 
     // Capture stdout
-    std::ostringstream output;
+    const std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
@@ -532,10 +532,10 @@ TEST_F(LinkedListUnitTest, PrintBackward) {
 
 
 TEST_F(LinkedListUnitTest, PrintBackwardEmptyList) {
-    LinkedList<int> list;
+    const LinkedList<int> list;
 
     // Capture stdout
-    std::ostringstream output;
+    const std::ostringstream output;
     std::streambuf* orig = std::cout.rdbuf();
     std::cout.rdbuf(output.rdbuf());
 
