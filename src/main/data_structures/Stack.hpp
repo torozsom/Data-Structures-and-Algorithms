@@ -19,9 +19,28 @@ class Stack {
   private:
     DynamicArray<Type> array_;
 
+
   public:
     /// Default constructor
     Stack() : array_() {}
+
+    /// Constructor with initial capacity
+    explicit Stack(const std::size_t capacity) : array_() {
+        array_.reserve(capacity);
+    }
+
+    /**
+     * Constructor with initial data and size.
+     *
+     * This constructor initializes the stack with a given array of initial
+     * data and its size. It reserves enough space in the underlying dynamic
+     * array to hold the initial elements.
+     *
+     * @param initial_data Pointer to the initial data array.
+     * @param initial_size The number of elements in the initial data array.
+     */
+    Stack(const Type* initial_data, const std::size_t initial_size)
+        : array_(initial_data, initial_size) {}
 
     /// Copy constructor
     Stack(const Stack& other) : array_(other.array_) {}
@@ -47,10 +66,16 @@ class Stack {
 
 
     /// Checks if the stack is empty.
-    bool isEmpty() const noexcept { return array_.isEmpty(); }
+    [[nodiscard]]
+    bool isEmpty() const noexcept {
+        return array_.isEmpty();
+    }
 
     /// Returns the number of elements in the stack.
-    std::size_t size() const noexcept { return array_.size(); }
+    [[nodiscard]]
+    std::size_t size() const noexcept {
+        return array_.size();
+    }
 
     /// Clears the stack, removing all elements.
     void clear() { array_.clear(); }
@@ -64,7 +89,10 @@ class Stack {
      *
      * @param element The element to be added to the stack.
      */
-    void push(const Type& element) { array_.addLast(element); }
+    template <typename U>
+    void push(U&& element) {
+        array_.addLast(std::forward<U>(element));
+    }
 
 
     /**
@@ -126,9 +154,21 @@ class Stack {
      *
      * @param args The arguments to be forwarded to the constructor of Type.
      */
-    template <typename... Args> void emplace(Args&&... args) {
+    template <typename... Args>
+    void emplace(Args&&... args) {
         array_.emplaceLast(std::forward<Args>(args)...);
     }
+
+
+    /**
+     * Reserves space for a specified number of elements in the stack.
+     *
+     * This method allows pre-allocation of memory to avoid frequent
+     * reallocations when adding elements.
+     *
+     * @param capacity The number of elements to reserve space for.
+     */
+    void reserve(const std::size_t capacity) { array_.reserve(capacity); }
 
 
     /// Destructor

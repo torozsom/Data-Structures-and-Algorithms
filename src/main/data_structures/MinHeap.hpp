@@ -78,23 +78,37 @@ class MinHeap final : public Heap<Type> {
 
 
   public:
+    /// Default constructor
     MinHeap() : Heap<Type>() {}
 
+    /**
+     * Constructs a MinHeap from an array of elements.
+     * This constructor inserts each element from the provided array into the
+     * heap, ensuring that the min-heap property is maintained throughout the
+     * insertion process.
+     *
+     * @param array Pointer to the array of elements to be inserted into the
+     * heap.
+     * @param size The number of elements in the array.
+     */
     MinHeap(const Type* array, const std::size_t size) : Heap<Type>() {
-        for (std::size_t i = 0; i < size; ++i) {
-            this->insert(array[i]);
-        }
+        for (std::size_t i = 0; i < size; ++i)
+            insert(array[i]);
     }
 
+    /// Copy constructor
     MinHeap(const MinHeap& other) : Heap<Type>(other) {}
 
+    /// Move constructor
     MinHeap(MinHeap&& other) noexcept : Heap<Type>(std::move(other)) {}
 
+    /// Copy assignment operator
     MinHeap& operator=(const MinHeap& other) {
         Heap<Type>::operator=(other);
         return *this;
     }
 
+    /// Move assignment operator
     MinHeap& operator=(MinHeap&& other) noexcept {
         Heap<Type>::operator=(std::move(other));
         return *this;
@@ -102,16 +116,21 @@ class MinHeap final : public Heap<Type> {
 
 
     /**
-     * Inserts a new element into the heap while maintaining the heap property.
-     * This method locates the correct position for the new element by following
-     * a binary path derived from a level-order traversal. After insertion, the
-     * heap property is restored by repositioning the new element upwards in the
-     * heap if necessary.
+     * Inserts a new element into the min-heap.
+     * This method creates a new node with the provided element, finds the
+     * correct position in the heap based on the current size, and restores the
+     * min-heap property by moving the new node upwards as necessary.
      *
+     * @tparam U The type of the element to be inserted, which must be
+     * constructible into Type.
      * @param element The element to be inserted into the heap.
      */
-    void insert(const Type& element) override {
-        Node<Type>* newNode = new Node(element);
+    template <typename U>
+    void insert(U&& element) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "Element must be constructible into Type");
+
+        Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
 
         if (this->isEmpty()) {
             this->root_ = newNode;
@@ -134,7 +153,10 @@ class MinHeap final : public Heap<Type> {
 
 
     /// Checks if the heap maintains the correct heap property.
-    bool isValidHeap() const override { return isValidMinHeap(this->root_); }
+    [[nodiscard]]
+    bool isValidHeap() const override {
+        return isValidMinHeap(this->root_);
+    }
 
 
     ~MinHeap() override = default;

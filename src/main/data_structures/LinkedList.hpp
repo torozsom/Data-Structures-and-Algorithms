@@ -2,6 +2,7 @@
 #define LINKEDLIST_HPP
 
 
+#include <cassert>
 #include <iostream>
 
 
@@ -29,11 +30,49 @@ class LinkedList {
     std::size_t size_;
 
 
+    /**
+     * Retrieves the node at the specified index.
+     *
+     * @param idx The zero-based index of the node to retrieve.
+     * @return A pointer to the node at the specified index.
+     * @throws std::out_of_range If the provided index is outside the bounds of
+     * the list.
+     */
+    Node* getNodeAt(const std::size_t idx) const {
+        if (idx >= size_)
+            throw std::out_of_range("Index out of range");
+
+        Node* current;
+        if (idx < size_ / 2) {
+            current = head_;
+            for (std::size_t i = 0; i < idx; ++i)
+                current = current->next;
+        } else {
+            current = tail_;
+            for (std::size_t i = size_ - 1; i > idx; --i)
+                current = current->prev;
+        }
+
+        return current;
+    }
+
+
   public:
     /// Default constructor
     LinkedList() : head_(nullptr), tail_(nullptr), size_(0) {}
 
-
+    /**
+     * Constructor that initializes the linked list with an array of elements.
+     * The size of the linked list will be set to the number of elements in the
+     * provided array.
+     *
+     * @param array Pointer to the array of elements to initialize the linked
+     * list.
+     * @param size The number of elements in the array.
+     *
+     * @throws std::invalid_argument If the provided array is null and size is
+     * greater than zero.
+     */
     LinkedList(const Type* array, const std::size_t size)
         : head_(nullptr), tail_(nullptr), size_(0) {
 
@@ -49,7 +88,6 @@ class LinkedList {
             throw;
         }
     }
-
 
     /// Copy constructor
     LinkedList(const LinkedList& other)
@@ -67,7 +105,6 @@ class LinkedList {
         }
     }
 
-
     /// Move constructor
     LinkedList(LinkedList&& other) noexcept
         : head_(other.head_), tail_(other.tail_), size_(other.size_) {
@@ -76,14 +113,12 @@ class LinkedList {
         other.size_ = 0;
     }
 
-
     /// Copy assignment operator
     LinkedList& operator=(const LinkedList& other) {
         if (this == &other)
             return *this;
 
         clear();
-
         Node* current = other.head_;
 
         try {
@@ -95,7 +130,6 @@ class LinkedList {
             clear();
             throw;
         }
-
         return *this;
     }
 
@@ -119,18 +153,69 @@ class LinkedList {
     }
 
 
-    std::size_t getSize() const noexcept { return size_; }
+    /// Returns the current size of the linked list.
+    [[nodiscard]]
+    std::size_t getSize() const noexcept {
+        return size_;
+    }
 
-    bool isEmpty() const noexcept { return size_ == 0; }
+    /// Checks if the linked list is empty.
+    [[nodiscard]]
+    bool isEmpty() const noexcept {
+        assert((size_ == 0) == (head_ == nullptr));
+        return size_ == 0;
+    }
+
+
+    /**
+     * Adds a new element to the beginning of the linked list.
+     * If the list is empty, the new element becomes both the head and tail.
+     *
+     * @tparam U The type of the element to be added. Must be the same as Type
+     * or convertible to it.
+     * @param element The element to be added at the beginning of the linked
+     * list.
+     *
+     * @throws std::bad_alloc If memory allocation fails.
+     * @throws std::invalid_argument If the element is not constructible into
+     * Type.
+     */
+    template <typename U>
+    void addFirst(U&& element) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "Element must be constructible into Type");
+        Node* new_node = new Node(std::forward<U>(element));
+
+        if (isEmpty()) {
+            head_ = new_node;
+            tail_ = new_node;
+        } else {
+            new_node->next = head_;
+            head_->prev = new_node;
+            head_ = new_node;
+        }
+
+        ++size_;
+    }
 
 
     /**
      * Adds a new element to the end of the linked list.
+     * If the list is empty, the new element becomes both the head and tail.
      *
-     * @param element The element of type Type to be added to the linked list.
+     * @tparam U The type of the element to be added. Must be the same as Type
+     * or convertible to it.
+     * @param element The element to be added at the end of the linked list.
+     *
+     * @throws std::bad_alloc If memory allocation fails.
+     * @throws std::invalid_argument If the element is not constructible into
+     * Type.
      */
-    void addLast(const Type& element) {
-        Node* new_node = new Node(element);
+    template <typename U>
+    void addLast(U&& element) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "Element must be constructible into Type");
+        Node* new_node = new Node(std::forward<U>(element));
 
         if (head_ == nullptr) {
             head_ = new_node;
@@ -146,71 +231,49 @@ class LinkedList {
 
 
     /**
-     * Adds a new element to the beginning of the linked list.
-     *
-     * @param element The element of type Type to be added to the linked list.
-     */
-    void addFirst(const Type& element) {
-        Node* new_node = new Node(element);
-
-        if (head_ == nullptr) {
-            head_ = new_node;
-            tail_ = new_node;
-        } else {
-            new_node->next = head_;
-            head_->prev = new_node;
-            head_ = new_node;
-        }
-
-        ++size_;
-    }
-
-
-    /**
-     * Inserts an element at the specified index in the linked list.
-     * If the index is 0, the element is added to the beginning of the list.
-     * If the index is equal to the current size, the element is appended to the
-     * end. For other valid indices, the element is inserted at the desired
+     * Inserts a new element at the specified index in the linked list.
+     * If the index is 0, the element is added at the beginning.
+     * If the index is equal to the size of the list, the element is added at
+     * the end.
+     * For other valid indices, the element is inserted at the specified
      * position.
      *
-     * @param idx The index where the element should be inserted.
-     * @param element The element of type Type to be inserted into the list.
-     * @throws std::out_of_range If the specified index is greater than the
-     * current size.
+     * @tparam U The type of the element to be added. Must be the same as Type
+     * or convertible to it.
+     * @param element The element to be inserted into the linked list.
+     * @param idx The index at which to insert the new element.
+     *
+     * @throws std::out_of_range If the specified index is out of range (greater
+     * than size).
      */
-    void insert(const std::size_t idx, const Type& element) {
+    template <typename U>
+    void insert(U&& element, const std::size_t idx) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "Element must be constructible into Type");
+
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
+        Node* new_node = nullptr;
+
         try {
             if (idx == 0) {
-                addFirst(element);
+                addFirst(std::forward<U>(element));
             } else if (idx == size_) {
-                addLast(element);
+                addLast(std::forward<U>(element));
             } else {
-                Node* current;
+                Node* current = getNodeAt(idx);
 
-                if (idx < size_ / 2) {
-                    current = head_;
-                    for (std::size_t i = 0; i < idx; ++i)
-                        current = current->next;
-                } else {
-                    current = tail_;
-                    for (std::size_t i = size_ - 1; i > idx; --i)
-                        current = current->prev;
-                }
-
-                Node* new_node = new Node(element);
+                new_node = new Node(std::forward<U>(element));
                 new_node->next = current;
                 new_node->prev = current->prev;
 
                 current->prev->next = new_node;
                 current->prev = new_node;
-
                 ++size_;
             }
         } catch (...) {
-            clear();
+            delete new_node;
             throw;
         }
     }
@@ -310,10 +373,8 @@ class LinkedList {
 
     /**
      * Removes the first occurrence of the specified element from the linked
-     * list. If the element is found, it is removed from the list, and the size
-     * of the linked list is decremented. The method returns immediately after
-     * removing the element. If the element is not found, no changes are made to
-     * the list.
+     * list. If the element is found, it is removed and the size of the list is
+     * decremented. If the element is not found, no action is taken.
      *
      * @param element The element of type Type to be removed from the linked
      * list.
@@ -323,20 +384,79 @@ class LinkedList {
 
         while (current != nullptr) {
             if (current->data == element) {
+                Node* to_delete = current;
+
                 if (current == head_) {
-                    removeFirst();
+                    head_ = current->next;
+                    if (head_)
+                        head_->prev = nullptr;
+                    else
+                        tail_ = nullptr; // list is now empty
                 } else if (current == tail_) {
-                    removeLast();
+                    tail_ = current->prev;
+                    if (tail_)
+                        tail_->next = nullptr;
+                    else
+                        head_ = nullptr; // list is now empty
                 } else {
                     current->prev->next = current->next;
                     current->next->prev = current->prev;
-                    delete current;
-                    --size_;
                 }
+
+                delete to_delete;
+                --size_;
                 return;
             }
+
             current = current->next;
         }
+    }
+
+
+    /**
+     * Removes all occurrences of the specified element from the linked list.
+     * If the element is found, it is removed and the size of the list is
+     * decremented. The method returns the number of elements removed.
+     *
+     * @param element The element of type Type to be removed from the linked
+     * list.
+     * @return The number of elements removed from the linked list.
+     */
+    std::size_t removeAll(const Type& element) {
+        if (isEmpty())
+            return 0;
+
+        Node* current = head_;
+        std::size_t removed_count = 0;
+
+        while (current != nullptr) {
+            Node* next_node = current->next;
+            if (current->data == element) {
+                if (current == head_) {
+                    head_ = current->next;
+                    if (head_)
+                        head_->prev = nullptr;
+                    else
+                        tail_ = nullptr;
+                } else if (current == tail_) {
+                    tail_ = current->prev;
+                    if (tail_)
+                        tail_->next = nullptr;
+                    else
+                        head_ = nullptr;
+                } else {
+                    current->prev->next = current->next;
+                    current->next->prev = current->prev;
+                }
+
+                delete current;
+                --size_;
+                ++removed_count;
+            }
+            current = next_node;
+        }
+
+        return removed_count;
     }
 
 
@@ -352,17 +472,7 @@ class LinkedList {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
-        Node* current;
-        if (idx < size_ / 2) {
-            current = head_;
-            for (std::size_t i = 0; i < idx; ++i)
-                current = current->next;
-        } else {
-            current = tail_;
-            for (std::size_t i = size_ - 1; i > idx; --i)
-                current = current->prev;
-        }
-
+        Node* current = getNodeAt(idx);
         return current->data;
     }
 
@@ -379,17 +489,7 @@ class LinkedList {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
-        Node* current;
-        if (idx < size_ / 2) {
-            current = head_;
-            for (std::size_t i = 0; i < idx; ++i)
-                current = current->next;
-        } else {
-            current = tail_;
-            for (std::size_t i = size_ - 1; i > idx; --i)
-                current = current->prev;
-        }
-
+        Node* current = getNodeAt(idx);
         return current->data;
     }
 
@@ -417,49 +517,186 @@ class LinkedList {
 
 
     /**
-     * Removes all elements from the linked list and releases their allocated
-     * memory. After this operation, the linked list will be empty, with head
-     * and tail pointers set to nullptr and the size set to zero.
+     * Clears the linked list by deleting all nodes and resetting the head,
+     * tail, and size.
+     *
+     * This method deallocates all memory used by the linked list nodes and
+     * sets the size to zero. After calling this method, the linked list will be
+     * empty.
      */
     void clear() {
-        while (!isEmpty())
-            removeFirst();
-    }
-
-
-    /**
-     * Prints the elements of the linked list in forward order, starting from
-     * the first node (head) to the last node (tail). The elements are separated
-     * by a space and terminated with a newline character. If the list is empty,
-     * no output is produced.
-     */
-    void printForward() const {
         Node* current = head_;
-        while (current != nullptr) {
-            std::cout << current->data << " ";
-            current = current->next;
+        while (current) {
+            Node* next = current->next;
+            delete current;
+            current = next;
         }
-        std::cout << std::endl;
+        head_ = tail_ = nullptr;
+        size_ = 0;
     }
-
-
-    /**
-     * Prints the elements of the linked list in reverse order, from the tail to
-     * the head. Each element is output to the standard output stream, separated
-     * by spaces. If the list is empty, no output is produced.
-     */
-    void printBackward() const {
-        Node* current = tail_;
-        while (current != nullptr) {
-            std::cout << current->data << " ";
-            current = current->prev;
-        }
-        std::cout << std::endl;
-    }
-
 
     /// Destructor
     ~LinkedList() { clear(); }
+
+
+    /**
+     * @class iterator
+     *
+     * A bidirectional iterator for the LinkedList class.
+     * This iterator allows traversal of the linked list in both directions
+     * (forward and backward) and provides access to the data stored in the
+     * nodes.
+     */
+    class iterator {
+
+        friend class const_iterator;
+
+      private:
+        Node* current_;
+
+      public:
+        /// Default constructor
+        iterator() : current_(nullptr) {}
+
+        /// Constructor that initializes the iterator to a specific node
+        explicit iterator(Node* node) : current_(node) {}
+
+
+        /// Dereference operator to access the data of the current node
+        Type& operator*() { return current_->data; }
+
+        /// Arrow operator to access the address of the data in the current node
+        Type* operator->() { return &(current_->data); }
+
+        /// Pre-increment operator to move the iterator to the next node
+        iterator& operator++() {
+            current_ = current_->next;
+            return *this;
+        }
+
+        /// Post-increment operator to move the iterator to the next node
+        iterator operator++(int) {
+            iterator temp = *this;
+            current_ = current_->next;
+            return temp;
+        }
+
+        /// Pre-decrement operator to move the iterator to the previous node
+        iterator& operator--() {
+            current_ = current_->prev;
+            return *this;
+        }
+
+        /// Post-decrement operator to move the iterator to the previous node
+        iterator operator--(int) {
+            iterator temp = *this;
+            current_ = current_->prev;
+            return temp;
+        }
+
+        /// Equality operator to compare two iterators
+        bool operator==(const iterator& other) const {
+            return current_ == other.current_;
+        }
+
+        /// Inequality operator to compare two iterators
+        bool operator!=(const iterator& other) const {
+            return current_ != other.current_;
+        }
+    };
+
+
+    /**
+     * @class const_iterator
+     *
+     * A constant bidirectional iterator for the LinkedList class.
+     * This iterator allows traversal of the linked list in both directions
+     * (forward and backward) and provides access to the data stored in the
+     * nodes without allowing modification of the data.
+     */
+    class const_iterator {
+
+      private:
+        const Node* current_;
+
+      public:
+        /// Default constructor
+        const_iterator() : current_(nullptr) {}
+
+        /// Constructor that initializes the iterator to a specific node
+        explicit const_iterator(const Node* node) : current_(node) {}
+
+        /// Constructor that allows conversion from a non-const iterator
+        explicit const_iterator(const iterator& iter)
+            : current_(iter.current_) {}
+
+        /// Dereference operator to access the data of the current node
+        const Type& operator*() const { return current_->data; }
+
+        /// Arrow operator to access the address of the data in the current node
+        const Type* operator->() const { return &(current_->data); }
+
+        /// Pre-increment operator to move the iterator to the next node
+        const_iterator& operator++() {
+            current_ = current_->next;
+            return *this;
+        }
+
+        /// Post-increment operator to move the iterator to the next node
+        const_iterator operator++(int) {
+            const_iterator temp = *this;
+            current_ = current_->next;
+            return temp;
+        }
+
+        /// Pre-decrement operator to move the iterator to the previous node
+        const_iterator& operator--() {
+            current_ = current_->prev;
+            return *this;
+        }
+
+        /// Post-decrement operator to move the iterator to the previous node
+        const_iterator operator--(int) {
+            const_iterator temp = *this;
+            current_ = current_->prev;
+            return temp;
+        }
+
+        /// Equality operator to compare two iterators
+        bool operator==(const const_iterator& other) const {
+            return current_ == other.current_;
+        }
+
+        /// Inequality operator to compare two iterators
+        bool operator!=(const const_iterator& other) const {
+            return current_ != other.current_;
+        }
+    };
+
+
+    // Regular iterators
+    iterator begin() { return iterator(head_); }
+    iterator end() { return iterator(nullptr); }
+
+    // Const iterators
+    const_iterator begin() const { return const_iterator(head_); }
+    const_iterator end() const { return const_iterator(nullptr); }
+
+    // Explicit const access
+    const_iterator cbegin() const { return const_iterator(head_); }
+    const_iterator cend() const { return const_iterator(nullptr); }
+
+
+    /// Type aliases for the LinkedList class
+
+    using value_type = Type;
+    using size_type = std::size_t;
+    using reference = Type&;
+    using const_reference = const Type&;
+    using pointer = Type*;
+    using const_pointer = const Type*;
+    using iterator = iterator;
+    using const_iterator = const_iterator;
 };
 
 

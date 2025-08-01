@@ -82,7 +82,9 @@ class Heap : public BinaryTree<Type> {
      * @return Pointer to the last node in the heap, or nullptr if the heap is
      * empty.
      */
-    Node<Type>* findLastNode() const { return findNodeByPath(this->size()); }
+    const Node<Type>* findLastNode() const {
+        return findNodeByPath(this->size());
+    }
 
 
     /**
@@ -105,27 +107,31 @@ class Heap : public BinaryTree<Type> {
 
 
   public:
+    /// Default constructor
     Heap() : BinaryTree<Type>() {}
 
+    /// Copy constructor
     Heap(const Heap& other) : BinaryTree<Type>(other) {}
 
+    /// Move constructor
     Heap(Heap&& other) noexcept : BinaryTree<Type>(std::move(other)) {}
 
+    /// Copy assignment operator
     Heap& operator=(const Heap& other) {
         BinaryTree<Type>::operator=(other);
         return *this;
     }
 
+    /// Move assignment operator
     Heap& operator=(Heap&& other) noexcept {
         BinaryTree<Type>::operator=(std::move(other));
         return *this;
     }
 
-
     void insertLeft(const Type& element) = delete;
     void insertRight(const Type& element) = delete;
 
-    virtual void insert(const Type& element) override = 0;
+    [[nodiscard]]
     virtual bool isValidHeap() const = 0;
 
 
@@ -146,7 +152,7 @@ class Heap : public BinaryTree<Type> {
             throw std::out_of_range("Heap is empty. Cannot extract root.");
 
         Type rootValue = this->root_->data;
-        Node<Type>* lastNode = this->findLastNode();
+        const Node<Type>* lastNode = this->findLastNode();
 
         if (lastNode == this->root_) {
             delete this->root_;

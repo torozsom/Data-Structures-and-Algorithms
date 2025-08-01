@@ -187,7 +187,7 @@ TEST_F(DynamicArrayUnitTest, InsertAtValidIndex) {
     arr.addLast(10);
     arr.addLast(30);
 
-    arr.insert(1, 20);
+    arr.insert(20, 1);
 
     EXPECT_EQ(arr.size(), 3);
     EXPECT_EQ(arr.get(0), 10);
@@ -201,7 +201,7 @@ TEST_F(DynamicArrayUnitTest, InsertAtBeginning) {
     arr.addLast(20);
     arr.addLast(30);
 
-    arr.insert(0, 10);
+    arr.insert(10, 0);
 
     EXPECT_EQ(arr.size(), 3);
     EXPECT_EQ(arr.get(0), 10);
@@ -215,7 +215,7 @@ TEST_F(DynamicArrayUnitTest, InsertAtEnd) {
     arr.addLast(10);
     arr.addLast(20);
 
-    arr.insert(2, 30);
+    arr.insert(30, 2);
 
     EXPECT_EQ(arr.size(), 3);
     EXPECT_EQ(arr.get(2), 30);
@@ -226,7 +226,7 @@ TEST_F(DynamicArrayUnitTest, InsertAtInvalidIndex) {
     DynamicArray<int> arr;
     arr.addLast(10);
 
-    EXPECT_THROW(arr.insert(2, 20), std::out_of_range);
+    EXPECT_THROW(arr.insert(20, 2), std::out_of_range);
 }
 
 

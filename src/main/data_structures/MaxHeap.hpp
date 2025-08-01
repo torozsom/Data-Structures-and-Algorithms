@@ -78,23 +78,35 @@ class MaxHeap final : public Heap<Type> {
 
 
   public:
+    /// Default constructor
     MaxHeap() : Heap<Type>() {}
 
+    /**
+     * Constructs a MaxHeap from an array of elements. Each element is inserted
+     * into the heap, maintaining the max-heap property.
+     *
+     * @param array Pointer to the array of elements to be inserted into the
+     * heap.
+     * @param size The number of elements in the array.
+     */
     MaxHeap(const Type* array, const std::size_t size) : Heap<Type>() {
-        for (std::size_t i = 0; i < size; ++i) {
-            this->insert(array[i]);
-        }
+        for (std::size_t i = 0; i < size; ++i)
+            insert(array[i]);
     }
 
+    /// Copy constructor
     MaxHeap(const MaxHeap& other) : Heap<Type>(other) {}
 
+    /// Move constructor
     MaxHeap(MaxHeap&& other) noexcept : Heap<Type>(std::move(other)) {}
 
+    /// Copy assignment operator
     MaxHeap& operator=(const MaxHeap& other) {
         Heap<Type>::operator=(other);
         return *this;
     }
 
+    /// Move assignment operator
     MaxHeap& operator=(MaxHeap&& other) noexcept {
         Heap<Type>::operator=(std::move(other));
         return *this;
@@ -102,14 +114,20 @@ class MaxHeap final : public Heap<Type> {
 
 
     /**
-     * Inserts a new element into the heap while maintaining the max-heap
-     * property. The new element is placed in a determined location based on a
-     * binary path, and then heapified upwards to maintain the heap property.
+     * Inserts an element into the max-heap. The element is added as a new node
+     * at the end of the heap, and then the heap property is restored by moving
+     * the new node upwards if necessary.
      *
-     * @param element The element to be inserted into the heap.
+     * @tparam U The type of the element to be inserted, which must be
+     * constructible into Type.
+     * @param element The element to be inserted into the max-heap.
      */
-    void insert(const Type& element) override {
-        Node<Type>* newNode = new Node<Type>(element);
+    template <typename U>
+    void insert(U&& element) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "Element must be constructible into Type");
+
+        Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
 
         if (this->isEmpty()) {
             this->root_ = newNode;
@@ -132,7 +150,10 @@ class MaxHeap final : public Heap<Type> {
 
 
     /// Checks if the heap maintains the correct heap property.
-    bool isValidHeap() const override { return isValidMaxHeap(this->root_); }
+    [[nodiscard]]
+    bool isValidHeap() const override {
+        return isValidMaxHeap(this->root_);
+    }
 
 
     ~MaxHeap() override = default;

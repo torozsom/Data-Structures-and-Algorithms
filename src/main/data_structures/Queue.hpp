@@ -41,6 +41,7 @@ class Queue {
      * @param logical_index The logical index of the element in the queue.
      * @return The actual index in the underlying array.
      */
+    [[nodiscard]]
     std::size_t getCircularIndex(const std::size_t logical_index) const {
         return (front_idx_ + logical_index) % array_.capacity();
     }
@@ -54,6 +55,7 @@ class Queue {
      *
      * @return The index of the back element in the underlying array.
      */
+    [[nodiscard]]
     std::size_t getBackIndex() const {
         return (front_idx_ + size_) % array_.capacity();
     }
@@ -100,6 +102,20 @@ class Queue {
         : array_(), front_idx_(0), size_(0) {
         array_.reserve(initial_capacity);
     }
+
+    /**
+     * Constructor with initial data and size.
+     *
+     * This constructor initializes the queue with a given array of initial
+     * data and its size. It reserves enough space in the underlying dynamic
+     * array to hold the initial elements.
+     *
+     * @param initial_data Pointer to the initial data array.
+     * @param initial_size The number of elements in the initial data array.
+     */
+    Queue(const Type* initial_data, const std::size_t initial_size)
+        : array_(initial_data, initial_size), front_idx_(0),
+          size_(initial_size) {}
 
     // Copy constructor
     Queue(const Queue& other) : array_(), front_idx_(0), size_(0) {
@@ -157,13 +173,22 @@ class Queue {
 
 
     /// Returns the number of elements in the queue.
-    std::size_t size() const noexcept { return size_; }
+    [[nodiscard]]
+    std::size_t size() const noexcept {
+        return size_;
+    }
 
     /// Returns the capacity of the underlying data storage.
-    std::size_t capacity() const noexcept { return array_.capacity(); }
+    [[nodiscard]]
+    std::size_t capacity() const noexcept {
+        return array_.capacity();
+    }
 
     /// Checks if the queue is empty.
-    bool isEmpty() const noexcept { return size_ == 0; }
+    [[nodiscard]]
+    bool isEmpty() const noexcept {
+        return size_ == 0;
+    }
 
 
     /**
@@ -182,7 +207,8 @@ class Queue {
      *
      * @param element The element to be added to the queue.
      */
-    template <typename U> void enqueue(U&& element) {
+    template <typename U>
+    void enqueue(U&& element) {
         static_assert(std::is_constructible_v<Type, U&&>,
                       "Element must be constructible into Type");
 
@@ -233,7 +259,6 @@ class Queue {
         size_--;
 
         autoManageCapacity();
-
         return element;
     }
 
@@ -322,7 +347,8 @@ class Queue {
      * Type.
      * @param args Arguments to be forwarded to the constructor of Type.
      */
-    template <typename... Args> void emplaceBack(Args&&... args) {
+    template <typename... Args>
+    void emplaceBack(Args&&... args) {
         if (size_ == array_.capacity()) {
             std::size_t new_capacity = array_.capacity() > SIZE_MAX / 2
                                            ? SIZE_MAX

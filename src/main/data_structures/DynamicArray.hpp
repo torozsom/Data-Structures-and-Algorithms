@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <climits>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <type_traits>
 
@@ -248,13 +247,22 @@ class DynamicArray {
 
 
     /// Returns the current size of the dynamic array.
-    std::size_t size() const noexcept { return size_; }
+    [[nodiscard]]
+    std::size_t size() const noexcept {
+        return size_;
+    }
 
     /// Returns the current capacity of the dynamic array.
-    std::size_t capacity() const noexcept { return capacity_; }
+    [[nodiscard]]
+    std::size_t capacity() const noexcept {
+        return capacity_;
+    }
 
     /// Checks if the dynamic array is empty.
-    bool isEmpty() const noexcept { return size_ == 0; }
+    [[nodiscard]]
+    bool isEmpty() const noexcept {
+        return size_ == 0;
+    }
 
 
     /**
@@ -268,14 +276,15 @@ class DynamicArray {
      * @tparam U The type of the element to be inserted. Must be the same as
      * Type or convertible to it.
      *
+     * @param element The element to be inserted into the array.
      * @param idx The index at which to insert the new element. Must be within
      * the range [0, size_].
-     * @param element The element to be inserted into the array.
      *
      * @throws std::out_of_range If the specified index is greater than the
      * current size of the array.
      */
-    template <typename U> void insert(const std::size_t idx, U&& element) {
+    template <typename U>
+    void insert(U&& element, const std::size_t idx) {
         static_assert(std::is_constructible_v<Type, U&&>,
                       "Element must be constructible into Type");
 
@@ -308,7 +317,10 @@ class DynamicArray {
      *
      * @param element The element to be added at the end of the array.
      */
-    template <typename U> void addLast(U&& element) { insert(size_, element); }
+    template <typename U>
+    void addLast(U&& element) {
+        insert(std::forward<U>(element), size_);
+    }
 
 
     /**
@@ -324,7 +336,10 @@ class DynamicArray {
      *
      * @param element The element to be added at the beginning of the array.
      */
-    template <typename U> void addFirst(U&& element) { insert(0, element); }
+    template <typename U>
+    void addFirst(U&& element) {
+        insert(std::forward<U>(element), 0);
+    }
 
 
     /**
@@ -348,7 +363,7 @@ class DynamicArray {
         Type element = data_[idx];
         data_[idx].~Type();
 
-        std::copy(data_ + idx + 1, data_ + size_, data_ + idx);
+        copy_construct_elements(data_ + idx + 1, data_ + size_, data_ + idx);
         --size_;
 
         if (size_ <= capacity_ / 4 && capacity_ > DEFAULT_CAPACITY)
@@ -508,6 +523,47 @@ class DynamicArray {
 
 
     /**
+     * Emplaces a new element at the specified index in the dynamic array,
+     * constructing it in place using the provided arguments. All existing
+     * elements from the specified index onward are shifted one position to the
+     * right to make space for the new element. If the array is at full
+     * capacity, it resizes to accommodate the new element.
+     *
+     * @complexity Average and worst case insertion is O(n).
+     *
+     * @tparam Args Types of arguments to be forwarded to the constructor of
+     * Type.
+     *
+     * @param idx The index at which to emplace the new element. Must be within
+     * the range [0, size_].
+     * @param args Arguments to be forwarded to the constructor of Type.
+     *
+     * @throws std::out_of_range If the specified index is greater than the
+     * current size of the array.
+     */
+    template <typename... Args>
+    void emplaceAt(std::size_t idx, Args&&... args) {
+        static_assert(std::is_constructible_v<Type, Args&&...>,
+                      "Arguments must be constructible into Type");
+
+        if (idx > size_)
+            throw std::out_of_range("Index out of range");
+
+        if (size_ == capacity_)
+            resize(capacity_ > MAX_SAFE_CAPACITY ? MAX_CAPACITY
+                                                 : capacity_ * 2);
+
+        for (std::size_t i = size_; i > idx; --i) {
+            new (data_ + i) Type(std::move(data_[i - 1]));
+            data_[i - 1].~Type();
+        }
+
+        new (data_ + idx) Type(std::forward<Args>(args)...);
+        ++size_;
+    }
+
+
+    /**
      * Emplaces a new element at the end of the dynamic array, constructing it
      * in place using the provided arguments. If the array is at full capacity,
      * it resizes to accommodate the new element.
@@ -519,13 +575,28 @@ class DynamicArray {
      * Type.
      * @param args Arguments to be forwarded to the constructor of Type.
      */
-    template <typename... Args> void emplaceLast(Args&&... args) {
-        if (size_ == capacity_)
-            resize(capacity_ > MAX_SAFE_CAPACITY ? MAX_CAPACITY
-                                                 : capacity_ * 2);
+    template <typename... Args>
+    void emplaceLast(Args&&... args) {
+        emplaceAt(size_, std::forward<Args>(args)...);
+    }
 
-        new (data_ + size_) Type(std::forward<Args>(args)...);
-        ++size_;
+
+    /**
+     * Emplaces a new element at the beginning of the dynamic array,
+     * constructing it in place using the provided arguments. All existing
+     * elements are shifted one position to the right to make space for the new
+     * element. If the array is at full capacity, it resizes to accommodate the
+     * new element.
+     *
+     * @complexity O(n) each time.
+     *
+     * @tparam Args Types of arguments to be forwarded to the constructor of
+     * Type.
+     * @param args Arguments to be forwarded to the constructor of Type.
+     */
+    template <typename... Args>
+    void emplaceFirst(Args&&... args) {
+        emplaceAt(0, std::forward<Args>(args)...);
     }
 
 

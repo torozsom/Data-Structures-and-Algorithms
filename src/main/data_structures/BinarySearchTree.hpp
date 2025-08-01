@@ -30,23 +30,30 @@ class BinarySearchTree final : public BinaryTree<Type> {
     /**
      * Recursively inserts an element into a binary search tree.
      *
-     * This method traverses the tree starting from the given node,
-     * comparing the value of the element to decide the position
-     * for insertion. If the subtree rooted at the current node is empty,
-     * a new node is created to hold the element. If the element is smaller
-     * than the current node's data, the method continues traversal to the
-     * left subtree; otherwise, it traverses to the right subtree.
+     * This method traverses the tree to find the appropriate position for the
+     * new element. If the tree is empty, the element becomes the root. If the
+     * element is less than the current node's data, it is inserted into the
+     * left subtree; if greater, into the right subtree.
      *
-     * @param node A reference to a pointer to the current node of the subtree
-     * being traversed.
+     * @complexity Average and worst case insertion is O(n).
+     *
+     * @tparam U The type of the element to be inserted. Must be constructible
+     * into Type.
+     *
+     * @param node A reference to a pointer to the current node being examined
+     * or modified.
      * @param element The element to be inserted into the tree.
      * @param parent A pointer to the parent node of the current node being
-     * examined.
+     * examined (optional).
      */
-    void recursiveInsert(Node<Type>*& node, const Type& element,
+    template <typename U>
+    void recursiveInsert(Node<Type>*& node, U&& element,
                          Node<Type>* parent = nullptr) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "Element must be constructible into Type");
+
         if (node == nullptr) {
-            node = new Node<Type>(element);
+            node = new Node<Type>(std::forward<U>(element));
             node->parent = parent;
             ++this->size_;
             return;
@@ -70,6 +77,8 @@ class BinarySearchTree final : public BinaryTree<Type> {
      * - If the node has two children, the node is replaced with
      *   the smallest element from its right subtree, and the removal
      *   is recursively applied to that subtree.
+     *
+     * @complexity Average and worst case removal is O(n).
      *
      * @param node A pointer to the current node being examined or modified.
      * @param element The element to be removed from the tree.
@@ -102,7 +111,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
                     node->parent = temp->parent;
                 delete temp;
             } else {
-                Node<Type>* temp = findMinNode(node->right);
+                const Node<Type>* temp = findMinNode(node->right);
                 node->data = temp->data;
                 recursiveRemove(node->right, temp->data);
             }
@@ -118,12 +127,14 @@ class BinarySearchTree final : public BinaryTree<Type> {
      * in the subtree. If the provided node is nullptr, the method
      * returns nullptr.
      *
+     * @complexity O(h), where h is the height of the subtree.
+     *
      * @param node A pointer to the root of the subtree in which to find the
      * minimum node.
      * @return A pointer to the node containing the minimum value in the
      * subtree, or nullptr if the subtree is empty.
      */
-    Node<Type>* findMinNode(Node<Type>* node) const {
+    const Node<Type>* findMinNode(Node<Type>* node) const {
         if (node == nullptr)
             return nullptr;
 
@@ -141,12 +152,14 @@ class BinarySearchTree final : public BinaryTree<Type> {
      * in the subtree. If the provided node is nullptr, the method
      * returns nullptr.
      *
+     * @complexity O(h), where h is the height of the subtree.
+     *
      * @param node A pointer to the root of the subtree in which to find the
      * maximum node.
      * @return A pointer to the node containing the maximum value in the
      * subtree, or nullptr if the subtree is empty.
      */
-    Node<Type>* findMaxNode(Node<Type>* node) const {
+    const Node<Type>* findMaxNode(Node<Type>* node) const {
         if (node == nullptr)
             return nullptr;
 
@@ -172,25 +185,41 @@ class BinarySearchTree final : public BinaryTree<Type> {
 
 
   public:
+    /// Default constructor
     BinarySearchTree() : BinaryTree<Type>() {}
 
+    /**
+     * Constructor that initializes the binary search tree with an array of
+     * elements.
+     *
+     * This constructor takes an array of elements and inserts each element
+     * into the binary search tree, maintaining the properties of a binary
+     * search tree.
+     *
+     * @param array Pointer to the array of elements to be inserted into the
+     * binary search tree.
+     * @param size The number of elements in the array.
+     */
     BinarySearchTree(const Type* array, const std::size_t size)
         : BinaryTree<Type>() {
-        for (std::size_t i = 0; i < size; ++i) {
+        for (std::size_t i = 0; i < size; ++i)
             this->insert(array[i]);
-        }
     }
 
+    /// Copy constructor
     BinarySearchTree(const BinarySearchTree& other) : BinaryTree<Type>(other) {}
 
+    /// Move constructor
     BinarySearchTree(BinarySearchTree&& other) noexcept
         : BinaryTree<Type>(std::move(other)) {}
 
+    /// Copy assignment operator
     BinarySearchTree& operator=(const BinarySearchTree& other) {
         BinaryTree<Type>::operator=(other);
         return *this;
     }
 
+    /// Move assignment operator
     BinarySearchTree& operator=(BinarySearchTree&& other) noexcept {
         BinaryTree<Type>::operator=(std::move(other));
         return *this;
@@ -198,22 +227,31 @@ class BinarySearchTree final : public BinaryTree<Type> {
 
 
     /// Checks if the binary tree is a valid BST.
-    bool isValidBST() const noexcept { return isValidBSTHelper(this->root_); }
+    [[nodiscard]]
+    bool isValidBST() const noexcept {
+        return isValidBSTHelper(this->root_);
+    }
 
 
     /**
      * Inserts an element into the binary search tree.
      *
-     * This method inserts a new element into the binary search tree
-     * by recursively traversing the tree to find the appropriate position
-     * for the element. If the tree is empty, the element becomes the root.
-     * Otherwise, the element is compared to the data of the current node,
-     * and traversal continues to the left or right subtree as needed.
+     * This method inserts a new element into the binary search tree by
+     * recursively finding the appropriate position for the new element.
+     * If the tree is empty, the new element becomes the root. If the
+     * element is less than the current node's data, it is inserted into
+     * the left subtree; if greater, into the right subtree.
+     *
+     * @complexity Average and worst case insertion is O(n).
+     *
+     * @tparam U The type of the element to be inserted. Must be constructible
+     * into Type.
      *
      * @param element The element to be inserted into the tree.
      */
-    void insert(const Type& element) override {
-        recursiveInsert(this->root_, element);
+    template <typename U>
+    void insert(U&& element) {
+        recursiveInsert(this->root_, std::forward<U>(element));
     }
 
 

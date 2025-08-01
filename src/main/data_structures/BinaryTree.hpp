@@ -17,8 +17,14 @@ struct Node {
     Node* parent;
     Node* left;
     Node* right;
-    explicit Node(const Type& data)
-        : data(data), parent(nullptr), left(nullptr), right(nullptr) {}
+
+    template <typename U>
+    explicit Node(U&& data)
+        : data(std::forward<U>(data)), parent(nullptr), left(nullptr),
+          right(nullptr) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "Node data must be constructible into Type");
+    }
 };
 
 
@@ -56,7 +62,7 @@ class BinaryTree {
         if (otherNode == nullptr)
             return nullptr;
 
-        Node<Type>* newNode = new Node(otherNode->data);
+        Node<Type>* newNode = new Node<Type>(otherNode->data);
         newNode->parent = parent;
 
         newNode->left = recursiveCopyNode(otherNode->left, newNode);
@@ -194,14 +200,15 @@ class BinaryTree {
      * @return A pointer to the node containing the value, or nullptr if not
      * found.
      */
-    Node<Type>* recursiveFindNode(Node<Type>* node, const Type& value) const {
+    const Node<Type>* recursiveFindNode(Node<Type>* node,
+                                        const Type& value) const {
         if (node == nullptr)
             return nullptr;
 
         if (node->data == value)
             return node;
 
-        Node<Type>* leftResult = recursiveFindNode(node->left, value);
+        const Node<Type>* leftResult = recursiveFindNode(node->left, value);
         if (leftResult != nullptr)
             return leftResult;
 
@@ -304,6 +311,7 @@ class BinaryTree {
 
 
     /// Checks if the binary tree is a complete binary tree.
+    [[nodiscard]]
     bool isCompleteTree() const {
         if (this->isEmpty())
             return true;
@@ -375,17 +383,20 @@ class BinaryTree {
 
 
     /**
-     * Inserts an element into the binary tree using level-order insertion.
-     * The insertion maintains the complete binary tree property. If the tree is
-     * empty, the element becomes the root node. Otherwise, the element is
-     * inserted as the first available position when traversing level by level
-     * from left to right.
+     * Inserts an element into the binary tree at the appropriate position
+     * following level-order traversal rules.
      *
+     * @tparam U The type of the element to be inserted. Must be constructible
+     * into Type.
      * @param element The element to be inserted into the binary tree.
      */
-    virtual void insert(const Type& element) {
+    template <typename U>
+    void insert(U&& element) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "Element must be constructible into Type");
+
         if (this->isEmpty()) {
-            root_ = new Node<Type>(element);
+            root_ = new Node<Type>(std::forward<U>(element));
             size_++;
             return;
         }
@@ -398,7 +409,7 @@ class BinaryTree {
 
             // Check if left child is available
             if (current->left == nullptr) {
-                Node<Type>* newNode = new Node<Type>(element);
+                Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
                 newNode->parent = current;
                 current->left = newNode;
                 size_++;
@@ -407,7 +418,7 @@ class BinaryTree {
 
             // Check if right child is available
             if (current->right == nullptr) {
-                Node<Type>* newNode = new Node<Type>(element);
+                Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
                 newNode->parent = current;
                 current->right = newNode;
                 size_++;
@@ -439,8 +450,21 @@ class BinaryTree {
      * @return A pointer to the node containing the value, or nullptr if not
      * found.
      */
-    Node<Type>* findNode(const Type& value) const {
+    const Node<Type>* findNode(const Type& value) const {
         return recursiveFindNode(root_, value);
+    }
+
+
+    /**
+     * Finds a node with a specific value in the binary tree.
+     *
+     * @param value The value to search for in the binary tree.
+     * @return A pointer to the node containing the value, or nullptr if not
+     * found.
+     */
+    Node<Type>* findNode(const Type& value) {
+        return const_cast<Node<Type>*>(
+            static_cast<const BinaryTree*>(this)->findNode(value));
     }
 
 

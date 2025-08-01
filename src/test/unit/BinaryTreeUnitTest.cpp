@@ -193,7 +193,7 @@ TEST_F(BinaryTreeUnitTest, FindNodeMethodsShouldWorkCorrectly) {
     const BinaryTree tree(values, 5);
 
     // Test findNode
-    Node<int>* node = tree.findNode(3);
+    const Node<int>* node = tree.findNode(3);
     EXPECT_NE(node, nullptr);
     EXPECT_EQ(node->data, 3);
 

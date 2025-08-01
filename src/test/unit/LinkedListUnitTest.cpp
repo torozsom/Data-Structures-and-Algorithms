@@ -214,17 +214,17 @@ TEST_F(LinkedListUnitTest, InsertAtValidIndices) {
     LinkedList<int> list;
 
     // Insert at beginning (empty list)
-    list.insert(0, 10);
+    list.insert(10, 0);
     EXPECT_EQ(list.getSize(), 1);
     EXPECT_EQ(list.get(0), 10);
 
     // Insert at end
-    list.insert(1, 30);
+    list.insert(30, 1);
     EXPECT_EQ(list.getSize(), 2);
     EXPECT_EQ(list.get(1), 30);
 
     // Insert in middle
-    list.insert(1, 20);
+    list.insert(20, 1);
     EXPECT_EQ(list.getSize(), 3);
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 20);
@@ -236,8 +236,8 @@ TEST_F(LinkedListUnitTest, InsertAtInvalidIndex) {
     LinkedList<int> list;
     list.addLast(10);
 
-    EXPECT_THROW(list.insert(2, 20), std::out_of_range);
-    EXPECT_THROW(list.insert(10, 99), std::out_of_range);
+    EXPECT_THROW(list.insert(20, 2), std::out_of_range);
+    EXPECT_THROW(list.insert(99, 10), std::out_of_range);
 }
 
 
@@ -474,80 +474,6 @@ TEST_F(LinkedListUnitTest, ClearEmptyList) {
 }
 
 
-TEST_F(LinkedListUnitTest, PrintForward) {
-    LinkedList<int> list;
-    list.addLast(10);
-    list.addLast(20);
-    list.addLast(30);
-
-    // Capture stdout
-    const std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    list.printForward();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "10 20 30 \n");
-}
-
-
-TEST_F(LinkedListUnitTest, PrintForwardEmptyList) {
-    const LinkedList<int> list;
-
-    // Capture stdout
-    const std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    list.printForward();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "\n");
-}
-
-
-TEST_F(LinkedListUnitTest, PrintBackward) {
-    LinkedList<int> list;
-    list.addLast(10);
-    list.addLast(20);
-    list.addLast(30);
-
-    // Capture stdout
-    const std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    list.printBackward();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "30 20 10 \n");
-}
-
-
-TEST_F(LinkedListUnitTest, PrintBackwardEmptyList) {
-    const LinkedList<int> list;
-
-    // Capture stdout
-    const std::ostringstream output;
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(output.rdbuf());
-
-    list.printBackward();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(output.str(), "\n");
-}
-
-
 TEST_F(LinkedListUnitTest, StringType) {
     LinkedList<std::string> list;
 
@@ -708,34 +634,6 @@ TEST_F(LinkedListUnitTest, SingleElementOperations) {
 
     list.removeLast();
     EXPECT_TRUE(list.isEmpty());
-}
-
-
-TEST_F(LinkedListUnitTest, DoublyLinkedListProperties) {
-    LinkedList<int> list;
-    list.addLast(1);
-    list.addLast(2);
-    list.addLast(3);
-    list.addLast(4);
-    list.addLast(5);
-
-    // Test that forward and backward traversals work correctly
-    std::ostringstream forward, backward;
-
-    // Capture forward print
-    std::streambuf* orig = std::cout.rdbuf();
-    std::cout.rdbuf(forward.rdbuf());
-    list.printForward();
-
-    // Capture backward print
-    std::cout.rdbuf(backward.rdbuf());
-    list.printBackward();
-
-    // Restore stdout
-    std::cout.rdbuf(orig);
-
-    EXPECT_EQ(forward.str(), "1 2 3 4 5 \n");
-    EXPECT_EQ(backward.str(), "5 4 3 2 1 \n");
 }
 
 
