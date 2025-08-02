@@ -21,8 +21,13 @@ class LinkedList {
         Type data;
         Node* next;
         Node* prev;
-        explicit Node(const Type& data)
-            : data(data), next(nullptr), prev(nullptr) {}
+
+        template <typename U>
+        explicit Node(U&& data)
+            : data(data), next(nullptr), prev(nullptr) {
+            static_assert(std::is_constructible_v<Type, U&&>,
+                          "Only types constructible into Type are allowed");
+        }
     };
 
     Node* head_;

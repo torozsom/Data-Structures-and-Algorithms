@@ -3,6 +3,7 @@
 
 
 #include <algorithm>
+#include <assert.h>
 #include <climits>
 #include <iostream>
 #include <stdexcept>
@@ -60,6 +61,7 @@ class DynamicArray {
                                   const Type* source_end,
                                   Type* destination) const
         noexcept(std::is_nothrow_copy_constructible_v<Type>) {
+        assert(destination != nullptr);
         Type* current = destination;
         try {
             for (const Type* it = source_begin; it != source_end;
@@ -90,6 +92,7 @@ class DynamicArray {
     Type* move_construct_elements(Type* source_begin, Type* source_end,
                                   Type* destination) const
         noexcept(std::is_nothrow_move_constructible_v<Type>) {
+        assert(destination != nullptr);
         Type* current = destination;
         try {
             for (Type* it = source_begin; it != source_end; ++it, ++current)
@@ -219,6 +222,7 @@ class DynamicArray {
             throw;
         }
 
+        destroyArrayElements();
         ::operator delete(data_);
         data_ = new_data;
         size_ = other.size_;
@@ -360,10 +364,13 @@ class DynamicArray {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
-        Type element = data_[idx];
+        Type element = std::move(data_[idx]);
         data_[idx].~Type();
 
-        copy_construct_elements(data_ + idx + 1, data_ + size_, data_ + idx);
+        for (std::size_t i = idx; i < size_ - 1; ++i)
+            data_[i] = std::move(data_[i + 1]);
+
+        data_[size_ - 1].~Type();
         --size_;
 
         if (size_ <= capacity_ / 4 && capacity_ > DEFAULT_CAPACITY)
