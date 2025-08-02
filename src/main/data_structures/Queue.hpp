@@ -362,7 +362,7 @@ class Queue {
 
             for (std::size_t i = 0; i < size_; ++i) {
                 std::size_t circular_idx = getCircularIndex(i);
-                new_array.addLast(array_[circular_idx]);
+                new_array.addLast(std::move(array_[circular_idx]));
             }
 
             new_array.emplaceLast(std::forward<Args>(args)...);

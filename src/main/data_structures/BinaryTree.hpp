@@ -348,13 +348,19 @@ class BinaryTree {
 
 
     /**
-     * Inserts an element as the rightmost node of the binary tree.
+     * Inserts an element into the binary tree at the rightmost position.
      *
-     * @param element The element to be inserted into the rightmost position.
+     * @tparam U The type of the element to be inserted. Must be constructible
+     * into Type.
+     * @param element The element to be inserted into the binary tree.
      */
-    void insertRight(const Type& element) {
+    template <typename U>
+    void insertRight(U&& element) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                     "Only types constructible into Type are allowed");
+
         if (this->isEmpty()) {
-            root_ = new Node<Type>(element);
+            root_ = new Node<Type>(std::forward<U>(element));
             size_++;
             return;
         }
@@ -363,7 +369,7 @@ class BinaryTree {
         while (current->right != nullptr)
             current = current->right;
 
-        Node<Type>* newNode = new Node<Type>(element);
+        Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
         newNode->parent = current;
         current->right = newNode;
         size_++;
@@ -371,13 +377,19 @@ class BinaryTree {
 
 
     /**
-     * Inserts an element as the leftmost child of the binary tree.
+     * Inserts an element into the binary tree at the leftmost position.
      *
-     * @param element The element to be inserted at the leftmost position.
+     * @tparam U The type of the element to be inserted. Must be constructible
+     * into Type.
+     * @param element The element to be inserted into the binary tree.
      */
-    void insertLeft(const Type& element) {
+    template <typename U>
+    void insertLeft(U&& element) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                     "Only types constructible into Type are allowed");
+
         if (this->isEmpty()) {
-            root_ = new Node<Type>(element);
+            root_ = new Node<Type>(std::forward<U>(element));
             size_++;
             return;
         }
@@ -386,7 +398,7 @@ class BinaryTree {
         while (current->left != nullptr)
             current = current->left;
 
-        Node<Type>* newNode = new Node<Type>(element);
+        Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
         newNode->parent = current;
         current->left = newNode;
         size_++;

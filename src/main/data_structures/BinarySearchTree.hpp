@@ -113,7 +113,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
             } else {
                 Node<Type>* temp = findMinNode(node->right);
                 node->data = std::move(temp->data);
-                recursiveRemove(node->right, temp->data);
+                recursiveRemove(node->right, node->data);
             }
         }
     }

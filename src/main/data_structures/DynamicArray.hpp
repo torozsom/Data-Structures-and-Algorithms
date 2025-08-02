@@ -374,7 +374,6 @@ class DynamicArray {
             throw std::out_of_range("Index out of range");
 
         Type element = std::move(data_[idx]);
-        data_[idx].~Type();
 
         for (std::size_t i = idx; i < size_ - 1; ++i)
             data_[i] = std::move(data_[i + 1]);
