@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -767,4 +768,32 @@ TEST_F(DynamicArrayUnitTest, ConstRangeBasedForLoop) {
     int expected = 1;
     for (const int val : const_arr)
         EXPECT_EQ(val, expected++);
+}
+
+TEST_F(DynamicArrayUnitTest, ResizeEdgeCasesAndUtilities) {
+    DynamicArray<int> arr;
+    for (int i = 0; i < 10; ++i)
+        arr.addLast(i);
+
+    const std::size_t original_capacity = arr.capacity();
+    // Reserving the current capacity should keep it unchanged
+    arr.reserve(original_capacity);
+    EXPECT_EQ(arr.capacity(), original_capacity);
+
+    // Reserving a very large capacity should throw bad_alloc
+    EXPECT_THROW(arr.reserve(std::numeric_limits<std::size_t>::max()),
+                 std::bad_alloc);
+
+    // shrinkToFit should reduce capacity to the default when size is small
+    arr.clear();
+    for (int i = 0; i < 3; ++i)
+        arr.addLast(i);
+    arr.shrinkToFit();
+    EXPECT_EQ(arr.capacity(), 5u); // DEFAULT_CAPACITY
+
+    // clone should create an independent copy
+    DynamicArray<int> clone = arr.clone();
+    ASSERT_EQ(clone.size(), arr.size());
+    arr[0] = 42;
+    EXPECT_NE(arr[0], clone[0]);
 }

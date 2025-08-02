@@ -27,6 +27,20 @@ TEST_F(QueueUnitTest, DefaultConstructor) {
     EXPECT_EQ(queue.size(), 0);
 }
 
+TEST_F(QueueUnitTest, ConstructorWithInitialCapacity) {
+    Queue<int> queue(50);
+    EXPECT_TRUE(queue.isEmpty());
+    EXPECT_GE(queue.capacity(), 50u);
+}
+
+TEST_F(QueueUnitTest, ConstructorWithInitialData) {
+    int data[] = {1, 2, 3};
+    Queue<int> queue(data, 3);
+    EXPECT_EQ(queue.size(), 3);
+    EXPECT_EQ(queue.front(), 1);
+    EXPECT_EQ(queue.back(), 3);
+}
+
 
 TEST_F(QueueUnitTest, CopyConstructor) {
     Queue<int> original;
