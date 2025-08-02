@@ -24,7 +24,7 @@ class LinkedList {
 
         template <typename U>
         explicit Node(U&& data)
-            : data(data), next(nullptr), prev(nullptr) {
+            : data(std::forward<U>(data)), next(nullptr), prev(nullptr) {
             static_assert(std::is_constructible_v<Type, U&&>,
                           "Only types constructible into Type are allowed");
         }

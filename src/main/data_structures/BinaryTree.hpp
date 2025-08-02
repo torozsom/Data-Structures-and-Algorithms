@@ -301,12 +301,23 @@ class BinaryTree {
     }
 
 
-    bool isEmpty() const noexcept { return root_ == nullptr; }
+    /// Checks if the binary tree is empty.
+    [[nodiscard]]
+    bool isEmpty() const noexcept {
+        assert((root_ == nullptr) == (size_ == 0));
+        return size_ == 0;
+    }
 
+    /// Returns the number of elements in the binary tree.
+    [[nodiscard]]
     std::size_t size() const noexcept { return size_; }
 
+    /// Returns the root node of the binary tree.
+    [[nodiscard]]
     const Node<Type>* getRoot() const noexcept { return root_; }
 
+    /// Returns the height of the binary tree.
+    [[nodiscard]]
     std::size_t getHeight() const noexcept { return recursiveHeight(root_); }
 
 

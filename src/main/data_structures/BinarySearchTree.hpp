@@ -60,9 +60,9 @@ class BinarySearchTree final : public BinaryTree<Type> {
         }
 
         if (element < node->data)
-            recursiveInsert(node->left, element, node);
+            recursiveInsert(node->left, std::forward<U>(element), node);
         else if (element > node->data)
-            recursiveInsert(node->right, element, node);
+            recursiveInsert(node->right, std::forward<U>(element), node);
     }
 
 
@@ -111,8 +111,8 @@ class BinarySearchTree final : public BinaryTree<Type> {
                     node->parent = temp->parent;
                 delete temp;
             } else {
-                const Node<Type>* temp = findMinNode(node->right);
-                node->data = temp->data;
+                Node<Type>* temp = findMinNode(node->right);
+                node->data = std::move(temp->data);
                 recursiveRemove(node->right, temp->data);
             }
         }
@@ -134,7 +134,7 @@ class BinarySearchTree final : public BinaryTree<Type> {
      * @return A pointer to the node containing the minimum value in the
      * subtree, or nullptr if the subtree is empty.
      */
-    const Node<Type>* findMinNode(Node<Type>* node) const {
+    Node<Type>* findMinNode(Node<Type>* node) const {
         if (node == nullptr)
             return nullptr;
 

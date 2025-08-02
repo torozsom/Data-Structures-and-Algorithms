@@ -83,7 +83,7 @@ class Queue {
 
                 for (std::size_t i = 0; i < size_; ++i) {
                     std::size_t circular_idx = getCircularIndex(i);
-                    new_array.addLast(array_[circular_idx]);
+                    new_array.addLast(std::move(array_[circular_idx]));
                 }
 
                 array_ = std::move(new_array);
@@ -233,8 +233,10 @@ class Queue {
             std::size_t back_idx = getBackIndex();
             if (back_idx >= array_.size())
                 array_.addLast(std::forward<U>(element));
-            else
-                array_[back_idx] = std::forward<U>(element);
+            else {
+                array_[back_idx].~Type();
+                new (&array_[back_idx]) Type(std::forward<U>(element));
+            }
             size_++;
         }
     }
