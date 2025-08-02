@@ -412,7 +412,7 @@ class Queue {
 
       public:
         /// Constructor for iterator
-        explicit iterator(const Queue& queue, const std::size_t index)
+        explicit iterator(Queue& queue, const std::size_t index)
             : queue_(queue), index_(index) {}
 
         /// Dereference operator to access the element at the current index
@@ -514,7 +514,7 @@ class Queue {
         const_iterator operator++(int) {
             if (index_ >= queue_.size_)
                 throw std::out_of_range("Iterator cannot be incremented past the end");
-            iterator temp = *this;
+            const_iterator temp = *this;
             index_++;
             return temp;
         }
@@ -531,18 +531,18 @@ class Queue {
         const_iterator operator--(int) {
             if (index_ == 0)
                 throw std::out_of_range("Cannot decrement iterator past the start");
-            iterator temp = *this;
+            const_iterator temp = *this;
             index_--;
             return temp;
         }
 
         /// Equality operator for iterator comparison
-        bool operator==(const iterator& other) const {
+        bool operator==(const const_iterator& other) const {
             return index_ == other.index_;
         }
 
         /// Inequality operator for iterator comparison
-        bool operator!=(const iterator& other) const {
+        bool operator!=(const const_iterator& other) const {
             return index_ != other.index_;
         }
     };

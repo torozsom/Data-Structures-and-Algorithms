@@ -637,3 +637,135 @@ TEST_F(QueueUnitTest, QueueWithSingleElementFrontBackEqual) {
     queue.front() = 99;
     EXPECT_EQ(queue.back(), 99);
 }
+
+
+TEST_F(QueueUnitTest, HandlesMoveOnlyTypes) {
+    Queue<std::unique_ptr<int>> queue;
+
+    queue.enqueue(std::make_unique<int>(1));
+    queue.enqueue(std::make_unique<int>(2));
+    queue.enqueue(std::make_unique<int>(3));
+
+    int expected = 1;
+    for (const auto& ptr : queue)
+        EXPECT_EQ(*ptr, expected++);
+
+    const auto first = queue.dequeue();
+    EXPECT_EQ(*first, 1);
+    EXPECT_EQ(queue.size(), 2);
+    EXPECT_EQ(*queue.front(), 2);
+    EXPECT_EQ(*queue.back(), 3);
+
+    expected = 2;
+    for (const auto& ptr : queue)
+        EXPECT_EQ(*ptr, expected++);
+
+    queue.dequeue();
+    queue.dequeue();
+    EXPECT_TRUE(queue.isEmpty());
+}
+
+
+TEST_F(QueueUnitTest, CapacityShrinksAfterDequeueInterval) {
+    Queue<int> queue;
+
+    constexpr int num_elements = 100;
+    for (int i = 0; i < num_elements; ++i)
+        queue.enqueue(i);
+
+    const std::size_t initial_capacity = queue.capacity();
+    constexpr std::size_t shrink_check_interval = 16;
+    const std::size_t target_size = initial_capacity / 4;
+    const std::size_t total_dequeues = num_elements - target_size
+        + shrink_check_interval;
+
+    for (std::size_t i = 0; i < total_dequeues; ++i)
+        queue.dequeue();
+
+    EXPECT_LT(queue.capacity(), initial_capacity);
+}
+
+
+TEST_F(QueueUnitTest, EmplaceBackWithStdStringArgs) {
+    Queue<std::string> queue;
+
+    queue.emplaceBack(5, 'a');
+    EXPECT_EQ(queue.size(), 1);
+    EXPECT_EQ(queue.front(), std::string(5, 'a'));
+}
+
+
+TEST_F(QueueUnitTest, EmplaceBackWithCustomTye) {
+    struct Record {
+        int id;
+        std::string name;
+        double value;
+        Record(const int id, const std::string& n, const double v)
+            : id(id), name(n), value(v) {}
+    };
+
+    Queue<Record> queue;
+    queue.emplaceBack(1, "first", 1.5);
+    queue.emplaceBack(2, "second", 2.5);
+
+    EXPECT_EQ(queue.size(), 2);
+
+    const Record& first = queue.front();
+    EXPECT_EQ(first.id, 1);
+    EXPECT_EQ(first.name, "first");
+    EXPECT_EQ(first.value, 1.5);
+
+    const Record& last = queue.back();
+    EXPECT_EQ(last.id, 2);
+    EXPECT_EQ(last.name, "second");
+    EXPECT_EQ(last.value, 2.5);
+}
+
+
+TEST_F(QueueUnitTest, RangeBasedTraversalHandlesEmpty) {
+    Queue<int> queue;
+    queue.enqueue(1);
+    queue.enqueue(2);
+    queue.enqueue(3);
+
+    int expected = 1;
+    for (int value : queue)
+        EXPECT_EQ(value, expected++);
+    EXPECT_EQ(expected, 4);
+
+    Queue<int> empty;
+    int count = 0;
+    for (int value : empty) {
+        (void)value;
+        ++count;
+    }
+    EXPECT_EQ(count, 0);
+}
+
+
+TEST_F(QueueUnitTest, ManualIteratorTraversal) {
+    Queue<int> queue;
+    queue.enqueue(1);
+    queue.enqueue(2);
+    queue.enqueue(3);
+
+    auto it = queue.begin();
+    EXPECT_EQ(*it, 1);
+
+    ++it;
+    EXPECT_EQ(*it, 2);
+
+    auto post_inc = it++;
+    EXPECT_EQ(*post_inc, 2);
+    EXPECT_EQ(*it, 3);
+
+    auto post_dec = it--;
+    EXPECT_EQ(*post_dec, 3);
+    EXPECT_EQ(*it, 2);
+
+    --it;
+    EXPECT_EQ(*it, 1);
+
+    Queue<int> empty;
+    EXPECT_EQ(empty.begin(), empty.end());
+}

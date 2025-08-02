@@ -162,7 +162,7 @@ class LinkedList {
 
     /// Returns the current size of the linked list.
     [[nodiscard]]
-    std::size_t getSize() const noexcept {
+    std::size_t size() const noexcept {
         return size_;
     }
 
@@ -702,8 +702,6 @@ class LinkedList {
     using const_reference = const Type&;
     using pointer = Type*;
     using const_pointer = const Type*;
-    using iterator = iterator;
-    using const_iterator = const_iterator;
 };
 
 
