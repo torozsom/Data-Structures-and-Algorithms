@@ -754,3 +754,14 @@ TEST_F(LinkedListUnitTest, ManualIteratorTraversal) {
     LinkedList<int> empty;
     EXPECT_EQ(empty.begin(), empty.end());
 }
+
+TEST_F(LinkedListUnitTest, ClearShouldResetList) {
+    LinkedList<int> list;
+    list.addLast(1);
+    list.addLast(2);
+    list.addLast(3);
+    list.clear();
+    EXPECT_TRUE(list.isEmpty());
+    EXPECT_EQ(list.size(), 0);
+    EXPECT_THROW(list.get(0), std::out_of_range);
+}

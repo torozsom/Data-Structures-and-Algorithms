@@ -222,3 +222,19 @@ TEST_F(BinaryTreeUnitTest, IsCompleteTreeShouldWorkCorrectly) {
     const BinaryTree completeTree(values, 5);
     EXPECT_TRUE(completeTree.isCompleteTree());
 }
+
+TEST_F(BinaryTreeUnitTest, IncompleteTreeShouldBeDetected) {
+    BinaryTree<int> tree;
+    tree.insertRight(1); // root
+    tree.insertRight(2); // only right child, left is missing
+    EXPECT_FALSE(tree.isCompleteTree());
+}
+
+TEST_F(BinaryTreeUnitTest, PrintOutputsStructure) {
+    const int values[] = {1, 2, 3};
+    BinaryTree<int> tree(values, 3);
+    testing::internal::CaptureStdout();
+    tree.print();
+    const std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_NE(output.find("Binary Tree"), std::string::npos);
+}
