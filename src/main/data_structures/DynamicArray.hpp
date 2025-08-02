@@ -137,12 +137,21 @@ class DynamicArray {
 
         Type* new_data =
             static_cast<Type*>(::operator new(sizeof(Type) * new_capacity));
-
-        if constexpr (std::is_nothrow_move_constructible_v<Type> ||
-                      !std::is_copy_constructible_v<Type>)
-            move_construct_elements(data_, data_ + size_, new_data);
-        else
-            copy_construct_elements(data_, data_ + size_, new_data);
+        Type* new_data_end = new_data;
+        try {
+            if constexpr (std::is_nothrow_move_constructible_v<Type> ||
+                          !std::is_copy_constructible_v<Type>)
+                new_data_end =
+                    move_construct_elements(data_, data_ + size_, new_data);
+            else
+                new_data_end =
+                    copy_construct_elements(data_, data_ + size_, new_data);
+        } catch (...) {
+            for (Type* it = new_data; it != new_data_end; ++it)
+                it->~Type();
+            ::operator delete(new_data);
+            throw;
+        }
 
         destroyArrayElements();
         ::operator delete(data_);
