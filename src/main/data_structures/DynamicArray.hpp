@@ -363,7 +363,8 @@ class DynamicArray {
      * @exception_safety Strong guarantee: on exception, the array remains
      * unchanged.
      */
-    template <typename U> void insert(U&& element, const std::size_t idx) {
+    template <typename U>
+    void insert(U&& element, const std::size_t idx) {
         static_assert(std::is_constructible_v<Type, U&&>,
                       "Element must be constructible into Type");
 
@@ -432,7 +433,8 @@ class DynamicArray {
      *
      * @param element The element to be added at the end of the array.
      */
-    template <typename U> void addLast(U&& element) {
+    template <typename U>
+    void addLast(U&& element) {
         insert(std::forward<U>(element), size_);
     }
 
@@ -450,7 +452,8 @@ class DynamicArray {
      *
      * @param element The element to be added at the beginning of the array.
      */
-    template <typename U> void addFirst(U&& element) {
+    template <typename U>
+    void addFirst(U&& element) {
         insert(std::forward<U>(element), 0);
     }
 
