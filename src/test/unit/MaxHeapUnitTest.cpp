@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "MaxHeap.hpp"
+#include "Record.hpp"
 
 
 class MaxHeapUnitTest : public ::testing::Test {
@@ -44,7 +45,7 @@ TEST_F(MaxHeapUnitTest, InsertShouldMaintainMaxHeapProperty) {
 
 TEST_F(MaxHeapUnitTest, ExtractMaxShouldRemoveLargestElement) {
     MaxHeap<int> heap;
-    std::vector<int> values = {5, 3, 7, 1, 4, 9, 2};
+    std::vector values = {5, 3, 7, 1, 4, 9, 2};
     for (int val : values)
         heap.insert(val);
 

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "BinarySearchTree.hpp"
+#include "Record.hpp"
 
 
 class BinarySearchTreeUnitTest : public ::testing::Test {
@@ -16,6 +17,13 @@ class BinarySearchTreeUnitTest : public ::testing::Test {
     void TearDown() override {
         // Cleanup code that runs after each test
     }
+};
+
+
+template <typename T>
+class BinarySearchTreeExposed final : public BinarySearchTree<T> {
+  public:
+    using BinaryTree<T>::root_;
 };
 
 
@@ -43,6 +51,15 @@ TEST_F(BinarySearchTreeUnitTest, InsertShouldMaintainBSTProperty) {
     EXPECT_TRUE(tree.contains(1));
     EXPECT_TRUE(tree.contains(9));
     EXPECT_FALSE(tree.contains(4));
+}
+
+
+TEST_F(BinarySearchTreeUnitTest, InvalidStructureShouldReturnFalse) {
+    BinarySearchTreeExposed<int> tree;
+    tree.root_ = new Node<int>(10);
+    tree.root_->left = new Node<int>(20);
+    tree.root_->left->parent = tree.root_;
+    EXPECT_FALSE(tree.isValidBST());
 }
 
 

@@ -60,6 +60,7 @@ add_executable(unit_tests
         src/main/data_structures/Queue.hpp
         # Test utilities
         src/test/utilities/ThrowingType.hpp
+        src/test/utilities/Record.hpp
 )
 
 target_include_directories(unit_tests PRIVATE

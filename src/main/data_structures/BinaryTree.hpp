@@ -4,6 +4,7 @@
 
 #include "Queue.hpp"
 #include <iostream>
+#include <stdexcept>
 
 
 /**
@@ -14,17 +15,15 @@
 template <typename Type>
 struct Node {
     Type data;
-    Node* parent;
-    Node* left;
-    Node* right;
+    Node* parent = nullptr;
+    Node* left = nullptr;
+    Node* right = nullptr;
 
     template <typename U>
+        requires(std::is_constructible_v<Type, U &&> &&
+                 !std::is_same_v<std::remove_cvref_t<U>, Node>)
     explicit Node(U&& data)
-        : data(std::forward<U>(data)), parent(nullptr), left(nullptr),
-          right(nullptr) {
-        static_assert(std::is_constructible_v<Type, U&&>,
-                      "Node data must be constructible into Type");
-    }
+        : data(std::forward<U>(data)), parent(), left(), right() {}
 };
 
 
@@ -42,8 +41,8 @@ template <typename Type>
 class BinaryTree {
 
   protected:
-    Node<Type>* root_;
-    std::size_t size_;
+    Node<Type>* root_ = nullptr;
+    std::size_t size_ = 0;
 
 
     /**
@@ -97,58 +96,6 @@ class BinaryTree {
         const std::size_t leftHeight = recursiveHeight(node->left);
         const std::size_t rightHeight = recursiveHeight(node->right);
         return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
-    }
-
-
-    /**
-     * Performs an in-order traversal of the binary tree recursively and outputs
-     * the data of each node.
-     *
-     * @param node Pointer to the current node being visited during the in-order
-     * traversal.
-     */
-    void recursiveInOrder(Node<Type>* node) const {
-        if (node == nullptr)
-            return;
-
-        recursiveInOrder(node->left);
-        std::cout << node->data << " ";
-        recursiveInOrder(node->right);
-    }
-
-
-    /**
-     * Performs a pre-order traversal of the binary tree recursively, visiting
-     * nodes in the order: root, left subtree, right subtree.
-     *
-     * @param node The current node in the binary tree being visited during the
-     * traversal.
-     */
-    void recursivePreOrder(Node<Type>* node) const {
-        if (node == nullptr)
-            return;
-
-        std::cout << node->data << " ";
-        recursivePreOrder(node->left);
-        recursivePreOrder(node->right);
-    }
-
-
-    /**
-     * Performs a recursive post-order traversal of the binary tree and
-     * processes each node. The traversal visits the left subtree, then the
-     * right subtree, and finally the current node.
-     *
-     * @param node Pointer to the current node being visited in the traversal
-     * process.
-     */
-    void recursivePostOrder(Node<Type>* node) const {
-        if (node == nullptr)
-            return;
-
-        recursivePostOrder(node->left);
-        recursivePostOrder(node->right);
-        std::cout << node->data << " ";
     }
 
 
@@ -208,8 +155,8 @@ class BinaryTree {
         if (node->data == value)
             return node;
 
-        const Node<Type>* leftResult = recursiveFindNode(node->left, value);
-        if (leftResult != nullptr)
+        if (const Node<Type>* leftResult = recursiveFindNode(node->left, value);
+            leftResult != nullptr)
             return leftResult;
 
         return recursiveFindNode(node->right, value);
@@ -222,33 +169,31 @@ class BinaryTree {
      *
      * @param node Pointer to the root node of the binary tree.
      */
-    void levelOrder() const {
-        if (isEmpty()) {
-            std::cout << "Tree is empty" << std::endl;
-            return;
-        }
+    Queue<Type> levelOrder() const {
+        if (isEmpty())
+            return Queue<Type>{};
 
         Queue<Node<Type>*> queue;
         queue.enqueue(root_);
 
-        std::cout << "Level-order: ";
+        Queue<Type> result;
+
         while (!queue.isEmpty()) {
             Node<Type>* current = queue.dequeue();
-            std::cout << current->data << " ";
+            result.enqueue(current->data);
 
             if (current->left != nullptr)
                 queue.enqueue(current->left);
             if (current->right != nullptr)
                 queue.enqueue(current->right);
         }
-
-        std::cout << std::endl;
+        return result;
     }
 
 
   public:
     /// Default constructor
-    BinaryTree() noexcept : root_(nullptr), size_(0) {}
+    BinaryTree() noexcept : root_(), size_() {}
 
     /**
      * Constructor that creates a binary tree from an array using level-order
@@ -256,14 +201,16 @@ class BinaryTree {
      * @param array Pointer to the array of elements.
      * @param size Number of elements in the array.
      */
-    BinaryTree(const Type* array, const std::size_t size)
-        : root_(nullptr), size_(0) {
+    BinaryTree(const Type* array, const std::size_t size) : root_(), size_() {
+        if (array == nullptr && size != 0)
+            throw std::invalid_argument(
+                "Array pointer cannot be null when size is non-zero");
         for (std::size_t i = 0; i < size; i++)
             BinaryTree::insert(array[i]);
     }
 
     /// Copy constructor
-    BinaryTree(const BinaryTree& other) : root_(nullptr), size_(other.size_) {
+    BinaryTree(const BinaryTree& other) : root_(), size_(other.size_) {
         recursiveCopy(other);
     }
 
@@ -275,7 +222,7 @@ class BinaryTree {
     }
 
 
-    /// Assignment operator
+    /// Copy assignment operator
     BinaryTree& operator=(const BinaryTree& other) {
         if (this == &other)
             return *this;
@@ -310,15 +257,21 @@ class BinaryTree {
 
     /// Returns the number of elements in the binary tree.
     [[nodiscard]]
-    std::size_t size() const noexcept { return size_; }
+    std::size_t size() const noexcept {
+        return size_;
+    }
 
     /// Returns the root node of the binary tree.
     [[nodiscard]]
-    const Node<Type>* getRoot() const noexcept { return root_; }
+    const Node<Type>* getRoot() const noexcept {
+        return root_;
+    }
 
     /// Returns the height of the binary tree.
     [[nodiscard]]
-    std::size_t getHeight() const noexcept { return recursiveHeight(root_); }
+    std::size_t getHeight() const noexcept {
+        return recursiveHeight(root_);
+    }
 
 
     /// Checks if the binary tree is a complete binary tree.
@@ -357,7 +310,7 @@ class BinaryTree {
     template <typename U>
     void insertRight(U&& element) {
         static_assert(std::is_constructible_v<Type, U&&>,
-                     "Only types constructible into Type are allowed");
+                      "Only types constructible into Type are allowed");
 
         if (this->isEmpty()) {
             root_ = new Node<Type>(std::forward<U>(element));
@@ -386,7 +339,7 @@ class BinaryTree {
     template <typename U>
     void insertLeft(U&& element) {
         static_assert(std::is_constructible_v<Type, U&&>,
-                     "Only types constructible into Type are allowed");
+                      "Only types constructible into Type are allowed");
 
         if (this->isEmpty()) {
             root_ = new Node<Type>(std::forward<U>(element));
@@ -519,47 +472,6 @@ class BinaryTree {
         }
 
         return nullptr;
-    }
-
-
-    /// Prints the elements of the binary tree in in-order traversal.
-    void printInOrder() const { recursiveInOrder(root_); }
-
-    /// Prints the elements of the binary tree in pre-order traversal.
-    void printPreOrder() const { recursivePreOrder(root_); }
-
-    /// Prints the elements of the binary tree in post-order traversal.
-    void printPostOrder() const { recursivePostOrder(root_); }
-
-    /// Prints the elements of the binary tree in level-order traversal.
-    void printLevelOrder() const { levelOrder(); }
-
-
-    /// Prints the structure and contents of the binary tree.
-    void print() const {
-        if (isEmpty()) {
-            std::cout << "Binary Tree is empty" << std::endl;
-            return;
-        }
-
-        std::cout << "\n=== Binary Tree Structure ===" << std::endl;
-        std::cout << "Size: " << size_ << ", Height: " << getHeight()
-                  << std::endl;
-
-        std::cout << "Level-order: ";
-        printLevelOrder();
-
-        std::cout << "In-order:    ";
-        printInOrder();
-        std::cout << std::endl;
-
-        std::cout << "Pre-order:   ";
-        printPreOrder();
-        std::cout << std::endl;
-
-        std::cout << "Post-order:  ";
-        printPostOrder();
-        std::cout << std::endl;
     }
 
 

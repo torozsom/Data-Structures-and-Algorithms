@@ -24,7 +24,7 @@
  * @tparam Type The type of elements stored in the binary search tree.
  */
 template <typename Type>
-class BinarySearchTree final : public BinaryTree<Type> {
+class BinarySearchTree : public BinaryTree<Type> {
 
   private:
     /**

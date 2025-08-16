@@ -420,7 +420,8 @@ class Queue {
             return queue_.array_[queue_.getCircularIndex(index_)];
         }
 
-        /// Arrow operator to access the address of the element at the current index
+        /// Arrow operator to access the address of the element at the current
+        /// index
         Type* operator->() {
             return &queue_.array_[queue_.getCircularIndex(index_)];
         }
@@ -428,7 +429,8 @@ class Queue {
         /// Pre-increment operator to move the iterator to the next element
         iterator& operator++() {
             if (index_ >= queue_.size_)
-                throw std::out_of_range("Iterator cannot be incremented past the end");
+                throw std::out_of_range(
+                    "Iterator cannot be incremented past the end");
             index_++;
             return *this;
         }
@@ -436,7 +438,8 @@ class Queue {
         /// Post-increment operator to move the iterator to the next element
         iterator operator++(int) {
             if (index_ >= queue_.size_)
-                throw std::out_of_range("Iterator cannot be incremented past the end");
+                throw std::out_of_range(
+                    "Iterator cannot be incremented past the end");
             iterator temp = *this;
             index_++;
             return temp;
@@ -445,7 +448,8 @@ class Queue {
         /// Pre-decrement operator to move the iterator to the previous element
         iterator& operator--() {
             if (index_ == 0)
-                throw std::out_of_range("Cannot decrement iterator past the start");
+                throw std::out_of_range(
+                    "Cannot decrement iterator past the start");
             index_--;
             return *this;
         }
@@ -453,7 +457,8 @@ class Queue {
         /// Post-decrement operator to move the iterator to the previous element
         iterator operator--(int) {
             if (index_ == 0)
-                throw std::out_of_range("Cannot decrement iterator past the start");
+                throw std::out_of_range(
+                    "Cannot decrement iterator past the start");
             iterator temp = *this;
             index_--;
             return temp;
@@ -477,7 +482,8 @@ class Queue {
      * A constant iterator class for traversing the elements of the queue.
      * It provides methods to access the elements in the queue without allowing
      * modification of the elements. It supports standard iterator operations
-     * such as incrementing, decrementing, dereferencing, and comparing iterators.
+     * such as incrementing, decrementing, dereferencing, and comparing
+     * iterators.
      */
     class const_iterator {
       private:
@@ -497,7 +503,8 @@ class Queue {
             return queue_.array_[queue_.getCircularIndex(index_)];
         }
 
-        /// Arrow operator to access the address of the element at the current index
+        /// Arrow operator to access the address of the element at the current
+        /// index
         const Type* operator->() const {
             return &queue_.array_[queue_.getCircularIndex(index_)];
         }
@@ -505,7 +512,8 @@ class Queue {
         /// Pre-increment operator to move the iterator to the next element
         const_iterator& operator++() {
             if (index_ >= queue_.size_)
-                throw std::out_of_range("Iterator cannot be incremented past the end");
+                throw std::out_of_range(
+                    "Iterator cannot be incremented past the end");
             index_++;
             return *this;
         }
@@ -513,7 +521,8 @@ class Queue {
         /// Post-increment operator to move the iterator to the next element
         const_iterator operator++(int) {
             if (index_ >= queue_.size_)
-                throw std::out_of_range("Iterator cannot be incremented past the end");
+                throw std::out_of_range(
+                    "Iterator cannot be incremented past the end");
             const_iterator temp = *this;
             index_++;
             return temp;
@@ -522,7 +531,8 @@ class Queue {
         /// Pre-decrement operator to move the iterator to the previous element
         const_iterator& operator--() {
             if (index_ == 0)
-                throw std::out_of_range("Cannot decrement iterator past the start");
+                throw std::out_of_range(
+                    "Cannot decrement iterator past the start");
             index_--;
             return *this;
         }
@@ -530,7 +540,8 @@ class Queue {
         /// Post-decrement operator to move the iterator to the previous element
         const_iterator operator--(int) {
             if (index_ == 0)
-                throw std::out_of_range("Cannot decrement iterator past the start");
+                throw std::out_of_range(
+                    "Cannot decrement iterator past the start");
             const_iterator temp = *this;
             index_--;
             return temp;
@@ -556,7 +567,6 @@ class Queue {
 
     const_iterator cbegin() const { return begin(); }
     const_iterator cend() const { return end(); }
-
 };
 
 #endif // QUEUE_HPP

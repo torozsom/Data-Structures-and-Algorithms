@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "MinHeap.hpp"
+#include "Record.hpp"
 
 
 class MinHeapUnitTest : public ::testing::Test {
@@ -44,7 +45,7 @@ TEST_F(MinHeapUnitTest, InsertShouldMaintainMinHeapProperty) {
 
 TEST_F(MinHeapUnitTest, ExtractMinShouldRemoveSmallestElement) {
     MinHeap<int> heap;
-    std::vector<int> values = {5, 3, 7, 1, 4, 9, 2};
+    std::vector values = {5, 3, 7, 1, 4, 9, 2};
     for (int val : values)
         heap.insert(val);
 
@@ -188,6 +189,34 @@ TEST_F(MinHeapUnitTest, DuplicateElementsShouldBeHandledCorrectly) {
 }
 
 
+TEST_F(MinHeapUnitTest, ExtractShouldHandleLastNodeLeftAndRight) {
+    MinHeap<int> heap;
+    // Build heap where the last inserted node becomes the right child
+    heap.insert(2);
+    heap.insert(1);
+    heap.insert(3);
+
+    EXPECT_EQ(heap.size(), 3);
+    EXPECT_EQ(heap.peekRoot(), 1);
+
+    // First extraction uses the "last node right" branch
+    EXPECT_EQ(heap.extractRoot(), 1);
+    EXPECT_TRUE(heap.isValidHeap());
+    EXPECT_EQ(heap.size(), 2);
+    EXPECT_EQ(heap.peekRoot(), 2);
+
+    // Second extraction uses the "last node left" branch
+    EXPECT_EQ(heap.extractRoot(), 2);
+    EXPECT_TRUE(heap.isValidHeap());
+    EXPECT_EQ(heap.size(), 1);
+    EXPECT_EQ(heap.peekRoot(), 3);
+
+    // Clean up remaining node
+    EXPECT_EQ(heap.extractRoot(), 3);
+    EXPECT_TRUE(heap.isEmpty());
+}
+
+
 TEST_F(MinHeapUnitTest, ShouldWorkWithNonTrivialTypes) {
     MinHeap<std::string> heap;
     heap.insert("zebra");
@@ -212,9 +241,8 @@ TEST_F(MinHeapUnitTest, LargeHeapShouldMaintainProperty) {
     constexpr int numElements = 100;
 
     // Insert elements in reverse order
-    for (int i = numElements; i >= 1; --i) {
+    for (int i = numElements; i >= 1; --i)
         heap.insert(i);
-    }
 
     EXPECT_EQ(heap.size(), numElements);
     EXPECT_TRUE(heap.isValidHeap());
@@ -234,9 +262,8 @@ TEST_F(MinHeapUnitTest, HeightShouldBeLogarithmic) {
     MinHeap<int> heap;
 
     // Insert powers of 2 to test height
-    for (int i = 1; i <= 15; ++i) {
+    for (int i = 1; i <= 15; ++i)
         heap.insert(i);
-    }
 
     // Height should be log2(15) + 1 = 4
     EXPECT_EQ(heap.getHeight(), 4);

@@ -3,6 +3,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "Queue.hpp"
 #include "ThrowingType.hpp"
@@ -20,6 +21,11 @@ class QueueUnitTest : public ::testing::Test {
 };
 
 
+struct Record {
+    int& value;
+};
+
+
 TEST_F(QueueUnitTest, DefaultConstructor) {
     const Queue<int> queue;
 
@@ -28,17 +34,29 @@ TEST_F(QueueUnitTest, DefaultConstructor) {
 }
 
 TEST_F(QueueUnitTest, ConstructorWithInitialCapacity) {
-    Queue<int> queue(50);
+    const Queue<int> queue(50);
     EXPECT_TRUE(queue.isEmpty());
     EXPECT_GE(queue.capacity(), 50u);
 }
 
 TEST_F(QueueUnitTest, ConstructorWithInitialData) {
     int data[] = {1, 2, 3};
-    Queue<int> queue(data, 3);
+    Queue queue(data, 3);
     EXPECT_EQ(queue.size(), 3);
     EXPECT_EQ(queue.front(), 1);
     EXPECT_EQ(queue.back(), 3);
+}
+
+
+TEST_F(QueueUnitTest, ConstructorWithNullDataThrowsException) {
+    EXPECT_THROW(Queue<int> queue(nullptr, 2), std::invalid_argument);
+}
+
+TEST_F(QueueUnitTest, ConstructorWithZeroSizeAndNullData) {
+    EXPECT_NO_THROW(Queue<int> queue(nullptr, 0));
+    const Queue<int> queue(nullptr, 0);
+    EXPECT_TRUE(queue.isEmpty());
+    EXPECT_EQ(queue.size(), 0);
 }
 
 
@@ -189,6 +207,25 @@ TEST_F(QueueUnitTest, EnqueueLargeNumberOfElements) {
     EXPECT_EQ(queue.size(), num_elements);
     EXPECT_EQ(queue.front(), 0);
     EXPECT_EQ(queue.back(), num_elements - 1);
+}
+
+
+TEST_F(QueueUnitTest, EnqueueRecordsReflectExternalChanges) {
+    int first = 1;
+    int second = 2;
+
+    Queue<Record> queue;
+    queue.enqueue(Record{first});
+    queue.enqueue(Record{second});
+
+    EXPECT_EQ(queue.front().value, 1);
+    EXPECT_EQ(queue.back().value, 2);
+
+    first = 10;
+    second = 20;
+
+    EXPECT_EQ(queue.front().value, 10);
+    EXPECT_EQ(queue.back().value, 20);
 }
 
 
@@ -467,6 +504,34 @@ TEST_F(QueueUnitTest, CustomObjectType) {
 }
 
 
+TEST_F(QueueUnitTest, WrapAroundDoesNotAllocate) {
+    Queue<int> queue;
+    const std::size_t initial_capacity = queue.capacity();
+
+    for (std::size_t i = 0; i < initial_capacity; ++i)
+        queue.enqueue(static_cast<int>(i));
+
+    constexpr std::size_t num_dequeues = 2;
+    for (std::size_t i = 0; i < num_dequeues; ++i)
+        EXPECT_EQ(queue.dequeue(), static_cast<int>(i));
+
+    for (std::size_t i = 0; i < num_dequeues; ++i)
+        queue.enqueue(static_cast<int>(initial_capacity + i));
+
+    EXPECT_EQ(queue.size(), initial_capacity);
+    EXPECT_EQ(queue.front(), static_cast<int>(num_dequeues));
+    EXPECT_EQ(queue.back(),
+              static_cast<int>(initial_capacity + num_dequeues - 1));
+
+    EXPECT_EQ(queue.capacity(), initial_capacity);
+
+    for (int expected = num_dequeues;
+         expected < static_cast<int>(num_dequeues + initial_capacity);
+         ++expected)
+        EXPECT_EQ(queue.dequeue(), expected);
+}
+
+
 TEST_F(QueueUnitTest, FIFOBehavior) {
     Queue<int> queue;
 
@@ -690,8 +755,8 @@ TEST_F(QueueUnitTest, CapacityShrinksAfterDequeueInterval) {
     const std::size_t initial_capacity = queue.capacity();
     constexpr std::size_t shrink_check_interval = 16;
     const std::size_t target_size = initial_capacity / 4;
-    const std::size_t total_dequeues = num_elements - target_size
-        + shrink_check_interval;
+    const std::size_t total_dequeues =
+        num_elements - target_size + shrink_check_interval;
 
     for (std::size_t i = 0; i < total_dequeues; ++i)
         queue.dequeue();
@@ -714,8 +779,8 @@ TEST_F(QueueUnitTest, EmplaceBackWithCustomTye) {
         int id;
         std::string name;
         double value;
-        Record(const int id, const std::string& n, const double v)
-            : id(id), name(n), value(v) {}
+        Record(const int id, std::string n, const double v)
+            : id(id), name(std::move(n)), value(v) {}
     };
 
     Queue<Record> queue;
@@ -749,7 +814,7 @@ TEST_F(QueueUnitTest, RangeBasedTraversalHandlesEmpty) {
 
     Queue<int> empty;
     int count = 0;
-    for (int value : empty) {
+    for (const int value : empty) {
         (void)value;
         ++count;
     }
@@ -782,4 +847,27 @@ TEST_F(QueueUnitTest, ManualIteratorTraversal) {
 
     Queue<int> empty;
     EXPECT_EQ(empty.begin(), empty.end());
+}
+
+
+struct EmplaceTest {
+    int x, y;
+    EmplaceTest(const int a, const int b) : x(a), y(b) {}
+};
+
+TEST_F(QueueUnitTest, EmplaceLastConstructsInPlace) {
+    Queue<EmplaceTest> queue;
+
+    for (int i = 0; i < 10; ++i)
+        queue.emplaceBack(i, i + 1);
+
+    EXPECT_EQ(queue.size(), 10);
+
+    for (int i = 0; i < 10; ++i) {
+        const EmplaceTest& item = queue.dequeue();
+        EXPECT_EQ(item.x, i);
+        EXPECT_EQ(item.y, i + 1);
+    }
+
+    EXPECT_EQ(queue.size(), 0);
 }

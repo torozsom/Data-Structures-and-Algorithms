@@ -4,6 +4,7 @@
 #include <string>
 
 #include "BinaryTree.hpp"
+#include "Record.hpp"
 
 
 class BinaryTreeUnitTest : public ::testing::Test {
@@ -161,32 +162,72 @@ TEST_F(BinaryTreeUnitTest, ShouldWorkWithNonTrivialTypes) {
 }
 
 
-TEST_F(BinaryTreeUnitTest, TraversalMethodsShouldNotCrashOnEmptyTree) {
-    const BinaryTree<int> tree;
-    // These should not throw or crash
-    tree.printInOrder();
-    tree.printPreOrder();
-    tree.printPostOrder();
-    tree.printLevelOrder();
-}
-
 TEST_F(BinaryTreeUnitTest, InsertMethodsShouldWorkCorrectly) {
     BinaryTree<int> tree;
 
     // Test insertLeft
     tree.insertLeft(10);
-    EXPECT_EQ(tree.size(), 1);
     EXPECT_TRUE(tree.containsNode(10));
 
     tree.insertLeft(5);
-    EXPECT_EQ(tree.size(), 2);
     EXPECT_TRUE(tree.containsNode(5));
 
-    // Test insertRight
-    tree.insertRight(15);
-    EXPECT_EQ(tree.size(), 3);
+    tree.insertLeft(15);
     EXPECT_TRUE(tree.containsNode(15));
+
+    tree.insertLeft(20);
+    EXPECT_TRUE(tree.containsNode(20));
+
+    // Test insertRight
+    tree.insertRight(3);
+    EXPECT_TRUE(tree.containsNode(3));
+
+    tree.insertRight(7);
+    EXPECT_TRUE(tree.containsNode(7));
+
+    tree.insertRight(12);
+    EXPECT_TRUE(tree.containsNode(12));
+
+    tree.insertRight(17);
+    EXPECT_TRUE(tree.containsNode(17));
+
+    EXPECT_EQ(tree.size(), 8);
 }
+
+
+TEST_F(BinaryTreeUnitTest, SelfAssignmentShouldMaintainTree) {
+    const int values[] = {1, 2, 3, 4, 5};
+    BinaryTree tree(values, 5);
+
+    const auto originalSize = tree.size();
+    const auto originalHeight = tree.getHeight();
+
+    tree = tree;
+
+    EXPECT_EQ(tree.size(), originalSize);
+    EXPECT_EQ(tree.getHeight(), originalHeight);
+
+    for (const int value : values)
+        EXPECT_TRUE(tree.containsNode(value));
+}
+
+
+TEST_F(BinaryTreeUnitTest, SelfMoveAssignmentShouldMaintainTree) {
+    const int values[] = {1, 2, 3, 4, 5};
+    BinaryTree tree(values, 5);
+
+    const auto originalSize = tree.size();
+    const auto originalHeight = tree.getHeight();
+
+    tree = std::move(tree);
+
+    EXPECT_EQ(tree.size(), originalSize);
+    EXPECT_EQ(tree.getHeight(), originalHeight);
+
+    for (const int value : values)
+        EXPECT_TRUE(tree.containsNode(value));
+}
+
 
 TEST_F(BinaryTreeUnitTest, FindNodeMethodsShouldWorkCorrectly) {
     const int values[] = {1, 2, 3, 4, 5};
@@ -207,6 +248,13 @@ TEST_F(BinaryTreeUnitTest, FindNodeMethodsShouldWorkCorrectly) {
     EXPECT_EQ(tree.findNodeLevelOrder(99), nullptr);
 }
 
+
+TEST_F(BinaryTreeUnitTest, FindNodeLevelOrderEmptyTree) {
+    const BinaryTree<int> tree;
+    EXPECT_EQ(tree.findNodeLevelOrder(42), nullptr);
+}
+
+
 TEST_F(BinaryTreeUnitTest, IsCompleteTreeShouldWorkCorrectly) {
     // Empty tree is complete
     const BinaryTree<int> emptyTree;
@@ -223,6 +271,7 @@ TEST_F(BinaryTreeUnitTest, IsCompleteTreeShouldWorkCorrectly) {
     EXPECT_TRUE(completeTree.isCompleteTree());
 }
 
+
 TEST_F(BinaryTreeUnitTest, IncompleteTreeShouldBeDetected) {
     BinaryTree<int> tree;
     tree.insertRight(1); // root
@@ -230,11 +279,26 @@ TEST_F(BinaryTreeUnitTest, IncompleteTreeShouldBeDetected) {
     EXPECT_FALSE(tree.isCompleteTree());
 }
 
-TEST_F(BinaryTreeUnitTest, PrintOutputsStructure) {
-    const int values[] = {1, 2, 3};
-    BinaryTree<int> tree(values, 3);
-    testing::internal::CaptureStdout();
-    tree.print();
-    const std::string output = testing::internal::GetCapturedStdout();
-    EXPECT_NE(output.find("Binary Tree"), std::string::npos);
+
+TEST_F(BinaryTreeUnitTest, ShouldStoreReferences) {
+    int x = 5;
+    BinaryTree<Record> tree;
+    tree.insert(Record{x});
+    const Node<Record>* root = tree.getRoot();
+    ASSERT_NE(root, nullptr);
+    EXPECT_EQ(root->data.value, 5);
+    x = 10;
+    EXPECT_EQ(root->data.value, 10);
+}
+
+
+TEST_F(BinaryTreeUnitTest, ConstructorThrowsOnNullArray) {
+    EXPECT_THROW(BinaryTree<int>(nullptr, 3), std::invalid_argument);
+}
+
+
+TEST_F(BinaryTreeUnitTest, NullArrayWithZeroSizeSucceeds) {
+    const BinaryTree<int> tree(nullptr, 0);
+    EXPECT_TRUE(tree.isEmpty());
+    EXPECT_EQ(tree.size(), 0);
 }

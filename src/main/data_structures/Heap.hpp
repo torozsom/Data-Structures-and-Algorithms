@@ -82,9 +82,7 @@ class Heap : public BinaryTree<Type> {
      * @return Pointer to the last node in the heap, or nullptr if the heap is
      * empty.
      */
-    Node<Type>* findLastNode() const {
-        return findNodeByPath(this->size());
-    }
+    Node<Type>* findLastNode() const { return findNodeByPath(this->size()); }
 
 
     /**
@@ -152,9 +150,8 @@ class Heap : public BinaryTree<Type> {
             throw std::out_of_range("Heap is empty. Cannot extract root.");
 
         Type rootValue = std::move(this->root_->data);
-        Node<Type>* lastNode = findLastNode();
 
-        if (lastNode == this->root_) {
+        if (Node<Type>* lastNode = findLastNode(); lastNode == this->root_) {
             delete this->root_;
             this->root_ = nullptr;
             this->size_ = 0;

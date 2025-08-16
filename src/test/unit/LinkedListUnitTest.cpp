@@ -5,6 +5,7 @@
 #include <string>
 
 #include "LinkedList.hpp"
+#include "Record.hpp"
 #include "ThrowingType.hpp"
 
 
@@ -30,7 +31,7 @@ TEST_F(LinkedListUnitTest, DefaultConstructor) {
 
 TEST_F(LinkedListUnitTest, ArrayConstructorWithValidData) {
     int data[] = {1, 2, 3, 4, 5};
-    const LinkedList<int> list(data, 5);
+    const LinkedList list(data, 5);
 
     EXPECT_EQ(list.size(), 5);
     EXPECT_FALSE(list.isEmpty());
@@ -60,7 +61,7 @@ TEST_F(LinkedListUnitTest, CopyConstructor) {
     original.addLast(20);
     original.addLast(30);
 
-    LinkedList<int> copy(original);
+    LinkedList copy(original);
 
     EXPECT_EQ(copy.size(), original.size());
     for (std::size_t i = 0; i < copy.size(); ++i) {
@@ -75,7 +76,7 @@ TEST_F(LinkedListUnitTest, CopyConstructor) {
 
 TEST_F(LinkedListUnitTest, CopyConstructorWithEmptyList) {
     const LinkedList<int> original;
-    const LinkedList<int> copy(original);
+    const LinkedList copy(original);
 
     EXPECT_TRUE(copy.isEmpty());
     EXPECT_EQ(copy.size(), 0);
@@ -90,7 +91,7 @@ TEST_F(LinkedListUnitTest, MoveConstructor) {
 
     const std::size_t original_size = original.size();
 
-    LinkedList<int> moved(std::move(original));
+    LinkedList moved(std::move(original));
 
     EXPECT_EQ(moved.size(), original_size);
     EXPECT_TRUE(original.isEmpty());
@@ -305,23 +306,28 @@ TEST_F(LinkedListUnitTest, RemoveAtValidIndices) {
     list.addLast(20);
     list.addLast(30);
     list.addLast(40);
+    list.addLast(50);
+    list.addLast(60);
+    list.addLast(70);
 
-    // Remove from middle
-    list.removeAt(1);
-    EXPECT_EQ(list.size(), 3);
-    EXPECT_EQ(list.get(0), 10);
-    EXPECT_EQ(list.get(1), 30);
-    EXPECT_EQ(list.get(2), 40);
+    EXPECT_EQ(list.size(), 7);
 
-    // Remove from end
-    list.removeAt(2);
-    EXPECT_EQ(list.size(), 2);
-    EXPECT_EQ(list.get(1), 30);
-
-    // Remove from beginning
     list.removeAt(0);
-    EXPECT_EQ(list.size(), 1);
-    EXPECT_EQ(list.get(0), 30);
+    EXPECT_EQ(list.size(), 6);
+    EXPECT_EQ(list.get(0), 20);
+
+    list.removeAt(5);
+    EXPECT_EQ(list.size(), 5);
+    EXPECT_EQ(list.get(4), 60);
+
+
+    list.removeAt(1);
+    EXPECT_EQ(list.size(), 4);
+    EXPECT_EQ(list.get(1), 40);
+
+    list.removeAt(2);
+    EXPECT_EQ(list.size(), 3);
+    EXPECT_EQ(list.get(2), 60);
 }
 
 
@@ -353,7 +359,12 @@ TEST_F(LinkedListUnitTest, RemoveElementThatExists) {
     EXPECT_EQ(list.size(), 3);
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 30);
-    EXPECT_EQ(list.get(2), 20); // Second 20 should remain
+    EXPECT_EQ(list.get(2), 20);
+
+    list.remove(10);
+    list.remove(20);
+    list.remove(30);
+    EXPECT_TRUE(list.isEmpty());
 }
 
 
@@ -362,7 +373,7 @@ TEST_F(LinkedListUnitTest, RemoveElementThatDoesNotExist) {
     list.addLast(10);
     list.addLast(20);
 
-    list.remove(99);              // Non-existent element
+    list.remove(99);           // Non-existent element
     EXPECT_EQ(list.size(), 2); // Size should remain unchanged
     EXPECT_EQ(list.get(0), 10);
     EXPECT_EQ(list.get(1), 20);
@@ -674,6 +685,18 @@ TEST_F(LinkedListUnitTest, RemoveAllRemovesEveryMatchAndReturnsCount) {
 }
 
 
+TEST_F(LinkedListUnitTest, RemoveAllClearsListWhenAllElementsMatch) {
+    LinkedList<int> list;
+    list.addLast(1);
+    list.addLast(1);
+    list.addLast(1);
+
+    EXPECT_EQ(list.removeAll(1), 3);
+    EXPECT_EQ(list.size(), 0);
+    EXPECT_TRUE(list.isEmpty());
+}
+
+
 TEST_F(LinkedListUnitTest, RemoveAllHandlesEmptyList) {
     LinkedList<int> list;
 
@@ -720,7 +743,7 @@ TEST_F(LinkedListUnitTest, RangeBasedTraversalHandlesEmpty) {
 
     LinkedList<int> empty;
     int count = 0;
-    for (int item : empty) {
+    for (const int item : empty) {
         (void)item; // Suppress unused variable warning
         ++count;
     }
@@ -742,11 +765,11 @@ TEST_F(LinkedListUnitTest, ManualIteratorTraversal) {
 
     auto post_inc = it++;
     EXPECT_EQ(*post_inc, 2); // Should return the value before increment
-    EXPECT_EQ(*it, 3); // Now it should point to 3
+    EXPECT_EQ(*it, 3);       // Now it should point to 3
 
     auto post_dec = it--;
     EXPECT_EQ(*post_dec, 3); // Should return the value before decrement
-    EXPECT_EQ(*it, 2); // Now it should point back to 2
+    EXPECT_EQ(*it, 2);       // Now it should point back to 2
 
     --it;
     EXPECT_EQ(*it, 1); // Should point back to the first element
@@ -764,4 +787,24 @@ TEST_F(LinkedListUnitTest, ClearShouldResetList) {
     EXPECT_TRUE(list.isEmpty());
     EXPECT_EQ(list.size(), 0);
     EXPECT_THROW(list.get(0), std::out_of_range);
+}
+
+
+TEST_F(LinkedListUnitTest, RecordsReflectExternalChanges) {
+    int a = 1;
+    int b = 2;
+
+    LinkedList<Record> list;
+    list.addLast(Record{a});
+    list.addLast(Record{b});
+
+    EXPECT_EQ(list.size(), 2);
+    EXPECT_EQ(list.get(0).value, 1);
+    EXPECT_EQ(list.get(1).value, 2);
+
+    a = 42;
+    b = -7;
+
+    EXPECT_EQ(list.get(0).value, 42);
+    EXPECT_EQ(list.get(1).value, -7);
 }
