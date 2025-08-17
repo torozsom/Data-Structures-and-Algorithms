@@ -813,7 +813,7 @@ TEST_F(QueueUnitTest, RangeBasedTraversalHandlesEmpty) {
     EXPECT_EQ(expected, 4);
 
     int count = 0;
-    for (Queue<int> empty ;const int value : empty) {
+    for (Queue<int> empty; const int value : empty) {
         (void)value;
         ++count;
     }

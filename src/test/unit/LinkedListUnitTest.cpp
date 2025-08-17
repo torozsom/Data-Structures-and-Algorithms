@@ -742,7 +742,7 @@ TEST_F(LinkedListUnitTest, RangeBasedTraversalHandlesEmpty) {
     EXPECT_EQ(expeceted, 4);
 
     int count = 0;
-    for (LinkedList<int> empty ;const int item : empty) {
+    for (LinkedList<int> empty; const int item : empty) {
         (void)item; // Suppress unused variable warning
         ++count;
     }

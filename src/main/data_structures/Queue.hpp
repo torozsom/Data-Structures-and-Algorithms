@@ -68,6 +68,7 @@ class Queue {
     static constexpr std::size_t MIN_SHRINK_CAPACITY = 10;
     static constexpr std::size_t SHRINK_THRESHOLD_DIVISOR = 4;
     static constexpr std::size_t GROWTH_FACTOR = 2;
+
     static constexpr std::size_t HARD_MAX_ELEMENTS =
         std::numeric_limits<std::size_t>::max() / sizeof(Type);
 
@@ -94,7 +95,7 @@ class Queue {
      * must ensure `logical_index < size_`.
      */
     [[nodiscard]]
-    std::size_t getCircularIndex(const std::size_t logical_index) const {
+    std::size_t getCircularIndex(const std::size_t logical_index) const noexcept {
         return (front_idx_ + logical_index) % array_.capacity();
     }
 
@@ -121,7 +122,7 @@ class Queue {
      * `array_.capacity() > 0` (guaranteed by `DynamicArray`).
      */
     [[nodiscard]]
-    std::size_t getBackIndex() const {
+    std::size_t getBackIndex() const noexcept {
         return (front_idx_ + size_) % array_.capacity();
     }
 
@@ -201,7 +202,7 @@ class Queue {
      * strongly-exception-safe step.
      *
      * Computes a larger capacity using `new_cap = min(capacity()*GROWTH_FACTOR,
-     * HARD_MAX_SIZE)`, allocates a fresh `DynamicArray<Type>` with that
+     * HARD_MAX_ELEMENTS)`, allocates a fresh `DynamicArray<Type>` with that
      * capacity, moves current elements into the new buffer in logical (FIFO)
      * order, then constructs the new element at the back. On success, commits
      * the new storage (`array_ = std::move(new_array)`), resets `front_idx_` to
@@ -231,9 +232,9 @@ class Queue {
      * `size_` increments by 1.
      *
      * @par Notes
-     * - Although `HARD_MAX_SIZE` guards against size_t overflow, the underlying
-     * `DynamicArray` may still throw `std::bad_alloc` if `new_cap` exceeds its
-     * element-based `MAX_CAPACITY`.
+     * - Although `HARD_MAX_ELEMENTS` guards against size_t overflow, the
+     * underlying `DynamicArray` may still throw `std::bad_alloc` if `new_cap`
+     * exceeds its element-based `MAX_CAPACITY`.
      * - Preserves element order and stability (relative order of existing
      * elements).
      */
@@ -244,9 +245,9 @@ class Queue {
         if (cap >= HARD_MAX_ELEMENTS)
             throw std::length_error("Queue capacity exceeded");
 
-        const std::size_t new_cap =
-        (cap > HARD_MAX_ELEMENTS / GROWTH_FACTOR) ? HARD_MAX_ELEMENTS
-                                                  : cap * GROWTH_FACTOR;
+        const std::size_t new_cap = (cap > HARD_MAX_ELEMENTS / GROWTH_FACTOR)
+                                        ? HARD_MAX_ELEMENTS
+                                        : cap * GROWTH_FACTOR;
 
         DynamicArray<Type> new_array;
         new_array.reserve(new_cap);

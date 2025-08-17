@@ -808,7 +808,7 @@ struct CopyThrowOnN {
     CopyThrowOnN() = default;
     explicit CopyThrowOnN(const int x) : v(x) {}
     CopyThrowOnN(CopyThrowOnN&& other) noexcept(false) : v(other.v) {}
-    CopyThrowOnN& operator=(CopyThrowOnN&& other)  noexcept {
+    CopyThrowOnN& operator=(CopyThrowOnN&& other) noexcept {
         v = other.v;
         return *this;
     }
