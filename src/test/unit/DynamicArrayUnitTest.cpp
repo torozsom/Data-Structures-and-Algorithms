@@ -1,8 +1,8 @@
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <cstdint>
 
 #include "DynamicArray.hpp"
 #include "Record.hpp"
@@ -257,11 +257,12 @@ TEST_F(DynamicArrayUnitTest, InsertShiftRollbackOnMoveCtorThrow) {
 struct MoveCtorThrowOn2 {
     static int counter;
     int v;
-    explicit MoveCtorThrowOn2(int x=0) : v(x) {}
+    explicit MoveCtorThrowOn2(int x = 0) : v(x) {}
     MoveCtorThrowOn2(const MoveCtorThrowOn2&) = delete;
     MoveCtorThrowOn2& operator=(const MoveCtorThrowOn2&) = delete;
     MoveCtorThrowOn2(MoveCtorThrowOn2&& other) : v(other.v) {
-        if (++counter == 2) throw std::runtime_error("relocate move throw");
+        if (++counter == 2)
+            throw std::runtime_error("relocate move throw");
     }
     MoveCtorThrowOn2& operator=(MoveCtorThrowOn2&&) = delete;
 };
@@ -270,7 +271,8 @@ int MoveCtorThrowOn2::counter = 0;
 
 TEST_F(DynamicArrayUnitTest, RemoveAtRelocationMayThrowBasicGuarantee) {
     DynamicArray<MoveCtorThrowOn2> arr;
-    for (int i = 0; i < 5; ++i) arr.emplaceLast(i);
+    for (int i = 0; i < 5; ++i)
+        arr.emplaceLast(i);
     MoveCtorThrowOn2::counter = 0;
     EXPECT_THROW((void)arr.removeAt(1), std::runtime_error);
     EXPECT_NO_THROW(arr.removeAll());
@@ -305,7 +307,8 @@ TEST_F(DynamicArrayUnitTest, AddFirst) {
 
 TEST_F(DynamicArrayUnitTest, AddLastStrongGuaranteeOnCtorThrow) {
     DynamicArray<ThrowingType> arr;
-    for (int i = 0; i < 3; ++i) arr.addLast(ThrowingType(i));
+    for (int i = 0; i < 3; ++i)
+        arr.addLast(ThrowingType(i));
     const std::size_t old_size = arr.size();
     ThrowingType::should_throw = true;
     EXPECT_THROW(arr.addLast(ThrowingType(999)), std::runtime_error);
@@ -443,7 +446,7 @@ TEST_F(DynamicArrayUnitTest, RemoveAllKeepsCapacityAndZeroesSize) {
 
 struct NoAssign {
     int v;
-    explicit NoAssign(int x=0) : v(x) {}
+    explicit NoAssign(int x = 0) : v(x) {}
     NoAssign(const NoAssign&) = default;
     NoAssign(NoAssign&&) noexcept = default;
     NoAssign& operator=(const NoAssign&) = delete;
@@ -453,7 +456,8 @@ struct NoAssign {
 
 TEST_F(DynamicArrayUnitTest, RemoveAtRelocationForNonAssignableType) {
     DynamicArray<NoAssign> arr;
-    for (int i = 0; i < 5; ++i) arr.emplaceLast(i);
+    for (int i = 0; i < 5; ++i)
+        arr.emplaceLast(i);
     NoAssign removed = arr.removeAt(1);
     EXPECT_EQ(removed.v, 1);
     ASSERT_EQ(arr.size(), 4u);
@@ -608,7 +612,8 @@ struct CtorMaybeThrow {
     static bool should_throw;
     int v{};
     explicit CtorMaybeThrow(int x) : v(x) {
-        if (should_throw) throw std::runtime_error("ctor boom");
+        if (should_throw)
+            throw std::runtime_error("ctor boom");
     }
 };
 bool CtorMaybeThrow::should_throw = false;
@@ -651,18 +656,21 @@ TEST_F(DynamicArrayUnitTest, EmplaceStrongGuaranteeOnNewElementCtorThrow) {
 TEST_F(DynamicArrayUnitTest, InsertAtBeginningWithReallocationPreservesOrder) {
     DynamicArray<int> arr;
     // fill to DEFAULT_CAPACITY (5)
-    for (int i = 1; i <= 5; ++i) arr.addLast(i);
+    for (int i = 1; i <= 5; ++i)
+        arr.addLast(i);
     // force grow and insert at front
     arr.insert(0, 0);
     ASSERT_EQ(arr.size(), 6u);
-    for (int i = 0; i < 6; ++i) EXPECT_EQ(arr.get(i), i);
+    for (int i = 0; i < 6; ++i)
+        EXPECT_EQ(arr.get(i), i);
 }
 
 
 TEST_F(DynamicArrayUnitTest, EmplaceAtMiddleWithReallocationPreservesOrder) {
-    DynamicArray<std::pair<int,int>> arr;
-    for (int i = 0; i < 5; ++i) arr.emplaceLast(i, i*10); // size==capacity
-    arr.emplaceAt(2, 99, 990); // triggers resize, insert in the middle
+    DynamicArray<std::pair<int, int>> arr;
+    for (int i = 0; i < 5; ++i)
+        arr.emplaceLast(i, i * 10); // size==capacity
+    arr.emplaceAt(2, 99, 990);      // triggers resize, insert in the middle
     ASSERT_EQ(arr.size(), 6u);
     EXPECT_EQ(arr.get(2).first, 99);
     // neighbors intact
@@ -671,7 +679,9 @@ TEST_F(DynamicArrayUnitTest, EmplaceAtMiddleWithReallocationPreservesOrder) {
 }
 
 
-struct alignas(64) Aligned64 { int x; };
+struct alignas(64) Aligned64 {
+    int x;
+};
 
 TEST_F(DynamicArrayUnitTest, AllocationAlignmentRespected) {
     DynamicArray<Aligned64> arr;
@@ -696,7 +706,8 @@ struct CopyThrowOnSecondCopy {
         }
     }
 
-    // Make move-ctor *not* noexcept so insert/emplace choose the copy path for shifting
+    // Make move-ctor *not* noexcept so insert/emplace choose the copy path for
+    // shifting
     CopyThrowOnSecondCopy(CopyThrowOnSecondCopy&& other) noexcept(false)
         : v(other.v) {}
 };
@@ -781,7 +792,8 @@ TEST_F(DynamicArrayUnitTest, ResizeToLessThanDefaultCapacitySetsToDefault) {
 
 TEST_F(DynamicArrayUnitTest, ReserveSmallerThanCapacityIsNoopForCapacity) {
     DynamicArray<int> arr;
-    for (int i = 0; i < 8; ++i) arr.addLast(i); // trigger at least one grow
+    for (int i = 0; i < 8; ++i)
+        arr.addLast(i); // trigger at least one grow
     const std::size_t cap = arr.capacity();
     arr.reserve(cap - 1);
     EXPECT_EQ(arr.capacity(), cap);

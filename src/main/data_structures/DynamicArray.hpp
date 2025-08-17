@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <new>
 #include <stdexcept>
 #include <type_traits>
@@ -11,26 +12,51 @@
 
 /**
  * @class DynamicArray
+ * @brief A vector-like, resizable, contiguous container with explicit lifetime
+ * and alignment control.
  *
- * Dynamic Array is a template class that implements a dynamic array data
- * structure. It allows for automatic resizing, element insertion, and removal.
- * The array can grow or shrink as needed, and it provides methods to access
- * elements, add new elements, and remove existing ones. Memory management is
- * handled using placement new and operator delete to ensure proper construction
- * and destruction of elements. It also supports iterators for easy traversal
- * of the elements in the array (foreach).
+ * This template implements a growable array that owns a single contiguous block
+ * of raw storage and constructs elements in-place via placement new. It is
+ * designed to:
+ *   - Provide O(1) indexed access and cache-friendly iteration.
+ *   - Support appends, prepends, middle inserts, and removals.
+ *   - Offer strong exception safety for the operations that change capacity or
+ * rebuild storage.
+ *   - Correctly handle over-aligned types by using the aligned forms of
+ * ::operator new/delete.
  *
- * @tparam Type The type of elements stored in the dynamic array.
+ * Elements are only constructed for the logical size; capacity refers to the
+ * amount of raw storage available to hold additional elements without
+ * reallocation. The container manually manages object lifetimes
+ * (construct/destroy) independently from raw storage (allocate/deallocate).
  *
- * - Growth: doubles capacity on demand up to MAX_CAPACITY.
- * - Exception safety:
- *   - insert/emplaceAt: strong guarantee (array unchanged on failure).
- *   - removeAt: basic guarantee if assignment throws; strong when relocation
- *               path is used.
- *   - reserve/resize: strong guarantee (allocate+construct+commit).
- * - Invalidation: insert/remove/resize invalidate pointers/iterators; read-only
- *                 access is O(1).
- * - Moved-from: begin()==end() (empty, safe to destroy or reuse).
+ * @tparam Type The element type stored by the container.
+ *
+ * @par Design Highlights
+ * - Contiguous storage for cache locality and pointer/pointer-range iteration.
+ * - Amortized O(1) append via doubling growth policy (up to MAX_CAPACITY).
+ * - Strong exception safety for capacity-changing operations using the
+ * allocate+construct+commit pattern.
+ * - Over-alignment correctness by passing `std::align_val_t(alignof(Type))` to
+ * allocation/deallocation.
+ *
+ * @par Growth Policy
+ * - Capacity doubles on demand until MAX_CAPACITY. When near the limit, it
+ * clamps to MAX_CAPACITY.
+ *
+ * @par Exception Safety
+ * - insert / emplaceAt: strong guarantee (the array is unchanged on failure).
+ * - removeAt: basic guarantee if assignment throws during shifting; strong
+ * during relocation path.
+ * - reserve / resize / clone: strong guarantee (build a fresh buffer, then
+ * commit).
+ *
+ * @par Invalidation
+ * - Any insert/remove/resize operation invalidates all pointers, references,
+ * and iterators.
+ *
+ * @par Moved-from State
+ * - A moved-from DynamicArray is valid and empty (begin()==end()).
  */
 template <typename Type>
 class DynamicArray {
@@ -41,12 +67,35 @@ class DynamicArray {
     std::size_t capacity_;
 
     static constexpr std::size_t DEFAULT_CAPACITY = 5;
-    static constexpr std::size_t MAX_CAPACITY = SIZE_MAX / sizeof(Type);
+    static constexpr std::size_t MAX_CAPACITY =
+        std::numeric_limits<std::size_t>::max() / sizeof(Type);
     static constexpr std::size_t MAX_SAFE_CAPACITY =
-        SIZE_MAX / sizeof(Type) / 2;
+        std::numeric_limits<std::size_t>::max() / sizeof(Type) / 2;
 
 
-    /// Allocates storage for over-aligned types
+    /**
+     * @brief Allocate raw, uninitialized storage for a given number of elements
+     * with correct alignment.
+     *
+     * Allocates a single contiguous block of bytes sufficient to hold the
+     * requested number of objects of Type, aligned to alignof(Type). No
+     * constructors are run here; the caller is responsible for constructing
+     * elements via placement new.
+     *
+     * @param storage_size Number of elements' worth of storage to allocate. May
+     * be zero.
+     * @return Pointer to uninitialized storage; returns nullptr when
+     * storage_size == 0.
+     *
+     * @par Complexity
+     * - O(1) aside from the cost of the underlying allocation call.
+     *
+     * @par Exception Safety
+     * - Strong: if an exception is thrown, no storage is leaked.
+     *
+     * @throws std::bad_alloc If storage_size > MAX_CAPACITY or the allocation
+     * fails.
+     */
     Type* allocate(const std::size_t storage_size) {
         if (storage_size == 0)
             return nullptr;
@@ -60,7 +109,18 @@ class DynamicArray {
     }
 
 
-    /// Deallocates storage for over-aligned types
+    /**
+     * @brief Deallocate raw storage previously obtained via allocate.
+     *
+     * Calls the aligned form of ::operator delete. Passing nullptr is allowed
+     * and is a no-op. The caller must ensure that all constructed objects in
+     * the storage have been destroyed prior to deallocation.
+     *
+     * @param storage Pointer returned by allocate. May be nullptr.
+     *
+     * @par Exception Safety
+     * - No-throw.
+     */
     void deallocate(Type* storage) noexcept {
         if (storage != nullptr)
             ::operator delete(storage,
@@ -68,25 +128,44 @@ class DynamicArray {
     }
 
 
-    /// Destroys all elements in the dynamic array by calling their destructors.
-    void destroyArrayElements() {
+    /**
+     * @brief Destroy all constructed elements in the current buffer.
+     *
+     * Calls the destructor for each element in the range [data_, data_ +
+     * size_). Raw storage remains allocated; this function only ends element
+     * lifetimes.
+     *
+     * @par Complexity
+     * - O(size()) destructor invocations.
+     *
+     * @par Exception Safety
+     * - If Type's destructor throws (discouraged), the exception propagates.
+     */
+    void destroy_array_elements() {
         for (std::size_t i = 0; i < size_; ++i)
             data_[i].~Type();
     }
 
 
     /**
-     * Constructs elements in the destination array by copying or moving from
-     * the source array. If an exception occurs during construction, it cleans
-     * up any successfully constructed elements in the destination array.
+     * @brief Copy-construct elements from a source range into a destination
+     * buffer.
      *
-     * @param source_begin Pointer to the beginning of the source array.
-     * @param source_end Pointer to the end of the source array.
-     * @param destination Pointer to the destination array where elements will
-     * be constructed.
+     * Constructs each element in order using Type's copy constructor. If
+     * construction throws partway, already-constructed destination elements are
+     * destroyed and the exception is rethrown.
      *
-     * @return Pointer to the end of the constructed elements in the destination
-     * array.
+     * @param source_begin Pointer to the first source element.
+     * @param source_end Pointer one past the last source element.
+     * @param destination Destination buffer where elements will be
+     * placement-new constructed.
+     * @return Pointer to one past the last constructed destination element.
+     *
+     * @par Precondition
+     * - The source and destination ranges must not overlap.
+     *
+     * @par Exception Safety
+     * - Strong: partial constructions are cleaned up before rethrow.
      */
     Type* copy_construct_elements(const Type* source_begin,
                                   const Type* source_end,
@@ -108,17 +187,26 @@ class DynamicArray {
 
 
     /**
-     * Constructs elements in the destination array by moving from the source
-     * array. If an exception occurs during construction, it cleans up any
-     * successfully constructed elements in the destination array.
+     * @brief Move-construct elements from a source range into a destination
+     * buffer.
      *
-     * @param source_begin Pointer to the beginning of the source array.
-     * @param source_end Pointer to the end of the source array.
-     * @param destination Pointer to the destination array where elements will
-     * be constructed.
+     * Constructs each element in order using Type's move constructor. If
+     * construction throws partway, already-constructed destination elements are
+     * destroyed and the exception is rethrown. The sources remain valid but are
+     * moved-from.
      *
-     * @return Pointer to the end of the constructed elements in the destination
-     * array.
+     * @param source_begin Pointer to the first source element.
+     * @param source_end Pointer one past the last source element.
+     * @param destination Destination buffer where elements will be
+     * placement-new constructed.
+     *
+     * @return Pointer to one past the last constructed destination element.
+     *
+     * @par Precondition
+     * - The source and destination ranges must not overlap.
+     *
+     * @par Exception Safety
+     * - Strong: partial constructions are cleaned up before rethrow.
      */
     Type* move_construct_elements(Type* source_begin, Type* source_end,
                                   Type* destination) const
@@ -138,57 +226,26 @@ class DynamicArray {
 
 
     /**
-     * Shifts elements to the right starting at `idx` by constructing the tail
-     * [idx+1..size_] from sources [idx..size_-1] without destroying sources.
+     * @brief Resize the underlying capacity to a new value (size unchanged).
      *
-     * Precondition: size_ < capacity_ and 0 <= idx <= size_.
-     * Propagates T's move/copy constructor exceptions.
-     * On exception, destroys only the freshly constructed tail and rethrows
-     * (sources remain intact).
+     * If the requested capacity differs from the current capacity, this
+     * function allocates a new buffer, move-/copy-constructs all existing
+     * elements into it (preferring nothrow-move where available), destroys the
+     * old elements, and then replaces the old storage. The logical size is
+     * preserved.
      *
-     * @param idx The index at which to start shifting elements.
-     */
-    void shift_right_for_insertion(const std::size_t idx) {
-        assert(size_ < capacity_);
-        assert(idx <= size_);
-
-        std::size_t constructed = 0;
-        try {
-            for (std::size_t i = size_; i > idx; --i) {
-                Type* dest = data_ + i;
-                Type* src = data_ + i - 1;
-
-                if constexpr (std::is_nothrow_move_constructible_v<Type> ||
-                              !std::is_copy_constructible_v<Type>)
-                    new (dest) Type(std::move(*src));
-                else
-                    new (dest) Type(*src);
-
-                ++constructed;
-            }
-        } catch (...) {
-            for (std::size_t k = 0; k < constructed; ++k)
-                data_[idx + 1 + k].~Type();
-            throw;
-        }
-    }
-
-
-    /**
-     * @brief Resizes the dynamic array to a new capacity.
+     * @param new_capacity Requested capacity in elements.
      *
-     * If the new capacity equals the current capacity, no action is taken.
-     * If the new capacity is less than the default capacity, it is set
-     * to the default capacity. Then it allocates new memory for the
-     * elements, moves or copies the existing elements to the new memory,
-     * and destroys the old elements.
+     * @par Complexity
+     * - O(size()) constructions + O(size()) destructions when a resize occurs.
      *
-     * @param new_capacity The new capacity for the dynamic array.
+     * @par Exception Safety
+     * - Strong: elements are constructed into fresh storage and committed only
+     * on success.
      *
-     * @throws std::invalid_argument If the new capacity is less than the
-     * current size of the array.
-     * @throws std::bad_alloc If the new capacity exceeds the maximum size that
-     * can be allocated.
+     * @throws std::invalid_argument If new_capacity < size().
+     * @throws std::bad_alloc If new_capacity > MAX_CAPACITY or allocation
+     * fails.
      */
     void resize(std::size_t new_capacity) {
         if (new_capacity == capacity_)
@@ -220,10 +277,181 @@ class DynamicArray {
             throw;
         }
 
-        destroyArrayElements();
+        destroy_array_elements();
         deallocate(data_);
         data_ = new_data;
         capacity_ = new_capacity;
+    }
+
+
+    /**
+     * @brief Shrink capacity by half when the array becomes sparse.
+     *
+     * If size() <= capacity()/4 and capacity() > DEFAULT_CAPACITY, the capacity
+     * is reduced by half (not below the default). This reallocation is
+     * performed with the same strong exception-safety as resize.
+     *
+     * @par Complexity
+     * - O(size()) constructions/destructions only when a shrink occurs.
+     */
+    void shrink_if_necessary() {
+        if (size_ <= capacity_ / 4 && capacity_ > DEFAULT_CAPACITY)
+            resize(capacity_ / 2);
+    }
+
+
+    /**
+     * @brief Ensure there is room for one more element (grow by doubling if
+     * full).
+     *
+     * If size() == capacity(), this doubles capacity (clamped to MAX_CAPACITY).
+     * The growth uses resize, preserving the strong exception guarantee.
+     *
+     * @par Exception Safety
+     * - Strong (via resize).
+     *
+     * @throws std::length_error If already at MAX_CAPACITY.
+     */
+    void ensure_capacity() {
+        if (capacity_ == 0) {
+            resize(DEFAULT_CAPACITY);
+            return;
+        }
+
+        if (size_ == capacity_) {
+            if (capacity_ == MAX_CAPACITY)
+                throw std::length_error("DynamicArray capacity limit");
+            resize(capacity_ > MAX_SAFE_CAPACITY ? MAX_CAPACITY
+                                                 : capacity_ * 2);
+        }
+    }
+
+
+    /**
+     * @brief Build a fresh buffer with a new element placed at a given index,
+     * then commit.
+     *
+     * Implements the "fresh buffer then commit" insert/emplace strategy for
+     * middle inserts. It allocates a new buffer (same capacity), constructs the
+     * prefix [0, idx), then the new element at idx, then the suffix [idx,
+     * size()). On any failure, all partially constructed elements in the new
+     * buffer are destroyed and the original array is left unchanged.
+     *
+     * @tparam CtorArgs Argument types forwarded to Type's constructor for the
+     * inserted element.
+     * @param idx Insertion index (must satisfy 0 <= idx < size() when called
+     * from insert/emplace paths).
+     * @param args Constructor arguments forwarded to Type for the new element.
+     *
+     * @par Complexity
+     * - O(size()) constructions + O(size()) destructions.
+     *
+     * @par Exception Safety
+     * - Strong: original buffer remains intact unless the entire rebuild
+     * succeeds.
+     */
+    template <typename... CtorArgs>
+    void rebuild_buffer(const std::size_t idx, CtorArgs&&... args) {
+        static_assert(std::is_constructible_v<Type, CtorArgs&&...>);
+        Type* new_data = allocate(capacity_);
+        Type* constructed_end = new_data;
+
+        try {
+            if constexpr (std::is_nothrow_move_constructible_v<Type> ||
+                          !std::is_copy_constructible_v<Type>)
+                constructed_end =
+                    move_construct_elements(data_, data_ + idx, new_data);
+            else
+                constructed_end =
+                    copy_construct_elements(data_, data_ + idx, new_data);
+
+            new (new_data + idx) Type(std::forward<CtorArgs>(args)...);
+            constructed_end = new_data + idx + 1;
+
+            if constexpr (std::is_nothrow_move_constructible_v<Type> ||
+                          !std::is_copy_constructible_v<Type>)
+                constructed_end = move_construct_elements(
+                    data_ + idx, data_ + size_, constructed_end);
+            else
+                constructed_end = copy_construct_elements(
+                    data_ + idx, data_ + size_, constructed_end);
+        } catch (...) {
+            for (Type* it = new_data; it != constructed_end; ++it)
+                it->~Type();
+            deallocate(new_data);
+            throw;
+        }
+
+        destroy_array_elements();
+        deallocate(data_);
+        data_ = new_data;
+        ++size_;
+    }
+
+
+    /**
+     * @brief Erase by left-shifting using assignment (for assignable types).
+     *
+     * Overwrites the range [from_idx .. size()-2] by assigning from the
+     * subsequent element, destroys the last element, and decrements the size.
+     *
+     * @param from_idx Index of the element to remove (0 <= from_idx < size()).
+     *
+     * @par Complexity
+     * - O(n) assignments and one destruction.
+     *
+     * @par Exception Safety
+     * - Basic: if an assignment throws, the invariant size() is left unchanged
+     * and all elements remain valid (the container can be cleared).
+     */
+    void shift_left_assignables(const std::size_t from_idx) {
+        for (std::size_t i = from_idx; i < size_ - 1; ++i)
+            data_[i] = std::move(data_[i + 1]);
+        data_[size_ - 1].~Type();
+        --size_;
+    }
+
+
+    /**
+     * @brief Erase by left-shifting via construct+destroy relocation (for
+     * non-assignable types).
+     *
+     * Destroys the element at from_idx, then for each subsequent position
+     * constructs a new object in-place from the next element (move if nothrow;
+     * otherwise copy), and destroys the old source. If a construction throws,
+     * partially constructed elements are destroyed and the size is reset to the
+     * last successfully relocated index.
+     *
+     * @param from_idx Index of the element to remove (0 <= from_idx < size()).
+     *
+     * @par Complexity
+     * - O(n) constructions/destructions.
+     *
+     * @par Exception Safety
+     * - Strong during the relocation loop: partial progress is rolled back on
+     * throw.
+     */
+    void shift_left_nonassignables(std::size_t from_idx) {
+        data_[from_idx].~Type();
+        std::size_t j = from_idx;
+        try {
+            for (; j + 1 < size_; ++j) {
+                Type* dst = data_ + j;
+                Type* src = data_ + (j + 1);
+                if constexpr (std::is_nothrow_move_constructible_v<Type> ||
+                              !std::is_copy_constructible_v<Type>)
+                    new (dst) Type(std::move(*src));
+                else
+                    new (dst) Type(*src);
+                src->~Type();
+            }
+        } catch (...) {
+            for (std::size_t k = j + 1; k < size_; ++k)
+                data_[k].~Type();
+            size_ = j;
+            throw;
+        }
+        --size_;
     }
 
 
@@ -255,7 +483,9 @@ class DynamicArray {
 
         data_ = allocate(capacity_);
         try {
-            copy_construct_elements(initial_data, initial_data + size_, data_);
+            if (size_ > 0)
+                copy_construct_elements(initial_data, initial_data + size_,
+                                        data_);
         } catch (...) {
             deallocate(data_);
             throw;
@@ -296,7 +526,7 @@ class DynamicArray {
             throw;
         }
 
-        destroyArrayElements();
+        destroy_array_elements();
         deallocate(data_);
         data_ = new_data;
         size_ = other.size_;
@@ -308,7 +538,7 @@ class DynamicArray {
     /// Move assignment operator
     DynamicArray& operator=(DynamicArray&& other) noexcept {
         if (this != &other) {
-            destroyArrayElements();
+            destroy_array_elements();
             deallocate(data_);
 
             data_ = other.data_;
@@ -344,94 +574,60 @@ class DynamicArray {
 
 
     /**
-     * Inserts an element at index `idx`. Elements [idx..size_) are shifted
-     * right. If at capacity, grows (doubling) up to MAX_CAPACITY.
+     * @brief Insert an element at index idx.
      *
-     * @complexity O(n) due to shifting; amortized O(1) when appending and no
-     * grow.
+     * For middle inserts (idx < size()), this method constructs the result into
+     * a fresh buffer and commits only after success (strong guarantee).
+     * Appending at idx == size() constructs in-place at the end in O(1)
+     * amortized time.
      *
-     * @tparam U The type of the element to be inserted. Must be the same as
-     * Type or convertible to it.
+     * @tparam U A type that can construct Type (perfect-forwarded).
+     * @param element Value to insert.
+     * @param idx Insertion position, 0 <= idx <= size().
      *
-     * @param element The element to be inserted at the specified index.
-     * @param idx The index at which to insert the element
+     * @par Complexity
+     * - Append: amortized O(1); O(n) if growth occurs.
+     * - Middle insert: O(n) time; O(n) temporary storage during rebuild.
      *
-     * @throws std::out_of_range if idx > size().
-     * @throws std::length_error if the operation would exceed MAX_CAPACITY.
-     * @throws Any exception thrown by T's move/copy/constructors.
-     *
-     * @exception_safety Strong guarantee: on exception, the array remains
+     * @par Exception Safety
+     * - Strong: on failure (allocation or construction), the array is
      * unchanged.
+     *
+     * @throws std::out_of_range If idx > size().
+     * @throws std::length_error If growth is needed and capacity() ==
+     * MAX_CAPACITY.
+     * @throws std::bad_alloc On allocation failure.
      */
     template <typename U>
     void insert(U&& element, const std::size_t idx) {
-        static_assert(std::is_constructible_v<Type, U&&>,
-                      "Element must be constructible into Type");
-
+        static_assert(std::is_constructible_v<Type, U&&>);
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
-        if (size_ == capacity_) {
-            if (capacity_ == MAX_CAPACITY)
-                throw std::length_error("DynamicArray capacity limit");
-            resize(capacity_ > MAX_SAFE_CAPACITY ? MAX_CAPACITY
-                                                 : capacity_ * 2);
-        }
+        ensure_capacity();
 
         if (idx == size_) {
-            new (data_ + idx) Type(std::forward<U>(element));
+            new (data_ + size_) Type(std::forward<U>(element));
             ++size_;
             return;
         }
 
-        shift_right_for_insertion(idx);
-
-        alignas(Type) unsigned char backup_storage[sizeof(Type)];
-        Type* backup = reinterpret_cast<Type*>(backup_storage);
-        try {
-            if constexpr (std::is_nothrow_move_constructible_v<Type> ||
-                          !std::is_copy_constructible_v<Type>)
-                new (backup) Type(std::move(data_[idx]));
-            else
-                new (backup) Type(data_[idx]);
-        } catch (...) {
-            for (std::size_t i = idx + 1; i <= size_; ++i)
-                data_[i].~Type();
-            throw;
-        }
-
-        data_[idx].~Type();
-
-        try {
-            new (data_ + idx) Type(std::forward<U>(element));
-        } catch (...) {
-            for (std::size_t i = idx + 1; i <= size_; ++i)
-                data_[i].~Type();
-            new (data_ + idx) Type(std::move(*backup));
-            backup->~Type();
-            throw;
-        }
-
-        if constexpr (!std::is_trivially_destructible_v<Type>)
-            for (std::size_t i = idx + 1; i < size_; ++i)
-                data_[i].~Type();
-
-        backup->~Type();
-        ++size_;
+        rebuild_buffer(idx, std::forward<U>(element));
     }
 
 
     /**
-     * Adds an element to the end of the dynamic array. If the array is at full
-     * capacity, it resizes to accommodate the new element.
+     * @brief Append an element to the end.
      *
-     * @complexity O(1) on average, O(n) in the worst case when resizing is
-     * needed.
+     * Delegates to insert(element, size()). This is typically O(1) amortized,
+     * and O(n) when a growth reallocation occurs.
      *
-     * @tparam U The type of the element to be added. Must be the same as Type
-     * or convertible to it.
+     * @tparam U A type that can construct Type.
+     * @param element Value to append.
      *
-     * @param element The element to be added at the end of the array.
+     * @par Invalidation
+     * - On growth (reallocation), all pointers/references/iterators are
+     * invalidated.
      */
     template <typename U>
     void addLast(U&& element) {
@@ -440,17 +636,13 @@ class DynamicArray {
 
 
     /**
-     * Adds an element to the beginning of the dynamic array. All existing
-     * elements are shifted one position to the right to make space for the new
-     * element. If the array is at full capacity, it resizes to accommodate the
-     * new element.
+     * @brief Prepend an element at index 0.
      *
-     * @complexity O(n) on average.
+     * Delegates to insert(element, 0). This is an O(n) middle insert that
+     * rebuilds into a fresh buffer and commits on success (strong guarantee).
      *
-     * @tparam U The type of the element to be added. Must be the same as Type
-     * or convertible to it.
-     *
-     * @param element The element to be added at the beginning of the array.
+     * @tparam U A type that can construct Type.
+     * @param element Value to insert at the front.
      */
     template <typename U>
     void addFirst(U&& element) {
@@ -459,23 +651,25 @@ class DynamicArray {
 
 
     /**
-     * Removes element at idx, left-shifting the suffix.
-     * Shrinks capacity to half when size() <= capacity()/4, but not below
-     * DEFAULT_CAPACITY.
+     * @brief Remove and return the element at index idx.
      *
-     * @complexity O(n) for the shift.
+     * Removes one element and left-shifts the suffix. If Type is
+     * move/copy-assignable, the fast assignment path is used (basic guarantee
+     * if an assignment throws). Otherwise, the relocation path is used, which
+     * constructs and destroys in sequence and rolls back on construction
+     * failure (stronger behavior during the shift).
      *
-     * @exception_safety
-     *   - If T is (move/copy)-assignable: basic guarantee (if an assignment
-     * throws, size() is unchanged and all elements remain valid; array can
-     * still be cleared).
-     *   - Otherwise (non-assignable T): uses construct+destroy relocation with
-     * rollback (prefix remains valid on constructor throw).
+     * @param idx Index to remove (must satisfy 0 <= idx < size()).
+     * @return The removed element (moved out).
      *
-     * @param idx The index of the element to be removed. Must be within the
-     * range [0, size_ - 1].
-     * @return The element that was removed.
-     * @throws std::out_of_range if idx >= size().
+     * @par Complexity
+     * - O(n) due to shifting.
+     *
+     * @par Exception Safety
+     * - Basic for the assignable path (if an assignment throws).
+     * - Strong during relocation path (rollback of partial progress).
+     *
+     * @throws std::out_of_range If idx >= size().
      */
     Type removeAt(const std::size_t idx) {
         if (idx >= size_)
@@ -486,95 +680,67 @@ class DynamicArray {
         if (idx == size_ - 1) {
             data_[idx].~Type();
             --size_;
-            if (size_ <= capacity_ / 4 && capacity_ > DEFAULT_CAPACITY)
-                resize(std::max(DEFAULT_CAPACITY, capacity_ / 2));
+            shrink_if_necessary();
             return element;
         }
 
         if constexpr (std::is_move_assignable_v<Type> ||
-                      std::is_copy_assignable_v<Type>) {
-            for (std::size_t i = idx; i < size_ - 1; ++i)
-                data_[i] = std::move(data_[i + 1]);
-            data_[size_ - 1].~Type();
-            --size_;
-        } else {
-            data_[idx].~Type();
-            std::size_t j = idx;
-            try {
-                for (; j + 1 < size_; ++j) {
-                    Type* dst = data_ + j;
-                    Type* src = data_ + (j + 1);
+                      std::is_copy_assignable_v<Type>)
+            shift_left_assignables(idx);
+        else
+            shift_left_nonassignables(idx);
 
-                    if constexpr (std::is_nothrow_move_constructible_v<Type> ||
-                                  !std::is_copy_constructible_v<Type>)
-                        new (dst) Type(std::move(*src));
-                    else
-                        new (dst) Type(*src);
-                    src->~Type();
-                }
-            } catch (...) {
-                for (std::size_t k = j + 1; k < size_; ++k)
-                    data_[k].~Type();
-                size_ = j;
-                throw;
-            }
-            --size_;
-        }
-
-        if (size_ <= capacity_ / 4 && capacity_ > DEFAULT_CAPACITY)
-            resize(std::max(DEFAULT_CAPACITY, capacity_ / 2));
-
+        shrink_if_necessary();
         return element;
     }
 
 
     /**
-     * Removes the first element from the dynamic array. All subsequent
-     * elements are shifted one position to the left. Reduces the size of the
-     * array. If the size falls below one-fourth of the capacity, the array is
-     * resized to half of its current capacity.
+     * @brief Remove and return the first element.
      *
-     * @complexity O(n) each time.
-     * @return The removed first element.
-     * @throws std::out_of_range if the array is empty.
+     * Equivalent to removeAt(0). Shifts all remaining elements one position to
+     * the left. Its time complexity is O(size()) each time.
+     *
+     * @return The removed element (moved out).
+     * @throws std::out_of_range If the array is empty.
      */
     Type removeFirst() { return removeAt(0); }
 
 
     /**
-     * Removes the last element from the dynamic array. Reduces the size of the
-     * array. If the size falls below one-fourth of the capacity, the array is
-     * resized to half of its current capacity.
+     * @brief Remove and return the last element.
      *
-     * @complexity O(1) on average, O(n) in the worst case when resizing is
-     * needed.
-     * @return The removed last element.
-     * @throws std::out_of_range if the array is empty.
+     * Equivalent to removeAt(size()-1). This is O(1) for the erase itself and
+     * may trigger a shrink (which is O(size()) due to reallocation).
+     *
+     * @return The removed element (moved out).
+     * @throws std::out_of_range If the array is empty.
      */
     Type removeLast() { return removeAt(size_ - 1); }
 
 
     /**
-     * Remove all elements from the array. Capacity is unchanged.
+     * @brief Destroy all elements (capacity unchanged).
      *
-     * @complexity O(n) for destruction of elements.
+     * Ends the lifetime of each constructed element and sets size() to zero.
+     * The underlying storage is retained so future appends can avoid
+     * reallocation.
+     *
+     * @par Complexity
+     * - O(size()) destructor calls.
      */
     void removeAll() noexcept {
-        destroyArrayElements();
+        destroy_array_elements();
         size_ = 0;
     }
 
     /**
-     * Retrieves the element at the specified index in the dynamic array.
+     * @brief Bounds-checked mutable access.
      *
-     * @complexity O(1) for direct access.
+     * Returns a reference to the element at index idx. Throws if idx >= size().
      *
-     * @param idx The position of the element to retrieve. Must be within the
-     * range [0, size_ - 1].
-     * @return A reference to the element at the specified index in the dynamic
-     * array.
-     * @throws std::out_of_range If the specified index is greater than or equal
-     * to the size of the array.
+     * @param idx Index in [0, size()).
+     * @return Mutable reference to the element at idx.
      */
     Type& get(const std::size_t idx) {
         if (idx >= size_)
@@ -585,16 +751,13 @@ class DynamicArray {
 
 
     /**
-     * Retrieves the element at the specified index in the dynamic array.
+     * @brief Bounds-checked const access.
      *
-     * @complexity O(1) for direct access.
+     * Returns a const reference to the element at index idx. Throws if idx >=
+     * size().
      *
-     * @param idx The position of the element to retrieve. Must be within the
-     * range [0, size_ - 1].
-     * @return A reference to the element at the specified index in the dynamic
-     * array.
-     * @throws std::out_of_range If the specified index is greater than or equal
-     * to the size of the array.
+     * @param idx Index in [0, size()).
+     * @return Const reference to the element at idx.
      */
     const Type& get(const std::size_t idx) const {
         if (idx >= size_)
@@ -605,36 +768,31 @@ class DynamicArray {
 
 
     /**
-     * Accesses the element at the specified index in the dynamic array.
+     * @brief Element access with bounds checking (mutable).
      *
-     * @param idx The position of the element to access. Must be within the
-     * range [0, size_ - 1].
-     * @return A reference to the element at the specified index in the dynamic
-     * array.
-     * @throws std::out_of_range If the specified index is greater than or equal
-     * to the size of the array.
+     * Delegates to get(idx) to enforce bounds checking.
+     *
+     * @param idx Index in [0, size()).
+     * @return Mutable reference to the element at idx.
      */
     Type& operator[](const std::size_t idx) { return get(idx); }
 
 
     /**
-     * Provides read-only access to the element at the specified index in the
-     * dynamic array.
+     * @brief Element access with bounds checking (const).
      *
-     * @param idx The position of the element to access. Must be within the
-     * range [0, size_ - 1].
-     * @return A constant reference to the element at the specified index in the
-     * dynamic array.
-     * @throws std::out_of_range If the specified index is greater than or equal
-     * to the size of the array.
+     * Delegates to get(idx) const to enforce bounds checking.
+     *
+     * @param idx Index in [0, size()).
+     * @return Const reference to the element at idx.
      */
     const Type& operator[](const std::size_t idx) const { return get(idx); }
 
 
     /**
-     * Retrieves the first element of the dynamic array.
+     * @brief First element (mutable).
      *
-     * @return The first element of the dynamic array.
+     * @return Reference to the first element.
      * @throws std::out_of_range If the array is empty.
      */
     Type& getFirst() {
@@ -646,9 +804,9 @@ class DynamicArray {
 
 
     /**
-     * Retrieves the first element of the dynamic array.
+     * @brief First element (const).
      *
-     * @return A constant reference to the first element of the dynamic array.
+     * @return Const reference to the first element.
      * @throws std::out_of_range If the array is empty.
      */
     const Type& getFirst() const {
@@ -660,9 +818,9 @@ class DynamicArray {
 
 
     /**
-     * Retrieves the last element of the dynamic array.
+     * @brief Last element (mutable).
      *
-     * @return The last element of the dynamic array.
+     * @return Reference to the last element.
      * @throws std::out_of_range If the array is empty.
      */
     Type& getLast() {
@@ -674,9 +832,9 @@ class DynamicArray {
 
 
     /**
-     * Retrieves the last element of the dynamic array.
+     * @brief Last element (const).
      *
-     * @return A constant reference to the last element of the dynamic array.
+     * @return Reference to the last element.
      * @throws std::out_of_range If the array is empty.
      */
     const Type& getLast() const {
@@ -688,94 +846,58 @@ class DynamicArray {
 
 
     /**
-     * Emplaces an element at index `idx`. Elements [idx..size_) are shifted
-     * right. If at capacity, grows (doubling) up to MAX_CAPACITY.
+     * @brief Emplace-construct an element at index idx.
      *
-     * @complexity O(n) due to shifting; amortized O(1) when appending and no
-     * grow.
+     * For middle inserts (idx < size()), constructs the result into a fresh
+     * buffer (prefix, new element, suffix) and commits only after success
+     * (strong guarantee). Appending at idx == size() constructs in-place at the
+     * end.
      *
-     * @tparam Args The types of the arguments to be forwarded to the
-     * constructor of Type.
+     * @tparam Args Argument types forwarded to Type's constructor.
+     * @param idx Insertion position, 0 <= idx <= size().
+     * @param args Constructor arguments for the new element.
      *
-     * @param idx The index at which to insert the element
-     * @param args Arguments to be forwarded to the constructor of Type.
+     * @par Complexity
+     * - Append: amortized O(1); O(n) when growth occurs.
+     * - Middle insert: O(n) time; O(n) temporary storage during rebuild.
      *
-     * @throws std::out_of_range if idx > size().
-     * @throws std::length_error if the operation would exceed MAX_CAPACITY.
-     * @throws Any exception thrown by T's move/copy/constructors.
-     *
-     * @exception_safety Strong guarantee: on exception, the array remains
+     * @par Exception Safety
+     * - Strong: on failure (allocation or construction), the array is
      * unchanged.
+     *
+     * @throws std::out_of_range If idx > size().
+     * @throws std::length_error If growth is needed and capacity() ==
+     * MAX_CAPACITY.
+     * @throws std::bad_alloc On allocation failure.
      */
     template <typename... Args>
     void emplaceAt(const std::size_t idx, Args&&... args) {
-        static_assert(std::is_constructible_v<Type, Args&&...>,
-                      "Arguments must be constructible into Type");
-
+        static_assert(std::is_constructible_v<Type, Args&&...>);
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
-        if (size_ == capacity_) {
-            if (capacity_ == MAX_CAPACITY)
-                throw std::length_error("DynamicArray capacity limit");
-            resize(capacity_ > MAX_SAFE_CAPACITY ? MAX_CAPACITY
-                                                 : capacity_ * 2);
-        }
+        ensure_capacity();
 
         if (idx == size_) {
-            new (data_ + idx) Type(std::forward<Args>(args)...);
+            new (data_ + size_) Type(std::forward<Args>(args)...);
             ++size_;
             return;
         }
 
-        shift_right_for_insertion(idx);
-
-        alignas(Type) unsigned char backup_storage[sizeof(Type)];
-        Type* backup = reinterpret_cast<Type*>(backup_storage);
-        try {
-            if constexpr (std::is_nothrow_move_constructible_v<Type> ||
-                          !std::is_copy_constructible_v<Type>)
-                new (backup) Type(std::move(data_[idx]));
-            else
-                new (backup) Type(data_[idx]);
-        } catch (...) {
-            for (std::size_t i = idx + 1; i <= size_; ++i)
-                data_[i].~Type();
-            throw;
-        }
-
-        data_[idx].~Type();
-
-        try {
-            new (data_ + idx) Type(std::forward<Args>(args)...);
-        } catch (...) {
-            for (std::size_t i = idx + 1; i <= size_; ++i)
-                data_[i].~Type();
-            new (data_ + idx) Type(std::move(*backup));
-            backup->~Type();
-            throw;
-        }
-
-        if constexpr (!std::is_trivially_destructible_v<Type>)
-            for (std::size_t i = idx + 1; i < size_; ++i)
-                data_[i].~Type();
-
-        backup->~Type();
-        ++size_;
+        rebuild_buffer(idx, std::forward<Args>(args)...);
     }
 
 
     /**
-     * Emplaces a new element at the end of the dynamic array, constructing it
-     * in place using the provided arguments. If the array is at full capacity,
-     * it resizes to accommodate the new element.
+     * @brief Emplace-construct an element at the end (append).
      *
-     * @complexity O(1) on average, O(n) in the worst case when resizing is
-     * needed.
+     * Delegates to emplaceAt(size(), args...).
      *
-     * @tparam Args Types of arguments to be forwarded to the constructor of
-     * Type.
-     * @param args Arguments to be forwarded to the constructor of Type.
+     * @tparam Args Argument types forwarded to Type's constructor.
+     * @param args Constructor arguments.
+     *
+     * @par Complexity
+     * - Amortized O(1); O(n) when growth occurs.
      */
     template <typename... Args>
     void emplaceLast(Args&&... args) {
@@ -784,17 +906,13 @@ class DynamicArray {
 
 
     /**
-     * Emplaces a new element at the beginning of the dynamic array,
-     * constructing it in place using the provided arguments. All existing
-     * elements are shifted one position to the right to make space for the new
-     * element. If the array is at full capacity, it resizes to accommodate the
-     * new element.
+     * @brief Emplace-construct an element at the front (index 0).
      *
-     * @complexity O(n) each time.
+     * Delegates to emplaceAt(0, args...). This is an O(n) middle insert that
+     * rebuilds into a fresh buffer and commits on success (strong guarantee).
      *
-     * @tparam Args Types of arguments to be forwarded to the constructor of
-     * Type.
-     * @param args Arguments to be forwarded to the constructor of Type.
+     * @tparam Args Argument types forwarded to Type's constructor.
+     * @param args Constructor arguments.
      */
     template <typename... Args>
     void emplaceFirst(Args&&... args) {
@@ -803,13 +921,20 @@ class DynamicArray {
 
 
     /**
-     * @brief Ensures the capacity of the array is at least the given amount.
+     * @brief Ensure capacity() >= new_capacity (size unchanged).
      *
-     * If the current capacity is less than new_capacity, the array is resized
-     * but no new elements are added (size_ remains unchanged).
+     * If new_capacity > capacity(), reallocate to exactly new_capacity and
+     * move-/copy-construct the existing elements into the new buffer.
      *
-     * @param new_capacity The desired minimum capacity.
-     * @throws std::bad_alloc if new_capacity > MAX_CAPACITY or allocation
+     * @param new_capacity Desired minimum capacity in elements.
+     *
+     * @par Complexity
+     * - O(size()) when a resize occurs; otherwise O(1).
+     *
+     * @par Exception Safety
+     * - Strong (via resize).
+     *
+     * @throws std::bad_alloc If new_capacity > MAX_CAPACITY or allocation
      * fails.
      */
     void reserve(const std::size_t new_capacity) {
@@ -819,10 +944,17 @@ class DynamicArray {
 
 
     /**
-     * @brief Shrinks the capacity of the dynamic array to fit its current size.
+     * @brief Shrink capacity to fit current size (not below DEFAULT_CAPACITY).
      *
-     * If the current size is less than the default capacity, it resizes to the
-     * default capacity. Otherwise, it resizes to the current size.
+     * If size() < DEFAULT_CAPACITY, capacity is set to DEFAULT_CAPACITY.
+     * Otherwise capacity is set to size(). Elements are moved/copied into the
+     * new buffer.
+     *
+     * @par Complexity
+     * - O(size()) when a resize occurs; otherwise O(1).
+     *
+     * @par Exception Safety
+     * - Strong (via resize).
      */
     void shrinkToFit() {
         if (capacity_ > size_) {
@@ -835,11 +967,19 @@ class DynamicArray {
 
 
     /**
-     * Creates a deep copy with independent storage (modifying one does not
-     * affect the other).
+     * @brief Create a deep copy with independent storage.
      *
-     * @exception_safety Strong; propagates T's copy constructor.
-     * @return A new DynamicArray instance that is a copy of this one.
+     * Returns a new DynamicArray containing copies of all elements. Subsequent
+     * modifications to either array do not affect the other.
+     *
+     * @return A new array equal to *this.
+     *
+     * @par Complexity
+     * - O(size()).
+     *
+     * @par Exception Safety
+     * - Strong; exceptions from allocation and Type's copy constructor
+     * propagate.
      */
     DynamicArray clone() const {
         DynamicArray copy;
@@ -850,46 +990,67 @@ class DynamicArray {
     }
 
 
-    /// **** Iterators **** ///
-
     // --- Iterator support for range-based for loops ---
 
     Type* begin() noexcept { return data_; }
     const Type* begin() const noexcept { return data_; }
     Type* end() noexcept { return data_ ? data_ + size_ : data_; }
-    const Type* end() const noexcept { return data_ ? data_ + size_ : data_;  }
+    const Type* end() const noexcept { return data_ ? data_ + size_ : data_; }
 
     // --- C++11 range-based for loop support ---
 
     const Type* cbegin() const noexcept { return data_; }
-    const Type* cend() const noexcept { return data_ ? data_ + size_ : data_;  }
+    const Type* cend() const noexcept { return data_ ? data_ + size_ : data_; }
 
     // Note: All insert/remove/resize operations invalidate pointers/iterators.
     // A moved-from array has begin()==end() and yields zero elements.
 
-    /// **** ///
-
 
     /**
-     * Clears the dynamic array by destroying all elements and resetting the
-     * size and capacity to their initial values. The memory allocated for
-     * the array is also released.
+     * @brief Destroy all elements and reset to an empty array with
+     * DEFAULT_CAPACITY.
+     *
+     * Destroys all constructed elements, deallocates the current buffer, then
+     * allocates a fresh buffer of DEFAULT_CAPACITY. After clear(), the array is
+     * empty and ready to be reused.
+     *
+     * @par Postconditions
+     * - size() == 0
+     * - capacity() == DEFAULT_CAPACITY
+     *
+     * @par Complexity
+     * - O(previous size) destructor calls, plus one allocation.
+     *
+     * @par Exception Safety
+     * - Strong: if the re-allocation fails, the previous array remains
+     * unchanged (elements are not destroyed).
      */
     void clear() {
-        destroyArrayElements();
+        Type* new_data = allocate(DEFAULT_CAPACITY);
+
+        destroy_array_elements();
         deallocate(data_);
 
-        data_ = allocate(DEFAULT_CAPACITY);
+        data_ = new_data;
         size_ = 0;
         capacity_ = DEFAULT_CAPACITY;
     }
 
 
-    /// Destructor that deallocates the memory used by the dynamic array and
-    /// destroys all elements.
+    /**
+     * @brief Destructor: destroys elements and deallocates storage.
+     *
+     * Destroys all constructed elements, then deallocates the raw storage using
+     * the aligned delete counterpart. Safe to call on an already-moved-from
+     * object.
+     *
+     * @par Exception Safety
+     * - No-throw (assuming Type's destructor is noexcept; if not, exceptions
+     * propagate during destruction).
+     */
     ~DynamicArray() noexcept {
         if (data_) {
-            destroyArrayElements();
+            destroy_array_elements();
             deallocate(data_);
         }
     }
