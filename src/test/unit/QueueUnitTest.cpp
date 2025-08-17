@@ -9,7 +9,7 @@
 #include "ThrowingType.hpp"
 
 
-class QueueUnitTest : public ::testing::Test {
+class QueueUnitTest : public testing::Test {
   protected:
     void SetUp() override {
         // Setup code that runs before each test
@@ -484,7 +484,7 @@ TEST_F(QueueUnitTest, StringType) {
 TEST_F(QueueUnitTest, CustomObjectType) {
     struct Point {
         int x, y;
-        explicit Point(int x = 0, int y = 0) : x(x), y(y) {}
+        explicit Point(const int x = 0, const int y = 0) : x(x), y(y) {}
         bool operator==(const Point& other) const {
             return x == other.x && y == other.y;
         }
@@ -812,9 +812,8 @@ TEST_F(QueueUnitTest, RangeBasedTraversalHandlesEmpty) {
         EXPECT_EQ(value, expected++);
     EXPECT_EQ(expected, 4);
 
-    Queue<int> empty;
     int count = 0;
-    for (const int value : empty) {
+    for (Queue<int> empty ;const int value : empty) {
         (void)value;
         ++count;
     }

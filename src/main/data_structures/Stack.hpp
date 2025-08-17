@@ -16,7 +16,6 @@
 template <typename Type>
 class Stack {
 
-  private:
     DynamicArray<Type> array_;
 
 

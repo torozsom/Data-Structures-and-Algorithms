@@ -26,7 +26,6 @@
 template <typename Type>
 class BinarySearchTree : public BinaryTree<Type> {
 
-  private:
     /**
      * Recursively inserts an element into a binary search tree.
      *
@@ -134,7 +133,7 @@ class BinarySearchTree : public BinaryTree<Type> {
      * @return A pointer to the node containing the minimum value in the
      * subtree, or nullptr if the subtree is empty.
      */
-    Node<Type>* findMinNode(Node<Type>* node) const {
+    static Node<Type>* findMinNode(Node<Type>* node) {
         if (node == nullptr)
             return nullptr;
 
@@ -159,7 +158,7 @@ class BinarySearchTree : public BinaryTree<Type> {
      * @return A pointer to the node containing the maximum value in the
      * subtree, or nullptr if the subtree is empty.
      */
-    const Node<Type>* findMaxNode(Node<Type>* node) const {
+    static const Node<Type>* findMaxNode(Node<Type>* node) {
         if (node == nullptr)
             return nullptr;
 

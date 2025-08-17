@@ -6,10 +6,9 @@
 #include <vector>
 
 #include "MinHeap.hpp"
-#include "Record.hpp"
 
 
-class MinHeapUnitTest : public ::testing::Test {
+class MinHeapUnitTest : public testing::Test {
   protected:
     void SetUp() override {
         // Setup code that runs before each test
@@ -49,7 +48,7 @@ TEST_F(MinHeapUnitTest, ExtractMinShouldRemoveSmallestElement) {
     for (int val : values)
         heap.insert(val);
 
-    std::sort(values.begin(), values.end());
+    std::ranges::sort(values);
 
     for (int expectedMin : values) {
         EXPECT_EQ(heap.extractRoot(), expectedMin);

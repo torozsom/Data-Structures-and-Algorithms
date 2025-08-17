@@ -61,14 +61,15 @@
 template <typename Type>
 class DynamicArray {
 
-  private:
     Type* data_;
     std::size_t size_;
     std::size_t capacity_;
 
     static constexpr std::size_t DEFAULT_CAPACITY = 5;
+
     static constexpr std::size_t MAX_CAPACITY =
         std::numeric_limits<std::size_t>::max() / sizeof(Type);
+
     static constexpr std::size_t MAX_SAFE_CAPACITY =
         std::numeric_limits<std::size_t>::max() / sizeof(Type) / 2;
 
@@ -96,16 +97,16 @@ class DynamicArray {
      * @throws std::bad_alloc If storage_size > MAX_CAPACITY or the allocation
      * fails.
      */
-    Type* allocate(const std::size_t storage_size) {
+    static Type* allocate(const std::size_t storage_size) {
         if (storage_size == 0)
             return nullptr;
 
         if (storage_size > MAX_CAPACITY)
             throw std::bad_alloc();
 
-        return static_cast<Type*>(
-            ::operator new(sizeof(Type) * storage_size,
-                           static_cast<std::align_val_t>(alignof(Type))));
+        return static_cast<Type*>(operator new(
+            sizeof(Type) * storage_size,
+            static_cast<std::align_val_t>(alignof(Type))));
     }
 
 
@@ -121,7 +122,7 @@ class DynamicArray {
      * @par Exception Safety
      * - No-throw.
      */
-    void deallocate(Type* storage) noexcept {
+    static void deallocate(Type* storage) noexcept {
         if (storage != nullptr)
             ::operator delete(storage,
                               static_cast<std::align_val_t>(alignof(Type)));
@@ -141,7 +142,7 @@ class DynamicArray {
      * @par Exception Safety
      * - If Type's destructor throws (discouraged), the exception propagates.
      */
-    void destroy_array_elements() {
+    void destroyArrayElements() {
         for (std::size_t i = 0; i < size_; ++i)
             data_[i].~Type();
     }
@@ -167,9 +168,8 @@ class DynamicArray {
      * @par Exception Safety
      * - Strong: partial constructions are cleaned up before rethrow.
      */
-    Type* copy_construct_elements(const Type* source_begin,
-                                  const Type* source_end,
-                                  Type* destination) const
+    Type* copyConstructElements(const Type* source_begin,
+                                const Type* source_end, Type* destination) const
         noexcept(std::is_nothrow_copy_constructible_v<Type>) {
         assert(destination != nullptr);
         Type* current = destination;
@@ -208,8 +208,8 @@ class DynamicArray {
      * @par Exception Safety
      * - Strong: partial constructions are cleaned up before rethrow.
      */
-    Type* move_construct_elements(Type* source_begin, Type* source_end,
-                                  Type* destination) const
+    Type* moveConstructElements(Type* source_begin, Type* source_end,
+                                Type* destination) const
         noexcept(std::is_nothrow_move_constructible_v<Type>) {
         assert(destination != nullptr);
         Type* current = destination;
@@ -266,10 +266,10 @@ class DynamicArray {
             if constexpr (std::is_nothrow_move_constructible_v<Type> ||
                           !std::is_copy_constructible_v<Type>)
                 new_data_end =
-                    move_construct_elements(data_, data_ + size_, new_data);
+                    moveConstructElements(data_, data_ + size_, new_data);
             else
                 new_data_end =
-                    copy_construct_elements(data_, data_ + size_, new_data);
+                    copyConstructElements(data_, data_ + size_, new_data);
         } catch (...) {
             for (Type* it = new_data; it != new_data_end; ++it)
                 it->~Type();
@@ -277,7 +277,7 @@ class DynamicArray {
             throw;
         }
 
-        destroy_array_elements();
+        destroyArrayElements();
         deallocate(data_);
         data_ = new_data;
         capacity_ = new_capacity;
@@ -294,7 +294,7 @@ class DynamicArray {
      * @par Complexity
      * - O(size()) constructions/destructions only when a shrink occurs.
      */
-    void shrink_if_necessary() {
+    void shrinkIfNecessary() {
         if (size_ <= capacity_ / 4 && capacity_ > DEFAULT_CAPACITY)
             resize(capacity_ / 2);
     }
@@ -312,7 +312,7 @@ class DynamicArray {
      *
      * @throws std::length_error If already at MAX_CAPACITY.
      */
-    void ensure_capacity() {
+    void ensureCapacity() {
         if (capacity_ == 0) {
             resize(DEFAULT_CAPACITY);
             return;
@@ -351,7 +351,7 @@ class DynamicArray {
      * succeeds.
      */
     template <typename... CtorArgs>
-    void rebuild_buffer(const std::size_t idx, CtorArgs&&... args) {
+    void rebuildBuffer(const std::size_t idx, CtorArgs&&... args) {
         static_assert(std::is_constructible_v<Type, CtorArgs&&...>);
         Type* new_data = allocate(capacity_);
         Type* constructed_end = new_data;
@@ -360,20 +360,20 @@ class DynamicArray {
             if constexpr (std::is_nothrow_move_constructible_v<Type> ||
                           !std::is_copy_constructible_v<Type>)
                 constructed_end =
-                    move_construct_elements(data_, data_ + idx, new_data);
+                    moveConstructElements(data_, data_ + idx, new_data);
             else
                 constructed_end =
-                    copy_construct_elements(data_, data_ + idx, new_data);
+                    copyConstructElements(data_, data_ + idx, new_data);
 
             new (new_data + idx) Type(std::forward<CtorArgs>(args)...);
             constructed_end = new_data + idx + 1;
 
             if constexpr (std::is_nothrow_move_constructible_v<Type> ||
                           !std::is_copy_constructible_v<Type>)
-                constructed_end = move_construct_elements(
+                constructed_end = moveConstructElements(
                     data_ + idx, data_ + size_, constructed_end);
             else
-                constructed_end = copy_construct_elements(
+                constructed_end = copyConstructElements(
                     data_ + idx, data_ + size_, constructed_end);
         } catch (...) {
             for (Type* it = new_data; it != constructed_end; ++it)
@@ -382,7 +382,7 @@ class DynamicArray {
             throw;
         }
 
-        destroy_array_elements();
+        destroyArrayElements();
         deallocate(data_);
         data_ = new_data;
         ++size_;
@@ -404,7 +404,7 @@ class DynamicArray {
      * - Basic: if an assignment throws, the invariant size() is left unchanged
      * and all elements remain valid (the container can be cleared).
      */
-    void shift_left_assignables(const std::size_t from_idx) {
+    void shiftLeftAssignables(const std::size_t from_idx) {
         for (std::size_t i = from_idx; i < size_ - 1; ++i)
             data_[i] = std::move(data_[i + 1]);
         data_[size_ - 1].~Type();
@@ -431,7 +431,7 @@ class DynamicArray {
      * - Strong during the relocation loop: partial progress is rolled back on
      * throw.
      */
-    void shift_left_nonassignables(std::size_t from_idx) {
+    void shiftLeftNonassignables(std::size_t from_idx) {
         data_[from_idx].~Type();
         std::size_t j = from_idx;
         try {
@@ -484,8 +484,8 @@ class DynamicArray {
         data_ = allocate(capacity_);
         try {
             if (size_ > 0)
-                copy_construct_elements(initial_data, initial_data + size_,
-                                        data_);
+                copyConstructElements(initial_data, initial_data + size_,
+                                      data_);
         } catch (...) {
             deallocate(data_);
             throw;
@@ -497,7 +497,7 @@ class DynamicArray {
         : data_(allocate(other.capacity_)), size_(other.size_),
           capacity_(other.capacity_) {
         try {
-            copy_construct_elements(other.data_, other.data_ + size_, data_);
+            copyConstructElements(other.data_, other.data_ + size_, data_);
         } catch (...) {
             deallocate(data_);
             throw;
@@ -519,14 +519,14 @@ class DynamicArray {
 
         Type* new_data = allocate(other.capacity_);
         try {
-            copy_construct_elements(other.data_, other.data_ + other.size_,
-                                    new_data);
+            copyConstructElements(other.data_, other.data_ + other.size_,
+                                  new_data);
         } catch (...) {
             deallocate(new_data);
             throw;
         }
 
-        destroy_array_elements();
+        destroyArrayElements();
         deallocate(data_);
         data_ = new_data;
         size_ = other.size_;
@@ -538,7 +538,7 @@ class DynamicArray {
     /// Move assignment operator
     DynamicArray& operator=(DynamicArray&& other) noexcept {
         if (this != &other) {
-            destroy_array_elements();
+            destroyArrayElements();
             deallocate(data_);
 
             data_ = other.data_;
@@ -604,7 +604,7 @@ class DynamicArray {
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
-        ensure_capacity();
+        ensureCapacity();
 
         if (idx == size_) {
             new (data_ + size_) Type(std::forward<U>(element));
@@ -612,7 +612,7 @@ class DynamicArray {
             return;
         }
 
-        rebuild_buffer(idx, std::forward<U>(element));
+        rebuildBuffer(idx, std::forward<U>(element));
     }
 
 
@@ -680,17 +680,17 @@ class DynamicArray {
         if (idx == size_ - 1) {
             data_[idx].~Type();
             --size_;
-            shrink_if_necessary();
+            shrinkIfNecessary();
             return element;
         }
 
         if constexpr (std::is_move_assignable_v<Type> ||
                       std::is_copy_assignable_v<Type>)
-            shift_left_assignables(idx);
+            shiftLeftAssignables(idx);
         else
-            shift_left_nonassignables(idx);
+            shiftLeftNonassignables(idx);
 
-        shrink_if_necessary();
+        shrinkIfNecessary();
         return element;
     }
 
@@ -730,7 +730,7 @@ class DynamicArray {
      * - O(size()) destructor calls.
      */
     void removeAll() noexcept {
-        destroy_array_elements();
+        destroyArrayElements();
         size_ = 0;
     }
 
@@ -876,7 +876,7 @@ class DynamicArray {
         if (idx > size_)
             throw std::out_of_range("Index out of range");
 
-        ensure_capacity();
+        ensureCapacity();
 
         if (idx == size_) {
             new (data_ + size_) Type(std::forward<Args>(args)...);
@@ -884,7 +884,7 @@ class DynamicArray {
             return;
         }
 
-        rebuild_buffer(idx, std::forward<Args>(args)...);
+        rebuildBuffer(idx, std::forward<Args>(args)...);
     }
 
 
@@ -984,7 +984,7 @@ class DynamicArray {
     DynamicArray clone() const {
         DynamicArray copy;
         copy.reserve(size_);
-        copy_construct_elements(data_, data_ + size_, copy.data_);
+        copyConstructElements(data_, data_ + size_, copy.data_);
         copy.size_ = size_;
         return copy;
     }
@@ -994,6 +994,7 @@ class DynamicArray {
 
     Type* begin() noexcept { return data_; }
     const Type* begin() const noexcept { return data_; }
+
     Type* end() noexcept { return data_ ? data_ + size_ : data_; }
     const Type* end() const noexcept { return data_ ? data_ + size_ : data_; }
 
@@ -1028,7 +1029,7 @@ class DynamicArray {
     void clear() {
         Type* new_data = allocate(DEFAULT_CAPACITY);
 
-        destroy_array_elements();
+        destroyArrayElements();
         deallocate(data_);
 
         data_ = new_data;
@@ -1050,7 +1051,7 @@ class DynamicArray {
      */
     ~DynamicArray() noexcept {
         if (data_) {
-            destroy_array_elements();
+            destroyArrayElements();
             deallocate(data_);
         }
     }

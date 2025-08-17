@@ -6,10 +6,9 @@
 #include <vector>
 
 #include "MaxHeap.hpp"
-#include "Record.hpp"
 
 
-class MaxHeapUnitTest : public ::testing::Test {
+class MaxHeapUnitTest : public testing::Test {
   protected:
     void SetUp() override {
         // Setup code that runs before each test
@@ -49,7 +48,7 @@ TEST_F(MaxHeapUnitTest, ExtractMaxShouldRemoveLargestElement) {
     for (int val : values)
         heap.insert(val);
 
-    std::sort(values.begin(), values.end(), std::greater<int>());
+    std::ranges::sort(values, std::greater());
 
     for (int expectedMax : values) {
         EXPECT_EQ(heap.extractRoot(), expectedMax);

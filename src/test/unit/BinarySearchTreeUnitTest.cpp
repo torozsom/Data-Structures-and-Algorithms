@@ -5,10 +5,9 @@
 #include <vector>
 
 #include "BinarySearchTree.hpp"
-#include "Record.hpp"
 
 
-class BinarySearchTreeUnitTest : public ::testing::Test {
+class BinarySearchTreeUnitTest : public testing::Test {
   protected:
     void SetUp() override {
         // Setup code that runs before each test
@@ -172,7 +171,7 @@ TEST_F(BinarySearchTreeUnitTest, DeletedInsertMethodsShouldNotBeAccessible) {
 TEST_F(BinarySearchTreeUnitTest, ShouldWorkWithCustomTypes) {
     struct ComparableType {
         int value;
-        explicit ComparableType(int v) : value(v) {}
+        explicit ComparableType(const int v) : value(v) {}
         bool operator<(const ComparableType& other) const {
             return value < other.value;
         }

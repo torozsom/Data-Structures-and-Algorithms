@@ -9,7 +9,7 @@
 #include "ThrowingType.hpp"
 
 
-class DynamicArrayUnitTest : public ::testing::Test {
+class DynamicArrayUnitTest : public testing::Test {
   protected:
     void SetUp() override {}
     void TearDown() override { ThrowingType::reset(); }
@@ -226,7 +226,7 @@ TEST_F(DynamicArrayUnitTest, ReserveThenInsertPreservesAndUsesStorage) {
 struct MoveThrowOnce {
     static int counter;
     int v;
-    explicit MoveThrowOnce(int x = 0) : v(x) {}
+    explicit MoveThrowOnce(const int x = 0) : v(x) {}
     MoveThrowOnce(MoveThrowOnce&& o) : v(o.v) {
         if (counter++ == 0)
             throw std::runtime_error("boom");
@@ -257,7 +257,7 @@ TEST_F(DynamicArrayUnitTest, InsertShiftRollbackOnMoveCtorThrow) {
 struct MoveCtorThrowOn2 {
     static int counter;
     int v;
-    explicit MoveCtorThrowOn2(int x = 0) : v(x) {}
+    explicit MoveCtorThrowOn2(const int x = 0) : v(x) {}
     MoveCtorThrowOn2(const MoveCtorThrowOn2&) = delete;
     MoveCtorThrowOn2& operator=(const MoveCtorThrowOn2&) = delete;
     MoveCtorThrowOn2(MoveCtorThrowOn2&& other) : v(other.v) {
@@ -349,7 +349,7 @@ TEST_F(DynamicArrayUnitTest, RemoveFromEmptyArray) {
 struct MoveAssignThrowOnce {
     static int counter;
     int v;
-    explicit MoveAssignThrowOnce(int x = 0) : v(x) {}
+    explicit MoveAssignThrowOnce(const int x = 0) : v(x) {}
     MoveAssignThrowOnce(MoveAssignThrowOnce&&) = default;
     MoveAssignThrowOnce& operator=(MoveAssignThrowOnce&& o) {
         if (counter++ == 0)
@@ -446,7 +446,7 @@ TEST_F(DynamicArrayUnitTest, RemoveAllKeepsCapacityAndZeroesSize) {
 
 struct NoAssign {
     int v;
-    explicit NoAssign(int x = 0) : v(x) {}
+    explicit NoAssign(const int x = 0) : v(x) {}
     NoAssign(const NoAssign&) = default;
     NoAssign(NoAssign&&) noexcept = default;
     NoAssign& operator=(const NoAssign&) = delete;
@@ -458,7 +458,7 @@ TEST_F(DynamicArrayUnitTest, RemoveAtRelocationForNonAssignableType) {
     DynamicArray<NoAssign> arr;
     for (int i = 0; i < 5; ++i)
         arr.emplaceLast(i);
-    NoAssign removed = arr.removeAt(1);
+    const NoAssign removed = arr.removeAt(1);
     EXPECT_EQ(removed.v, 1);
     ASSERT_EQ(arr.size(), 4u);
     EXPECT_EQ(arr.get(0).v, 0);
@@ -472,7 +472,7 @@ TEST_F(DynamicArrayUnitTest, RemoveAtReturnsMoveOnlyValue) {
     DynamicArray<std::unique_ptr<int>> arr;
     arr.addLast(std::make_unique<int>(7));
     arr.addLast(std::make_unique<int>(9));
-    auto p = arr.removeAt(0);
+    const auto p = arr.removeAt(0);
     ASSERT_TRUE(p != nullptr);
     EXPECT_EQ(*p, 7);
     ASSERT_EQ(arr.size(), 1u);
@@ -523,7 +523,7 @@ TEST_F(DynamicArrayUnitTest, BracketOperatorThrowsOutOfRange) {
     DynamicArray<int> arr;
     arr.addLast(7);
     EXPECT_THROW((void)arr[1], std::out_of_range);
-    const DynamicArray<int> carr(arr);
+    const DynamicArray carr(arr);
     EXPECT_THROW((void)carr[2], std::out_of_range);
 }
 
@@ -611,7 +611,7 @@ TEST_F(DynamicArrayUnitTest, EmplaceLastConstructsInPlace) {
 struct CtorMaybeThrow {
     static bool should_throw;
     int v{};
-    explicit CtorMaybeThrow(int x) : v(x) {
+    explicit CtorMaybeThrow(const int x) : v(x) {
         if (should_throw)
             throw std::runtime_error("ctor boom");
     }
@@ -697,7 +697,7 @@ struct CopyThrowOnSecondCopy {
     mutable int copied_from_count{0};
 
     CopyThrowOnSecondCopy() = default;
-    explicit CopyThrowOnSecondCopy(int x) : v(x) {}
+    explicit CopyThrowOnSecondCopy(const int x) : v(x) {}
 
     // Copy: throw on the second time a given source is copied
     CopyThrowOnSecondCopy(const CopyThrowOnSecondCopy& other) : v(other.v) {
@@ -806,9 +806,9 @@ struct CopyThrowOnN {
     static int counter;
     int v{};
     CopyThrowOnN() = default;
-    CopyThrowOnN(int x) : v(x) {}
+    explicit CopyThrowOnN(const int x) : v(x) {}
     CopyThrowOnN(CopyThrowOnN&& other) noexcept(false) : v(other.v) {}
-    CopyThrowOnN& operator=(CopyThrowOnN&& other) {
+    CopyThrowOnN& operator=(CopyThrowOnN&& other)  noexcept {
         v = other.v;
         return *this;
     }
@@ -825,7 +825,7 @@ struct MoveOnlyThrowOnN {
     static int counter;
     int v{};
     MoveOnlyThrowOnN() = default;
-    explicit MoveOnlyThrowOnN(int x) : v(x) {}
+    explicit MoveOnlyThrowOnN(const int x) : v(x) {}
     MoveOnlyThrowOnN(const MoveOnlyThrowOnN&) = delete;
     MoveOnlyThrowOnN& operator=(const MoveOnlyThrowOnN&) = delete;
     MoveOnlyThrowOnN(MoveOnlyThrowOnN&& other) noexcept(false) : v(other.v) {
@@ -927,7 +927,7 @@ TEST_F(DynamicArrayUnitTest, CloneCreatesDeepCopy) {
 struct Counted {
     static int alive;
     int v;
-    explicit Counted(int x = 0) : v(x) { ++alive; }
+    explicit Counted(const int x = 0) : v(x) { ++alive; }
     Counted(const Counted& o) : v(o.v) { ++alive; }
     ~Counted() { --alive; }
 };
@@ -980,7 +980,7 @@ TEST_F(DynamicArrayUnitTest, RangeForOnMovedFromIsNoop) {
     a.addLast(1);
     DynamicArray<int> b = std::move(a);
     int count = 0;
-    for (int x : a) {
+    for (const int x : a) {
         (void)x;
         ++count;
     }
@@ -1060,7 +1060,7 @@ TEST_F(DynamicArrayUnitTest, StringType) {
 TEST_F(DynamicArrayUnitTest, CustomObjectType) {
     struct Point {
         int x, y;
-        explicit Point(int xx = 0, int yy = 0) : x(xx), y(yy) {}
+        explicit Point(const int xx = 0, const int yy = 0) : x(xx), y(yy) {}
         bool operator==(const Point& o) const { return x == o.x && y == o.y; }
     };
     DynamicArray<Point> arr;

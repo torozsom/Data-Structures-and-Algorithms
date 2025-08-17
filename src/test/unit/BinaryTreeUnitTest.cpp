@@ -7,7 +7,7 @@
 #include "Record.hpp"
 
 
-class BinaryTreeUnitTest : public ::testing::Test {
+class BinaryTreeUnitTest : public testing::Test {
   protected:
     void SetUp() override {
         // Setup code that runs before each test

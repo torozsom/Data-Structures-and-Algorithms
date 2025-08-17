@@ -18,7 +18,6 @@
 template <typename Type>
 class MinHeap final : public Heap<Type> {
 
-  private:
     /**
      * Restores the heap property by moving the given node upwards in the heap.
      * Starting from the given node, this method swaps its data with its
@@ -130,7 +129,7 @@ class MinHeap final : public Heap<Type> {
         static_assert(std::is_constructible_v<Type, U&&>,
                       "Element must be constructible into Type");
 
-        Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
+        auto* newNode = new Node<Type>(std::forward<U>(element));
 
         if (this->isEmpty()) {
             this->root_ = newNode;

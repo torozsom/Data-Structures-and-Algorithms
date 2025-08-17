@@ -18,7 +18,6 @@
 template <typename Type>
 class LinkedList {
 
-  private:
     struct Node {
         Type data;
         Node* next;
@@ -169,7 +168,7 @@ class LinkedList {
     /// Checks if the linked list is empty.
     [[nodiscard]]
     bool isEmpty() const noexcept {
-        assert((size_ == 0) == (head_ == nullptr));
+        assert(size_ == 0 == (head_ == nullptr));
         return size_ == 0;
     }
 
@@ -299,7 +298,7 @@ class LinkedList {
         if (head_ == nullptr)
             return;
 
-        Node* temp = head_;
+        const Node* temp = head_;
         head_ = head_->next;
 
         if (head_ != nullptr)
@@ -322,7 +321,7 @@ class LinkedList {
         if (tail_ == nullptr)
             return;
 
-        Node* temp = tail_;
+        const Node* temp = tail_;
         tail_ = tail_->prev;
 
         if (tail_ != nullptr)
@@ -391,7 +390,7 @@ class LinkedList {
 
         while (current != nullptr) {
             if (current->data == element) {
-                Node* to_delete = current;
+                const Node* to_delete = current;
 
                 if (current == head_) {
                     head_ = current->next;
@@ -558,7 +557,6 @@ class LinkedList {
 
         friend class const_iterator;
 
-      private:
         Node* current_;
 
       public:
@@ -573,7 +571,7 @@ class LinkedList {
         Type& operator*() { return current_->data; }
 
         /// Arrow operator to access the address of the data in the current node
-        Type* operator->() { return &(current_->data); }
+        Type* operator->() { return &current_->data; }
 
         /// Pre-increment operator to move the iterator to the next node
         iterator& operator++() {
@@ -623,7 +621,6 @@ class LinkedList {
      */
     class const_iterator {
 
-      private:
         const Node* current_;
 
       public:
@@ -641,7 +638,7 @@ class LinkedList {
         const Type& operator*() const { return current_->data; }
 
         /// Arrow operator to access the address of the data in the current node
-        const Type* operator->() const { return &(current_->data); }
+        const Type* operator->() const { return &current_->data; }
 
         /// Pre-increment operator to move the iterator to the next node
         const_iterator& operator++() {

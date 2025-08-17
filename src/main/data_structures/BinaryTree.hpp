@@ -3,7 +3,6 @@
 
 
 #include "Queue.hpp"
-#include <iostream>
 #include <stdexcept>
 
 
@@ -61,7 +60,7 @@ class BinaryTree {
         if (otherNode == nullptr)
             return nullptr;
 
-        Node<Type>* newNode = new Node<Type>(otherNode->data);
+        auto* newNode = new Node<Type>(otherNode->data);
         newNode->parent = parent;
 
         newNode->left = recursiveCopyNode(otherNode->left, newNode);
@@ -166,8 +165,6 @@ class BinaryTree {
     /**
      * Performs a level-order traversal of the binary tree using a queue to
      * visit nodes level by level, from left to right.
-     *
-     * @param node Pointer to the root node of the binary tree.
      */
     Queue<Type> levelOrder() const {
         if (isEmpty())
@@ -193,7 +190,7 @@ class BinaryTree {
 
   public:
     /// Default constructor
-    BinaryTree() noexcept : root_(), size_() {}
+    BinaryTree() noexcept : root_() {}
 
     /**
      * Constructor that creates a binary tree from an array using level-order
@@ -201,7 +198,7 @@ class BinaryTree {
      * @param array Pointer to the array of elements.
      * @param size Number of elements in the array.
      */
-    BinaryTree(const Type* array, const std::size_t size) : root_(), size_() {
+    BinaryTree(const Type* array, const std::size_t size) : root_() {
         if (array == nullptr && size != 0)
             throw std::invalid_argument(
                 "Array pointer cannot be null when size is non-zero");
@@ -251,7 +248,7 @@ class BinaryTree {
     /// Checks if the binary tree is empty.
     [[nodiscard]]
     bool isEmpty() const noexcept {
-        assert((root_ == nullptr) == (size_ == 0));
+        assert(root_ == nullptr == (size_ == 0));
         return size_ == 0;
     }
 
@@ -322,7 +319,7 @@ class BinaryTree {
         while (current->right != nullptr)
             current = current->right;
 
-        Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
+        auto* newNode = new Node<Type>(std::forward<U>(element));
         newNode->parent = current;
         current->right = newNode;
         size_++;
@@ -351,7 +348,7 @@ class BinaryTree {
         while (current->left != nullptr)
             current = current->left;
 
-        Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
+        auto* newNode = new Node<Type>(std::forward<U>(element));
         newNode->parent = current;
         current->left = newNode;
         size_++;
@@ -385,7 +382,7 @@ class BinaryTree {
 
             // Check if left child is available
             if (current->left == nullptr) {
-                Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
+                auto* newNode = new Node<Type>(std::forward<U>(element));
                 newNode->parent = current;
                 current->left = newNode;
                 size_++;
@@ -394,7 +391,7 @@ class BinaryTree {
 
             // Check if right child is available
             if (current->right == nullptr) {
-                Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
+                auto* newNode = new Node<Type>(std::forward<U>(element));
                 newNode->parent = current;
                 current->right = newNode;
                 size_++;

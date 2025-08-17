@@ -18,7 +18,6 @@
 template <typename Type>
 class MaxHeap final : public Heap<Type> {
 
-  private:
     /**
      * Restores the max-heap property by moving the given node upwards.
      * Starting from the given node, this method swaps the node's data with its
@@ -127,7 +126,7 @@ class MaxHeap final : public Heap<Type> {
         static_assert(std::is_constructible_v<Type, U&&>,
                       "Element must be constructible into Type");
 
-        Node<Type>* newNode = new Node<Type>(std::forward<U>(element));
+        auto* newNode = new Node<Type>(std::forward<U>(element));
 
         if (this->isEmpty()) {
             this->root_ = newNode;
@@ -135,7 +134,7 @@ class MaxHeap final : public Heap<Type> {
             return;
         }
 
-        std::size_t path = this->size() + 1;
+        const std::size_t path = this->size() + 1;
         Node<Type>* parent = this->findNodeByPath(path >> 1);
         newNode->parent = parent;
 

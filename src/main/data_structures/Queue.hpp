@@ -2,26 +2,63 @@
 #define QUEUE_HPP
 
 
-#include <iostream>
+#include <limits>
 #include <stdexcept>
+#include <type_traits>
+
 
 #include "DynamicArray.hpp"
 
 
 /**
  * @class Queue
+ * @brief A FIFO (first-in, first-out) container built on a growable, contiguous
+ buffer.
  *
- * A generic queue data structure that provides functionalities for adding,
- * removing, and accessing elements in a first-in-first-out (FIFO) manner.
- * The queue is implemented using a dynamic array to allow for efficient
- * resizing and management of elements.
+ * This template implements a queue with amortized O(1) enqueue/dequeue while
+ preserving
+ * insertion order. Internally it views a `DynamicArray<Type>` as a ring buffer:
+ elements
+ * live in one contiguous allocation; the logical front is tracked by
+ `front_idx_`, and
+ * the physical index of the i-th logical element is `(front_idx_ + i) %
+ capacity()`.
  *
- * @tparam Type The type of elements stored in the queue.
+ * @tparam Type Element type stored by the queue.
+
+ * @par Performance
+ * - `enqueue` / `emplaceBack`: amortized O(1); O(n) when growth occurs.
+ * - `dequeue`: O(1) amortized; an occasional shrink is O(n).
+ * - `front` / `back`: O(1).
+ *
+ * @par Exception safety
+ * - Rebuild paths (grow/shrink) use allocate+move+commit and provide the strong
+ *   guarantee (the queue is unchanged on failure).
+ * - In-place overwrite during enqueue uses assignment; if it throws, the queue
+ *   remains valid (basic guarantee).
+ * - Accessors (`front`, `back`, `dequeue`) throw `std::out_of_range` on empty.
+ *
+ * @par Invalidation
+ * - Any reallocation (growth or shrink) invalidates all references, pointers,
+ and
+ *   iterators. In-place overwrite does not invalidate references to that slot,
+ *   but the value changes.
+ *
+ * @par Type requirements
+ * - `Type` must be MoveConstructible or CopyConstructible (for relocation).
+ * - MoveAssignable or CopyAssignable enables the fast in-place overwrite path.
+ *
+ * @par Moved-from state
+ * - A moved-from `Queue` is valid and empty (`size()==0`, `front_idx_==0`) and
+ owns
+ *   a fresh default-initialized `DynamicArray`.
+ *
+ * @par Thread-safety
+ * - Not thread-safe; external synchronization is required for concurrent use.
  */
 template <typename Type>
 class Queue {
 
-  private:
     DynamicArray<Type> array_;
     std::size_t front_idx_;
     std::size_t size_;
@@ -30,16 +67,31 @@ class Queue {
     static constexpr std::size_t SHRINK_CHECK_INTERVAL = 16;
     static constexpr std::size_t MIN_SHRINK_CAPACITY = 10;
     static constexpr std::size_t SHRINK_THRESHOLD_DIVISOR = 4;
+    static constexpr std::size_t GROWTH_FACTOR = 2;
+    static constexpr std::size_t HARD_MAX_ELEMENTS =
+        std::numeric_limits<std::size_t>::max() / sizeof(Type);
 
 
     /**
-     * @brief Helper method to get the circular index for a logical index.
+     * @brief Compute the physical index in the ring buffer for a logical
+     * position.
      *
-     * This method calculates the actual index in the underlying array
-     * based on the logical index and the current front index.
+     * Translates a 0-based logical offset from the current front into an index
+     * within the backing `DynamicArray`, wrapping via modulo by the current
+     * capacity. This is the core mapping that turns the contiguous storage into
+     * a circular queue.
      *
-     * @param logical_index The logical index of the element in the queue.
-     * @return The actual index in the underlying array.
+     * @param logical_index Offset from the front in [0, size()).
+     * @return Index into the underlying storage in [0, capacity()).
+     *
+     * Complexity: O(1).
+     *
+     * Exception safety: No-throw.
+     *
+     * @note
+     * Assumes `array_.capacity() > 0`, which is guaranteed by the underlying
+     * `DynamicArray`. Does not perform bounds checks against `size()`; callers
+     * must ensure `logical_index < size_`.
      */
     [[nodiscard]]
     std::size_t getCircularIndex(const std::size_t logical_index) const {
@@ -48,12 +100,25 @@ class Queue {
 
 
     /**
-     * @brief Helper method to get the index of the back element in the queue.
+     * @brief Compute the physical index where the next element would be
+     * enqueued.
      *
-     * This method calculates the index of the back element based on the
-     * current front index and size of the queue.
+     * Returns the ring-buffer slot immediately after the current back element,
+     * computed as `(front_idx_ + size_) % array_.capacity()`. This is the
+     * position used by `enqueue()`/`emplaceBack()` to place the next value when
+     * there is remaining capacity.
      *
-     * @return The index of the back element in the underlying array.
+     * @return Index into the underlying storage in [0, capacity()) for the next
+     * enqueue.
+     *
+     * Complexity: O(1).
+     *
+     * Exception safety: No-throw.
+     *
+     * @note
+     * This is *not* the index of the current back element. That index (when
+     * `size_ > 0`) is `(front_idx_ + size_ - 1) % array_.capacity()`. Assumes
+     * `array_.capacity() > 0` (guaranteed by `DynamicArray`).
      */
     [[nodiscard]]
     std::size_t getBackIndex() const {
@@ -62,16 +127,44 @@ class Queue {
 
 
     /**
-     * @brief Automatically manages the capacity of the queue.
+     * @brief Periodically shrink the underlying buffer when the queue becomes
+     * sparse.
      *
-     * This method checks if the queue needs to shrink its capacity based on
-     * the current size and performs the necessary resizing operations.
-     * It is called after each dequeue operation to ensure efficient memory
-     * usage.
+     * Increments an internal counter on each call (typically from `dequeue()`),
+     * and every `SHRINK_CHECK_INTERVAL` calls evaluates whether the queue is
+     * sufficiently under-utilized to justify a shrink. If `size_ <=
+     * capacity()/SHRINK_THRESHOLD_DIVISOR` and `capacity() >
+     * MIN_SHRINK_CAPACITY`, it builds a smaller buffer, moves elements in
+     * logical order, and commits the new storage, resetting `front_idx_` to 0.
+     *
+     * @par Complexity
+     * Amortized O(1) per dequeue; when a shrink is triggered, the operation
+     * performs O(size()) move constructions plus one allocation.
+     *
+     * @par Exception Safety
+     * Strong guarantee. The shrink is executed using an allocate+move+commit
+     * pattern: if allocation or any element move construction throws, all
+     * partially constructed objects in the new buffer are destroyed, the new
+     * buffer is discarded, and the original queue remains unchanged.
+     *
+     * @par Effects
+     * - Reduces capacity to `max(size_, capacity()/GROWTH_FACTOR)`, but never
+     * below `MIN_SHRINK_CAPACITY`.
+     * - Preserves FIFO order of elements.
+     * - Resets `front_idx_` to 0 on successful shrink.
+     * - Resets the periodic counter after each check (regardless of whether a
+     * shrink occurred).
+     *
+     * @par Rationale
+     * - The periodic check avoids paying the cost of a shrink heuristic on
+     * every dequeue.
+     * - The divisor threshold prevents oscillation (shrink/expand thrashing)
+     * under bursty loads.
+     * - Targeting at least `size_` ensures no immediate reallocation is needed
+     * after shrinking.
      */
     void autoManageCapacity() {
         shrink_check_counter_++;
-
         if (shrink_check_counter_ >= SHRINK_CHECK_INTERVAL) {
             shrink_check_counter_ = 0;
 
@@ -79,16 +172,163 @@ class Queue {
                 array_.capacity() > MIN_SHRINK_CAPACITY) {
 
                 DynamicArray<Type> new_array;
-                new_array.reserve(std::max(size_, array_.capacity() / 2));
+                const std::size_t halved = array_.capacity() / GROWTH_FACTOR;
+                const std::size_t target = size_ > halved ? size_ : halved;
+
+                const std::size_t clamped =
+                    target < MIN_SHRINK_CAPACITY ? MIN_SHRINK_CAPACITY : target;
+
+                new_array.reserve(clamped);
 
                 for (std::size_t i = 0; i < size_; ++i) {
-                    std::size_t circular_idx = getCircularIndex(i);
-                    new_array.addLast(std::move(array_[circular_idx]));
+                    auto& src = array_[getCircularIndex(i)];
+                    if constexpr (std::is_nothrow_move_constructible_v<Type> ||
+                                  !std::is_copy_constructible_v<Type>)
+                        new_array.emplaceLast(std::move(src));
+                    else
+                        new_array.emplaceLast(src);
                 }
 
                 array_ = std::move(new_array);
                 front_idx_ = 0;
             }
+        }
+    }
+
+
+    /**
+     * @brief Grow the buffer and append a new element in one
+     * strongly-exception-safe step.
+     *
+     * Computes a larger capacity using `new_cap = min(capacity()*GROWTH_FACTOR,
+     * HARD_MAX_SIZE)`, allocates a fresh `DynamicArray<Type>` with that
+     * capacity, moves current elements into the new buffer in logical (FIFO)
+     * order, then constructs the new element at the back. On success, commits
+     * the new storage (`array_ = std::move(new_array)`), resets `front_idx_` to
+     * 0, and increments `size_`.
+     *
+     * @tparam Args Argument types forwarded to `Type`'s constructor for the
+     * appended element.
+     * @param args  Constructor arguments forwarded to `Type` for the new
+     * element.
+     *
+     * @par Complexity
+     * - O(size()) move constructions plus one allocation; O(1) index
+     * arithmetic.
+     *
+     * @par Exception Safety
+     * - Strong guarantee. Uses allocate+move+commit: if allocation or any
+     * element construction (including the new element) throws, all partially
+     * constructed objects in the new buffer are destroyed, the temporary buffer
+     * is discarded, and the original queue remains unchanged.
+     *
+     * @par Effects
+     * - Capacity increases to `new_cap` (subject to `DynamicArray`'s internal
+     * maximum).
+     * - All existing elements are preserved and appear at indices `[0, size_)`
+     * in the new buffer.
+     * - The new element is appended at logical back; `front_idx_` becomes 0;
+     * `size_` increments by 1.
+     *
+     * @par Notes
+     * - Although `HARD_MAX_SIZE` guards against size_t overflow, the underlying
+     * `DynamicArray` may still throw `std::bad_alloc` if `new_cap` exceeds its
+     * element-based `MAX_CAPACITY`.
+     * - Preserves element order and stability (relative order of existing
+     * elements).
+     */
+    template <typename... Args>
+    void reallocateAndPush(Args&&... args) {
+        const std::size_t cap = array_.capacity();
+
+        if (cap >= HARD_MAX_ELEMENTS)
+            throw std::length_error("Queue capacity exceeded");
+
+        const std::size_t new_cap =
+        (cap > HARD_MAX_ELEMENTS / GROWTH_FACTOR) ? HARD_MAX_ELEMENTS
+                                                  : cap * GROWTH_FACTOR;
+
+        DynamicArray<Type> new_array;
+        new_array.reserve(new_cap);
+
+        for (std::size_t i = 0; i < size_; ++i) {
+            auto& src = array_[getCircularIndex(i)];
+            if constexpr (std::is_nothrow_move_constructible_v<Type> ||
+                          !std::is_copy_constructible_v<Type>)
+                new_array.emplaceLast(std::move(src));
+            else
+                new_array.emplaceLast(src);
+        }
+
+        new_array.emplaceLast(std::forward<Args>(args)...);
+        array_ = std::move(new_array);
+        front_idx_ = 0;
+        ++size_;
+    }
+
+
+    /**
+     * @brief Push a new element at the logical back, reusing storage when
+     * possible.
+     *
+     * Chooses the most efficient path to append:
+     *  - If the queue is full (`size_ == array_.capacity()`), grow and append
+     * via `reallocateAndPush(args...)` (allocate + move + commit).
+     *  - Else, compute the physical back slot `back_idx = getBackIndex()`.
+     *     - If `back_idx >= array_.size()`, the slot lies in the unconstructed
+     * tail, so construct in place via `array_.emplaceLast(args...)`.
+     *     - Otherwise, the slot already holds a (logically unused) live object;
+     * for assignable `Type`, construct a temporary from `args...` and assign
+     *       `array_[back_idx] = std::move(tmp)` to overwrite it without
+     * reallocation. For non-assignable `Type`, fall back to
+     * `reallocateAndPush(args...)`.
+     *
+     * @tparam Args Argument types forwarded to `Type`'s constructor.
+     * @param args  Constructor arguments forwarded to create/assign the new
+     * value.
+     *
+     * @par Complexity
+     * - Amortized O(1).
+     * - O(n) only when a growth reallocation occurs (moves `size_` elements).
+     * - O(1) when appending into the unconstructed tail or overwriting an
+     * existing slot.
+     *
+     * @par Exception Safety
+     * - Growth path (`reallocateAndPush`): strong guarantee via
+     * allocate+move+commit (the queue is unchanged on failure).
+     * - Tail construction path (`emplaceLast`): strong guarantee (if
+     * construction throws, neither `array_` nor `size_` changes).
+     * - Overwrite path (assignable `Type`): strong guarantee for the queue. A
+     * temporary is constructed first; if that throws, nothing changes. The
+     * assignment occurs before incrementing `size_`; if assignment throws, the
+     * queue’s logical state remains unchanged (the overwritten slot was not
+     * part of the logical queue).
+     *
+     * @par Invalidation
+     * - Only the growth path invalidates references/iterators. The
+     * overwrite/tail paths keep the underlying buffer and indices stable.
+     */
+    template <typename... Args>
+    void pushBack(Args&&... args) {
+        if (size_ == array_.capacity()) {
+            reallocateAndPush(std::forward<Args>(args)...);
+            return;
+        }
+
+        const std::size_t back_idx = getBackIndex();
+        if (back_idx >= array_.size()) {
+            array_.emplaceLast(std::forward<Args>(args)...);
+            ++size_;
+            return;
+        }
+
+        if constexpr (std::is_move_assignable_v<Type> ||
+                      std::is_copy_assignable_v<Type>) {
+            Type tmp(std::forward<Args>(args)...);
+            array_[back_idx] = std::move(tmp);
+            ++size_;
+        } else {
+            reallocateAndPush(std::forward<Args>(args)...);
         }
     }
 
@@ -117,7 +357,7 @@ class Queue {
         : array_(initial_data, initial_size), front_idx_(0),
           size_(initial_size) {}
 
-    // Copy constructor
+    /// Copy constructor
     Queue(const Queue& other) : array_(), front_idx_(0), size_(0) {
         array_.reserve(other.size_);
         for (std::size_t i = 0; i < other.size_; ++i) {
@@ -141,18 +381,17 @@ class Queue {
         if (this == &other)
             return *this;
 
-        array_.clear();
-        front_idx_ = 0;
-        size_ = 0;
-
-        array_.reserve(other.size_);
+        DynamicArray<Type> new_array;
+        new_array.reserve(other.size_);
 
         for (std::size_t i = 0; i < other.size_; ++i) {
-            std::size_t src_idx = other.getCircularIndex(i);
-            array_.addLast(other.array_[src_idx]);
+            const std::size_t src_idx = other.getCircularIndex(i);
+            new_array.addLast(other.array_[src_idx]);
         }
-        size_ = other.size_;
 
+        array_ = std::move(new_array);
+        front_idx_ = 0;
+        size_ = other.size_;
         return *this;
     }
 
@@ -165,6 +404,7 @@ class Queue {
         front_idx_ = other.front_idx_;
         size_ = other.size_;
 
+        other.array_ = DynamicArray<Type>{};
         other.front_idx_ = 0;
         other.size_ = 0;
 
@@ -192,76 +432,92 @@ class Queue {
 
 
     /**
-     * @brief Adds an element to the back of the queue.
+     * @brief Enqueue (append) a new element at the logical back of the queue.
      *
-     * This method adds an element to the back of the queue. If the queue is
-     * full, it automatically resizes the underlying dynamic array to
-     * accommodate the new element. The element must be of the same type as the
-     * queue's type.
+     * Perfect-forwards the argument into the queue. If there is spare capacity,
+     * the element is placed at the ring-buffer slot returned by
+     * `getBackIndex()`. Depending on `Type`:
+     *  - If the slot lies in the unconstructed tail of the underlying
+     * `DynamicArray`, the element is constructed in-place.
+     *  - If the slot already holds a live (but logically unused) object and
+     * `Type` is assignable, a temporary is constructed from `element` and
+     * assigned into that slot (no reallocation).
+     *  - Otherwise, the queue grows its capacity (by `GROWTH_FACTOR`) and
+     * appends into a fresh buffer in logical order (allocate + move + commit).
      *
-     * @complexity O(1) on average, O(n) in the worst case when resizing is
-     * needed.
+     * @tparam U  A type that can construct `Type` (via perfect forwarding).
+     * @param element  The value to enqueue.
      *
-     * @tparam U The type of the element to be added. It must be the same as the
-     * queue's type.
+     * @par Complexity
+     * - Amortized O(1). O(n) only when a growth reallocation occurs (moves
+     * `size()` elements).
      *
-     * @param element The element to be added to the queue.
+     * @par Exception Safety
+     * - Growth path: **strong guarantee** via allocate+move+commit (the queue
+     * is unchanged on failure).
+     * - Tail construction path: strong (if construction throws, neither storage
+     * nor `size_` changes).
+     * - Overwrite path (assignable `Type`): strong for the queue; a temporary
+     * is constructed first, so if construction or assignment throws, the
+     * logical state does not change.
+     * - May throw `std::bad_alloc` during growth.
+     *
+     * @par Invalidation
+     * - Only the growth path invalidates references/pointers/iterators;
+     * in-place paths do not.
      */
     template <typename U>
     void enqueue(U&& element) {
         static_assert(std::is_constructible_v<Type, U&&>,
                       "Element must be constructible into Type");
-
-        if (size_ == array_.capacity()) {
-            std::size_t new_capacity = array_.capacity() > SIZE_MAX / 2
-                                           ? SIZE_MAX
-                                           : array_.capacity() * 2;
-
-            DynamicArray<Type> new_array;
-            new_array.reserve(new_capacity);
-
-            for (std::size_t i = 0; i < size_; ++i) {
-                std::size_t circular_idx = getCircularIndex(i);
-                new_array.addLast(std::move(array_[circular_idx]));
-            }
-
-            new_array.addLast(std::forward<U>(element));
-            array_ = std::move(new_array);
-            front_idx_ = 0;
-            size_++;
-        } else {
-            std::size_t back_idx = getBackIndex();
-            if (back_idx >= array_.size())
-                array_.addLast(std::forward<U>(element));
-            else {
-                array_[back_idx].~Type();
-                new (&array_[back_idx]) Type(std::forward<U>(element));
-            }
-            size_++;
-        }
+        pushBack(std::forward<U>(element));
     }
 
 
     /**
-     * @brief Removes and returns the front element of the queue.
+     * @brief Dequeue (remove) the front element and return it by value.
      *
-     * If the queue is empty, it throws an out_of_range exception.
+     * Moves the current front element out of the queue and advances
+     * `front_idx_` modulo the current capacity, then decrements `size_`. The
+     * removed slot’s object is left in a valid moved-from state (its destructor
+     * will run later when the buffer is rebuilt/shrunk, overwritten by
+     * assignment, or the queue is cleared/destroyed). Periodically, a shrink
+     * check may run and rebuild the buffer into a smaller capacity.
      *
-     * @complexity O(1) for removing an element.
-     *
-     * @return The front element of the queue.
+     * @return The removed front element (moved).
      * @throws std::out_of_range if the queue is empty.
+     *
+     * @par Complexity
+     * - O(1) for the dequeue itself; an occasional shrink is O(n).
+     *
+     * @par Exception Safety
+     * - Moving the front element into the return value occurs first. If that
+     * move construction throws, no state is changed (strong for the removal
+     * step).
+     * - The subsequent periodic shrink (if attempted) uses allocate+move+commit
+     * (strong for the shrink itself). If it throws (e.g., `std::bad_alloc` or
+     * element move/copy throws), the element has already been removed; the
+     * exception is propagated afterward.
+     *
+     * @par Postconditions
+     * - `size()` decreased by 1; `front_idx_` advanced modulo `capacity()`.
+     * - FIFO order of remaining elements is preserved.
+     *
+     * @par Notes
+     * - Deferring destruction of the popped slot enables fast in-place
+     * overwrites on later enqueues for assignable `Type`. For resource-heavy
+     * types, memory may be released earlier if a shrink or rebuild happens soon
+     * after.
      */
     Type dequeue() {
         if (isEmpty())
             throw std::out_of_range("Queue is empty");
 
         Type element = std::move(array_[front_idx_]);
-        array_[front_idx_].~Type();
         front_idx_ = (front_idx_ + 1) % array_.capacity();
-        size_--;
-
+        --size_;
         autoManageCapacity();
+
         return element;
     }
 
@@ -335,50 +591,35 @@ class Queue {
 
 
     /**
-     * @brief Adds a new element to the back of the queue, constructing it in
-     * place.
+     * @brief Enqueue by constructing the element in place at the logical back.
      *
-     * This method forwards the provided arguments to the constructor of Type
-     * and constructs the new element at the back of the queue. If the queue is
-     * full, it automatically resizes the underlying dynamic array to
-     * accommodate the new element.
+     * Perfect-forwards `args...` to `Type`'s constructor. Behavior mirrors
+     * `enqueue`: constructs in the uninitialized tail when available,
+     * overwrites an existing back slot via assignment for assignable `Type`, or
+     * grows the buffer and appends into a fresh allocation (allocate + move +
+     * commit).
      *
-     * @complexity O(1) on average, O(n) in the worst case when resizing is
-     * needed.
+     * @tparam Args  Argument types forwarded to `Type`'s constructor.
+     * @param args   Constructor arguments for the new element.
      *
-     * @tparam Args Types of arguments to be forwarded to the constructor of
-     * Type.
-     * @param args Arguments to be forwarded to the constructor of Type.
+     * @par Complexity
+     * - Amortized O(1); O(n) only when a growth reallocation occurs.
+     *
+     * @par Exception Safety
+     * - Growth path: **strong guarantee** (the queue is unchanged on failure).
+     * - Tail construction path: strong (if construction throws, nothing
+     * changes).
+     * - Overwrite path (assignable `Type`): strong for the queue; a temporary
+     * is constructed first, so if construction/assignment throws, the logical
+     * state is unchanged.
+     * - May throw `std::bad_alloc` during growth.
+     *
+     * @par Invalidation
+     * - Only the growth path invalidates references/pointers/iterators.
      */
     template <typename... Args>
     void emplaceBack(Args&&... args) {
-        if (size_ == array_.capacity()) {
-            std::size_t new_capacity = array_.capacity() > SIZE_MAX / 2
-                                           ? SIZE_MAX
-                                           : array_.capacity() * 2;
-
-            DynamicArray<Type> new_array;
-            new_array.reserve(new_capacity);
-
-            for (std::size_t i = 0; i < size_; ++i) {
-                std::size_t circular_idx = getCircularIndex(i);
-                new_array.addLast(std::move(array_[circular_idx]));
-            }
-
-            new_array.emplaceLast(std::forward<Args>(args)...);
-            array_ = std::move(new_array);
-            front_idx_ = 0;
-            size_++;
-        } else {
-            std::size_t back_idx = getBackIndex();
-            if (back_idx >= array_.size()) {
-                array_.emplaceLast(std::forward<Args>(args)...);
-            } else {
-                array_[back_idx].~Type();
-                new (&array_[back_idx]) Type(std::forward<Args>(args)...);
-            }
-            size_++;
-        }
+        pushBack(std::forward<Args>(args)...);
     }
 
 
@@ -406,7 +647,6 @@ class Queue {
 
         friend class const_iterator;
 
-      private:
         Queue& queue_;
         std::size_t index_;
 
@@ -466,12 +706,12 @@ class Queue {
 
         /// Equality operator for iterator comparison
         bool operator==(const iterator& other) const {
-            return index_ == other.index_;
+            return &queue_ == &other.queue_ && index_ == other.index_;
         }
 
         /// Inequality operator for iterator comparison
         bool operator!=(const iterator& other) const {
-            return index_ != other.index_;
+            return !(*this == other);
         }
     };
 
@@ -486,7 +726,6 @@ class Queue {
      * iterators.
      */
     class const_iterator {
-      private:
         const Queue& queue_;
         std::size_t index_;
 
@@ -495,6 +734,7 @@ class Queue {
         explicit const_iterator(const Queue& queue, const std::size_t index)
             : queue_(queue), index_(index) {}
 
+        /// Constructor for conversion from non-const iterator
         explicit const_iterator(const iterator& other)
             : queue_(other.queue_), index_(other.index_) {}
 
@@ -549,21 +789,25 @@ class Queue {
 
         /// Equality operator for iterator comparison
         bool operator==(const const_iterator& other) const {
-            return index_ == other.index_;
+            return &queue_ == &other.queue_ && index_ == other.index_;
         }
 
         /// Inequality operator for iterator comparison
         bool operator!=(const const_iterator& other) const {
-            return index_ != other.index_;
+            return !(*this == other);
         }
     };
 
+
+    // --- Iterator support for range-based for loops ---
 
     iterator begin() { return iterator(*this, 0); }
     iterator end() { return iterator(*this, size_); }
 
     const_iterator begin() const { return const_iterator(*this, 0); }
     const_iterator end() const { return const_iterator(*this, size_); }
+
+    // --- C++11 range-based for loop support ---
 
     const_iterator cbegin() const { return begin(); }
     const_iterator cend() const { return end(); }

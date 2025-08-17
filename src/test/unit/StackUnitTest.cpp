@@ -8,7 +8,7 @@
 #include "ThrowingType.hpp"
 
 
-class StackUnitTest : public ::testing::Test {
+class StackUnitTest : public testing::Test {
   protected:
     void SetUp() override {
         // Setup code that runs before each test
@@ -349,7 +349,7 @@ TEST_F(StackUnitTest, StringType) {
 TEST_F(StackUnitTest, CustomObjectType) {
     struct Point {
         int x, y;
-        explicit Point(int x = 0, int y = 0) : x(x), y(y) {}
+        explicit Point(const int x = 0, const int y = 0) : x(x), y(y) {}
         bool operator==(const Point& other) const {
             return x == other.x && y == other.y;
         }

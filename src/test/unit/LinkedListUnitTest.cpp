@@ -9,7 +9,7 @@
 #include "ThrowingType.hpp"
 
 
-class LinkedListUnitTest : public ::testing::Test {
+class LinkedListUnitTest : public testing::Test {
   protected:
     void SetUp() override {
         // Setup code that runs before each test
@@ -506,7 +506,7 @@ TEST_F(LinkedListUnitTest, StringType) {
 TEST_F(LinkedListUnitTest, CustomObjectType) {
     struct Point {
         int x, y;
-        explicit Point(int x = 0, int y = 0) : x(x), y(y) {}
+        explicit Point(const int x = 0, const int y = 0) : x(x), y(y) {}
         bool operator==(const Point& other) const {
             return x == other.x && y == other.y;
         }
@@ -741,9 +741,8 @@ TEST_F(LinkedListUnitTest, RangeBasedTraversalHandlesEmpty) {
 
     EXPECT_EQ(expeceted, 4);
 
-    LinkedList<int> empty;
     int count = 0;
-    for (const int item : empty) {
+    for (LinkedList<int> empty ;const int item : empty) {
         (void)item; // Suppress unused variable warning
         ++count;
     }
