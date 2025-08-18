@@ -7,21 +7,33 @@
 
 /**
  * @class BinarySearchTree
+ * @brief Unbalanced binary search tree storing elements of type `Type`.
  *
- * A binary search tree data structure that stores elements of a given type.
+ * Each node has up to two children. The BST invariant is strict ordering:
+ * for every node N, all values in N->left are < N->data and all values in
+ * N->right are > N->data. Equal values are ignored (no duplicate insert).
  *
- * The binary search tree is a binary tree data structure in which each node has
- * at most two children, referred to as the left child and the right child. The
- * tree is defined recursively, with each child node being the root of its own
- * subtree.
+ * @tparam Type Element type.
  *
- * The binary search tree is a special type of binary tree in which the elements
- * are ordered in a specific way. For each node, all elements in the left
- * subtree are less than the node's element, and all elements in the right
- * subtree are greater than the node's element. This ordering property allows
- * for efficient search, insertion, and deletion operations.
+ * @par Type requirements
+ * - `Type` must be MoveConstructible or CopyConstructible (node storage).
+ * - A strict weak ordering via `operator<` must be defined for `Type`
+ *   (search/validation).  (Tip: you can implement comparisons using only `<`.)
  *
- * @tparam Type The type of elements stored in the binary search tree.
+ * @par Behavior & guarantees
+ * - Not self-balancing; shape depends on insertion order.
+ * - Parent pointers are maintained in nodes.
+ * - Duplicate policy: duplicates are not inserted.
+ *
+ * @par Complexity (typical operations)
+ * - Average (random-ish data): O(log n) height ⇒ insert/find/remove ~ O(log n).
+ * - Worst case (degenerate/unbalanced): height O(n) ⇒ operations ~ O(n).
+ * - Space: O(n) nodes; recursion depth up to tree height.
+ *
+ * @par Exception safety
+ * - Insert/remove propagate exceptions from allocations and `Type`
+ *   construction/move/assign. Insert offers a strong guarantee (tree
+ *   unchanged on failure).
  */
 template <typename Type>
 class BinarySearchTree : public BinaryTree<Type> {
@@ -29,21 +41,17 @@ class BinarySearchTree : public BinaryTree<Type> {
     /**
      * Recursively inserts an element into a binary search tree.
      *
-     * This method traverses the tree to find the appropriate position for the
-     * new element. If the tree is empty, the element becomes the root. If the
-     * element is less than the current node's data, it is inserted into the
-     * left subtree; if greater, into the right subtree.
+     * Traverses from `node` to find the proper spot: values less than go left,
+     * greater go right. Equal values are ignored (no duplicate insert). If
+     * `node` is null, creates a new node and links its parent.
      *
-     * @complexity Average and worst case insertion is O(n).
+     * @tparam U  Value type constructible into `Type`.
+     * @param node    Reference to the current child pointer being examined.
+     * @param element Value to insert.
+     * @param parent  Parent of the current node (used when creating a child).
      *
-     * @tparam U The type of the element to be inserted. Must be constructible
-     * into Type.
-     *
-     * @param node A reference to a pointer to the current node being examined
-     * or modified.
-     * @param element The element to be inserted into the tree.
-     * @param parent A pointer to the parent node of the current node being
-     * examined (optional).
+     * @complexity Time: O(h) where h is the tree height (avg ~ O(log n), worst
+     * O(n)); Space: O(h) recursion depth.
      */
     template <typename U>
     void recursiveInsert(Node<Type>*& node, U&& element,
@@ -66,21 +74,19 @@ class BinarySearchTree : public BinaryTree<Type> {
 
 
     /**
-     * Recursively removes an element from a binary search tree.
+     * Recursively removes an element from a BST.
      *
-     * This method traverses the tree to locate the node containing
-     * the specified element. If the element is found, it is removed
-     * according to standard binary search tree removal logic:
-     * - If the node has no children, it is simply deleted.
-     * - If the node has one child, the child replaces the node.
-     * - If the node has two children, the node is replaced with
-     *   the smallest element from its right subtree, and the removal
-     *   is recursively applied to that subtree.
+     * Cases:
+     * - Leaf: delete node.
+     * - One child: splice child up, fix parent pointer.
+     * - Two children: replace with in-order successor (min of right subtree),
+     *   then erase that successor from the right subtree.
      *
-     * @complexity Average and worst case removal is O(n).
+     * @param node    Reference to the current child pointer being examined.
+     * @param element Value to remove.
      *
-     * @param node A pointer to the current node being examined or modified.
-     * @param element The element to be removed from the tree.
+     * @complexity Time: O(h) (avg ~ O(log n), worst O(n)); Space: O(h)
+     * recursion.
      */
     void recursiveRemove(Node<Type>*& node, const Type& element) {
         if (node == nullptr)
@@ -144,6 +150,31 @@ class BinarySearchTree : public BinaryTree<Type> {
 
 
     /**
+     * Finds the node with the minimum value in a subtree.
+     *
+     * This method traverses the left children of a given node
+     * to locate the leftmost node, which contains the smallest value
+     * in the subtree. If the provided node is nullptr, the method
+     * returns nullptr.
+     *
+     * @complexity O(h), where h is the height of the subtree.
+     *
+     * @param node A const pointer to the root of the subtree in which to find
+     * the minimum node.
+     * @return A const pointer to the node containing the minimum value in the
+     * subtree, or nullptr if the subtree is empty.
+     */
+    static const Node<Type>* findMinNode(const Node<Type>* node) {
+        if (node == nullptr)
+            return nullptr;
+
+        while (node->left != nullptr)
+            node = node->left;
+        return node;
+    }
+
+
+    /**
      * Finds the node with the maximum value in a subtree.
      *
      * This method traverses the right children of a given node
@@ -158,7 +189,32 @@ class BinarySearchTree : public BinaryTree<Type> {
      * @return A pointer to the node containing the maximum value in the
      * subtree, or nullptr if the subtree is empty.
      */
-    static const Node<Type>* findMaxNode(Node<Type>* node) {
+    static Node<Type>* findMaxNode(Node<Type>* node) {
+        if (node == nullptr)
+            return nullptr;
+
+        while (node->right != nullptr)
+            node = node->right;
+        return node;
+    }
+
+
+    /**
+     * Finds the node with the maximum value in a subtree.
+     *
+     * This method traverses the right children of a given node
+     * to locate the rightmost node, which contains the largest value
+     * in the subtree. If the provided node is nullptr, the method
+     * returns nullptr.
+     *
+     * @complexity O(h), where h is the height of the subtree.
+     *
+     * @param node A const pointer to the root of the subtree in which to find
+     * the maximum node.
+     * @return A const pointer to the node containing the maximum value in the
+     * subtree, or nullptr if the subtree is empty.
+     */
+    static const Node<Type>* findMaxNode(const Node<Type>* node) {
         if (node == nullptr)
             return nullptr;
 
@@ -174,8 +230,8 @@ class BinarySearchTree : public BinaryTree<Type> {
         if (node == nullptr)
             return true;
 
-        if ((minVal != nullptr && node->data <= *minVal) ||
-            (maxVal != nullptr && node->data >= *maxVal))
+        if ((minVal && !(*minVal < node->data)) ||
+            (maxVal && !(node->data < *maxVal)))
             return false;
 
         return isValidBSTHelper(node->left, minVal, &node->data) &&
@@ -225,28 +281,42 @@ class BinarySearchTree : public BinaryTree<Type> {
     }
 
 
-    /// Checks if the binary tree is a valid BST.
+    /**
+     * @brief Verify the BST invariant (strict ordering) over the whole tree.
+     * @return true if every node N satisfies (all left < N.data < all right).
+     *
+     * @par Complexity
+     * - Time: O(n), Space: O(h) recursion depth.
+     *
+     * @par Notes
+     * - Uses only `operator<` on `Type` (strict ordering).
+     */
     [[nodiscard]]
-    bool isValidBST() const noexcept {
+    bool isValidBST() const {
         return isValidBSTHelper(this->root_);
     }
 
 
     /**
-     * Inserts an element into the binary search tree.
+     * @brief Insert a value while maintaining the BST invariant.
      *
-     * This method inserts a new element into the binary search tree by
-     * recursively finding the appropriate position for the new element.
-     * If the tree is empty, the new element becomes the root. If the
-     * element is less than the current node's data, it is inserted into
-     * the left subtree; if greater, into the right subtree.
+     * Recursively descends from the root: values less than the current node go
+     * left, greater values go right. Equal values are ignored (no duplicate
+     * insert). If the tree is empty, the new node becomes the root.
      *
-     * @complexity Average and worst case insertion is O(n).
+     * @tparam U  A type that can construct `Type` (perfect-forwarded).
+     * @param element  The value to insert.
      *
-     * @tparam U The type of the element to be inserted. Must be constructible
-     * into Type.
+     * @par Duplicate policy
+     * - Strict BST: duplicates are **not inserted**.
      *
-     * @param element The element to be inserted into the tree.
+     * @par Complexity
+     * - Time: O(h) where h is the tree height (average ≈ O(log n), worst O(n)).
+     * - Space: O(h) recursion depth.
+     *
+     * @par Exception safety
+     * - Strong: if allocation or `Type` construction/assignment throws, the
+     * tree is unchanged.
      */
     template <typename U>
     void insert(U&& element) {
@@ -254,61 +324,66 @@ class BinarySearchTree : public BinaryTree<Type> {
     }
 
 
-    void insertLeft(const Type& element) = delete;
-    void insertRight(const Type& element) = delete;
+    template <typename U>
+    void insertLeft(U&&) = delete;
+    template <typename U>
+    void insertRight(U&&) = delete;
 
 
     /**
-     * Removes an element from the binary search tree.
+     * @brief Remove a value if present, maintaining the BST invariant.
      *
-     * This method removes a specified element from the binary search tree
-     * by recursively traversing the tree to locate the node containing the
-     * element. If the element is found, it is removed according to standard
-     * binary search tree removal logic. If the element is not found, the tree
-     * remains unchanged.
+     * Standard cases:
+     * - Leaf: delete the node.
+     * - One child: splice the child up and relink its parent.
+     * - Two children: replace node's value with the minimum from the right
+     * subtree (in-order successor), then remove that successor node.
      *
-     * @param element The element to be removed from the tree.
+     * @param element  The value to erase (if present).
+     *
+     * @par Complexity
+     * - Time: O(h) (average ≈ O(log n), worst O(n)).
+     * - Space: O(h) recursion depth.
+     *
+     * @par Exception safety
+     * - Basic/strong depending on `Type` move-assign; if assigning the
+     * successor value throws, no node is removed.
      */
     void remove(const Type& element) { recursiveRemove(this->root_, element); }
 
 
     /**
-     * Checks if the binary search tree contains a specified element.
+     * @brief Check whether a value exists in the tree.
+     * @param element The value to search for.
+     * @return true if found, false otherwise.
      *
-     * This method traverses the binary search tree to determine if
-     * a given element is present in the tree. It starts from the root
-     * and compares the element with the data of each node, moving left
-     * or right as appropriate until it either finds the element or reaches
-     * a leaf node.
-     *
-     * @param element The element to check for presence in the tree.
-     * @return True if the element is found, false otherwise.
+     * @par Complexity
+     * - Time: O(h) (average ≈ O(log n), worst O(n)).
+     * - Space: O(1).
      */
-    bool contains(const Type& element) const noexcept {
+    bool contains(const Type& element) const {
         Node<Type>* current = this->root_;
-        while (current != nullptr) {
-            if (element < current->data) {
+        while (current) {
+            if (element < current->data)
                 current = current->left;
-            } else if (element > current->data) {
+            else if (current->data < element)
                 current = current->right;
-            } else {
+            else
                 return true;
-            }
         }
         return false;
     }
 
 
     /**
-     * Finds the node with the minimum value in the binary search tree.
+     * @brief Return the smallest value in the tree.
+     * @return The minimum value.
+     * @throws std::runtime_error if the tree is empty.
      *
-     * This method traverses the left children of the root node to find
-     * the leftmost node, which contains the smallest value in the tree.
-     * If the tree is empty, it throws an exception.
-     *
-     * @return The minimum value in the binary search tree.
-     * @throws std::runtime_error If the tree is empty.
+     * @par Complexity
+     * - Time: O(h), Space: O(1).
      */
+    [[nodiscard]]
     Type findMinimum() const {
         if (this->isEmpty())
             throw std::runtime_error("Tree is empty");
@@ -317,15 +392,14 @@ class BinarySearchTree : public BinaryTree<Type> {
 
 
     /**
-     * Finds the node with the maximum value in the binary search tree.
+     * @brief Return the greatest value in the tree.
+     * @return The maximum value.
+     * @throws std::runtime_error if the tree is empty.
      *
-     * This method traverses the right children of the root node to find
-     * the rightmost node, which contains the largest value in the tree.
-     * If the tree is empty, it throws an exception.
-     *
-     * @return The maximum value in the binary search tree.
-     * @throws std::runtime_error If the tree is empty.
+     * @par Complexity
+     * - Time: O(h), Space: O(1).
      */
+    [[nodiscard]]
     Type findMaximum() const {
         if (this->isEmpty())
             throw std::runtime_error("Tree is empty");

@@ -95,7 +95,8 @@ class Queue {
      * must ensure `logical_index < size_`.
      */
     [[nodiscard]]
-    std::size_t getCircularIndex(const std::size_t logical_index) const noexcept {
+    std::size_t
+    getCircularIndex(const std::size_t logical_index) const noexcept {
         return (front_idx_ + logical_index) % array_.capacity();
     }
 
@@ -714,6 +715,12 @@ class Queue {
         bool operator!=(const iterator& other) const {
             return !(*this == other);
         }
+
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = Type;
+        using difference_type = std::ptrdiff_t;
+        using pointer = Type*;
+        using reference = Type&;
     };
 
 
@@ -797,6 +804,12 @@ class Queue {
         bool operator!=(const const_iterator& other) const {
             return !(*this == other);
         }
+
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = Type;
+        using difference_type = std::ptrdiff_t;
+        using pointer = const Type*;
+        using reference = const Type&;
     };
 
 
@@ -812,6 +825,29 @@ class Queue {
 
     const_iterator cbegin() const { return begin(); }
     const_iterator cend() const { return end(); }
+
+
+    using iterator = typename Queue::iterator;
+    using const_iterator = typename Queue::const_iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
+    reverse_iterator rend() { return reverse_iterator(begin()); }
+
+    const_reverse_iterator rbegin() const {
+        return const_reverse_iterator(end());
+    }
+    const_reverse_iterator rend() const {
+        return const_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crbegin() const {
+        return const_reverse_iterator(cend());
+    }
+    const_reverse_iterator crend() const {
+        return const_reverse_iterator(cbegin());
+    }
 };
 
 #endif // QUEUE_HPP

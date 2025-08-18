@@ -239,7 +239,7 @@ TEST_F(BinaryTreeUnitTest, FindNodeMethodsShouldWorkCorrectly) {
     EXPECT_EQ(node->data, 3);
 
     // Test findNodeLevelOrder
-    Node<int>* levelNode = tree.findNodeLevelOrder(4);
+    const Node<int>* levelNode = tree.findNodeLevelOrder(4);
     EXPECT_NE(levelNode, nullptr);
     EXPECT_EQ(levelNode->data, 4);
 

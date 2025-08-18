@@ -11,13 +11,8 @@
 
 class QueueUnitTest : public testing::Test {
   protected:
-    void SetUp() override {
-        // Setup code that runs before each test
-    }
-
-    void TearDown() override {
-        // Cleanup code that runs after each test
-    }
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 
@@ -774,7 +769,7 @@ TEST_F(QueueUnitTest, EmplaceBackWithStdStringArgs) {
 }
 
 
-TEST_F(QueueUnitTest, EmplaceBackWithCustomTye) {
+TEST_F(QueueUnitTest, EmplaceBackWithCustomType) {
     struct Record {
         int id;
         std::string name;
@@ -863,7 +858,7 @@ TEST_F(QueueUnitTest, EmplaceLastConstructsInPlace) {
     EXPECT_EQ(queue.size(), 10);
 
     for (int i = 0; i < 10; ++i) {
-        const EmplaceTest& item = queue.dequeue();
+        EmplaceTest item = queue.dequeue();
         EXPECT_EQ(item.x, i);
         EXPECT_EQ(item.y, i + 1);
     }

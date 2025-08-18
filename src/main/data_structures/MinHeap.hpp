@@ -2,29 +2,51 @@
 #define MINHEAP_HPP
 
 
+#include <type_traits>
+#include <utility>
+
 #include "Heap.hpp"
 
 
 /**
  * @class MinHeap
+ * @brief Pointer-based binary **min-heap** over `Type`.
  *
- * A specialized heap data structure that maintains the min-heap property,
- * where each parent node is less than or equal to its child nodes.
- * This class provides methods for inserting elements while ensuring the
- * min-heap property is preserved.
+ * Invariant: for every node `N`, `N->data` is **<=** each child's value.
+ * (Duplicates are allowed; equality is permitted.)
  *
- * @tparam Type The type of elements stored in the heap.
+ * @tparam Type Element type.
+ *
+ * @section ordering Ordering & requirements
+ * - Ordering uses `operator<` on `Type` (strict weak ordering assumed).
+ * - Node payloads are moved during reheapification (`swapData`), not pointers.
+ *
+ * @section behavior Behavior
+ * - `insert(U&&)`: append a new node at level-order index `size()+1`
+ *   (computed via `findNodeByPath(path >> 1)`), link `parent/left/right`,
+ *   increment `size_`, then `heapifyUp(newNode)`.
+ * - `heapifyUp(Node*)`: bubble a node **up** while `node->data < parent->data`.
+ * - `heapifyDown(Node*)`: push a node **down** by swapping with the smaller
+ * child while that child's value is `< node->data`.
+ * - `isValidHeap() const`: validates the min-heap property for
+ * testing/debugging.
+ *
+ * @section complexity Complexity
+ * - `insert`: O(log n) time, O(1) extra space.
+ * - `heapifyUp` / `heapifyDown`: O(log n) time, O(1) space.
+ * - `isValidHeap()`: O(n) time.
+ *
+ * @section exceptions Exception safety
+ * - Propagates from allocations and `Type` move/assign.
+ * - **Basic guarantee**: tree shape remains valid; values may be partially
+ * moved if `Type` operations throw during reheapification.
  */
 template <typename Type>
 class MinHeap final : public Heap<Type> {
 
     /**
-     * Restores the heap property by moving the given node upwards in the heap.
-     * Starting from the given node, this method swaps its data with its
-     * parent's data if its value is less than the parent's value, continuing
-     * until the heap property is restored or the root is reached.
-     *
-     * @param node A pointer to the node that needs to be adjusted upwards.
+     * Restores the min-heap property by moving the given node upwards.
+     * Iteratively swaps with the parent while node->data < parent->data.
      */
     void heapifyUp(Node<Type>* node) override {
         while (node && node->parent && node->data < node->parent->data) {
@@ -35,13 +57,9 @@ class MinHeap final : public Heap<Type> {
 
 
     /**
-     * Restores the heap property by moving the given node downwards in the
-     * heap. Starting from the given node, this method swaps its data with the
-     * smallest child's data if the smallest child's value is less than the
-     * current node's value, continuing recursively until the heap property is
-     * restored or the node has no children that violate the property.
-     *
-     * @param node A pointer to the node that needs to be adjusted downwards.
+     * Restores the min-heap property by moving the given node downwards.
+     * Iteratively swaps with the smaller child while that child’s value <
+     * node->data.
      */
     void heapifyDown(Node<Type>* node) override {
         while (node) {
@@ -63,7 +81,7 @@ class MinHeap final : public Heap<Type> {
 
 
     /// Checks if the heap maintains the min-heap property.
-    bool isValidMinHeap(Node<Type>* node) const {
+    static bool isValidMinHeap(const Node<Type>* node) {
         if (node == nullptr)
             return true;
 
@@ -119,6 +137,13 @@ class MinHeap final : public Heap<Type> {
      * This method creates a new node with the provided element, finds the
      * correct position in the heap based on the current size, and restores the
      * min-heap property by moving the new node upwards as necessary.
+     *
+     * @par Complexity
+     * Time: O(log n), Space: O(1).
+     *
+     * @par Exceptions
+     * Basic guarantee: structure remains valid;
+     * values may be partially moved if Type move throws.
      *
      * @tparam U The type of the element to be inserted, which must be
      * constructible into Type.

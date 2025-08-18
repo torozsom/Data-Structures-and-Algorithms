@@ -2,25 +2,76 @@
 #define STACK_HPP
 
 
+#include <stdexcept>
+#include <type_traits>
+#include <utility>
+
 #include "DynamicArray.hpp"
-#include <iostream>
 
 
 /**
- * A data structure that follows the Last In, First Out (LIFO) principle.
+ * @class Stack
+ * @brief A LIFO (last-in, first-out) container backed by a resizable contiguous
+ * buffer.
  *
- * The Stack class provides methods to add, access, and remove elements
- * from the stack. Elements can only be added to or removed from the top
- * of the stack.
+ * This template implements a classic stack interface on top of
+ * DynamicArray<Type>. Elements live in a single contiguous allocation for
+ * cache-friendly access, and all operations act on the logical “top” at the end
+ * of the buffer. Capacity management (growth/shrink and alignment) is delegated
+ * to the underlying dynamic array.
+ *
+ * @tparam Type Element type stored by the stack.
+ *
+ * @par Core semantics
+ * - push/emplace: add a new element to the top.
+ * - top/top() const: return a reference to the current top element.
+ * - pop: remove the top element and return it by value (moved).
+ * - clear: destroy all elements; size() becomes 0.
+ * - reserve: ensure capacity without changing size (helps avoid repeated
+ * growth).
+ * - shrinkToFit: reduce capacity toward the current size to release memory.
+ *
+ * @par Performance
+ * - push/emplace: amortized O(1); O(n) only when a growth reallocation occurs.
+ * - pop: O(1); may be O(n) on occasions when the underlying buffer shrinks.
+ * - top/isEmpty/size: O(1).
+ *
+ * @par Exception safety
+ * - Growth/shrink paths in the underlying DynamicArray use
+ * allocate+construct+commit and provide the strong guarantee (the stack is
+ * unchanged on failure).
+ * - Constructing a pushed/emplaced value may propagate exceptions from Type.
+ * - pop first moves the top element into the return object; if that move/copy
+ * throws, the stack state is unchanged (strong for the removal step).
+ *
+ * @par Invalidation
+ * - Any reallocation (growth or shrink) invalidates references, pointers, and
+ * iterators to stored elements. Operations that do not reallocate leave
+ * existing references valid.
+ *
+ * @par Type requirements
+ * - Type must be MoveConstructible or CopyConstructible. If Type is nothrow
+ * move-constructible, relocations prefer move over copy when growing/shrinking.
+ *
+ * @par Moved-from state
+ * - A moved-from Stack remains valid and behaves as empty (size() == 0).
+ *
+ * @par Thread-safety
+ * - Not thread-safe; external synchronization is required for concurrent
+ * access.
+ *
+ * @par Notes
+ * - Use reserve() to avoid repeated growth during predictable bursts of
+ * push/emplace.
+ * - Use shrinkToFit() to release memory after large temporary spikes.
  */
+
 template <typename Type>
 class Stack {
 
     DynamicArray<Type> array_;
 
-
   public:
-    /// Default constructor
     Stack() : array_() {}
 
     /// Constructor with initial capacity
@@ -79,79 +130,112 @@ class Stack {
     /// Clears the stack, removing all elements.
     void clear() { array_.clear(); }
 
+    /// Shrinks the underlying array to fit the current size.
+    void shrinkToFit() { array_.shrinkToFit(); }
+
 
     /**
-     * Adds an element to the top of the stack.
+     * Reserve space for at least `capacity` elements (size unchanged).
      *
-     * @complexity O(1) on average, O(n) in the worst case when resizing is
-     * needed.
+     * @par Complexity
+     * O(n) move/copy if reallocation occurs;
+     * otherwise O(1).
      *
-     * @param element The element to be added to the stack.
+     * @par Exception Safety
+     * Strong (allocate+construct+commit).
+     */
+    void reserve(const std::size_t capacity) { array_.reserve(capacity); }
+
+
+    /**
+     * Push a new element on top of the stack.
+     *
+     * @tparam U Value type that can construct `Type`.
+     * @param element The value to push (perfect-forwarded).
+     *
+     * @par Complexity
+     * Amortized O(1); O(n) when an internal growth reallocation occurs.
+     *
+     * @par Exception Safety
+     * Strong on growth (allocate+construct+commit); otherwise propagates from
+     * `Type` construction.
+     *
+     * @par Invalidation
+     * Growth reallocation invalidates references/pointers/iterators to
+     * elements.
      */
     template <typename U>
     void push(U&& element) {
+        static_assert(std::is_constructible_v<Type, U&&>,
+                      "U must be constructible into Type");
         array_.addLast(std::forward<U>(element));
     }
 
 
     /**
-     * Removes and returns the top element of the stack.
+     * Pop and return the top element by value.
      *
-     * @complexity O(1) on average, O(n) in the worst case when resizing is
-     * needed.
+     * @return The removed element (moved).
+     * @throws std::out_of_range if the stack is empty.
      *
-     * @return A reference to the top element of the stack.
-     * @throws std::out_of_range If the stack is empty.
+     * @par Complexity
+     * O(1); may become O(n) if the underlying array shrinks.
+     *
+     * @par Invalidation
+     * A shrink (triggered by the underlying array) invalidates
+     * references/pointers/iterators.
      */
     Type pop() {
         if (array_.isEmpty())
             throw std::out_of_range("Stack is empty");
-
         return array_.removeLast();
     }
 
 
     /**
-     * Retrieves the top element of the stack without removing it.
+     * Access the top element by reference.
      *
-     * @complexity O(1) for direct access.
+     * @return Reference to the top element.
+     * @throws std::out_of_range if the stack is empty.
      *
-     * @return A reference to the top element of the stack.
-     * @throws std::out_of_range If the stack is empty.
+     * Complexity: O(1).
      */
     Type& top() {
         if (array_.isEmpty())
             throw std::out_of_range("Stack is empty");
-
         return array_.getLast();
     }
 
 
     /**
-     * Retrieves the top element of the stack without removing it.
+     * Const overload of top().
      *
-     * @complexity O(1) for direct access.
+     * @return Const reference to the top element.
+     * @throws std::out_of_range if the stack is empty.
      *
-     * @return A constant reference to the top element of the stack.
-     * @throws std::out_of_range If the stack is empty.
+     * Complexity: O(1).
      */
     const Type& top() const {
         if (array_.isEmpty())
             throw std::out_of_range("Stack is empty");
-
         return array_.getLast();
     }
 
 
     /**
-     * Emplaces a new element at the top of the stack, constructing it in place
-     * using the provided arguments. If the stack is at full capacity, it
-     * resizes to accommodate the new element.
+     * Emplace-construct a new element on top of the stack.
      *
-     * @complexity O(1) on average, O(n) in the worst case when resizing is
-     * needed.
+     * @tparam Args Constructor argument types for `Type`.
+     * @param args  Arguments to forward to `Type`'s constructor.
      *
-     * @param args The arguments to be forwarded to the constructor of Type.
+     * @par Complexity
+     * Amortized O(1); O(n) if growth occurs.
+     *
+     * @par Exception Safety
+     * Strong on growth; otherwise propagates from `Type` construction.
+     *
+     * @par Invalidation
+     * Growth reallocation invalidates references/pointers/iterators.
      */
     template <typename... Args>
     void emplace(Args&&... args) {
@@ -159,20 +243,7 @@ class Stack {
     }
 
 
-    /**
-     * Reserves space for a specified number of elements in the stack.
-     *
-     * This method allows pre-allocation of memory to avoid frequent
-     * reallocations when adding elements.
-     *
-     * @param capacity The number of elements to reserve space for.
-     */
-    void reserve(const std::size_t capacity) { array_.reserve(capacity); }
-
-
-    /// Destructor
     ~Stack() = default;
 };
-
 
 #endif // STACK_HPP

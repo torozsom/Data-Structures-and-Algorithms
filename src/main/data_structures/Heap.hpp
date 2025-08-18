@@ -2,24 +2,56 @@
 #define HEAP_HPP
 
 
-#include "BinaryTree.hpp"
 #include <limits>
+#include <utility>
+
+#include "BinaryTree.hpp"
 
 
 /**
- * @class Heap: Abstract class
+ * @class Heap
+ * @brief Abstract base for pointer-based binary heaps over `Type`.
  *
- * A generic heap data structure that stores elements of a given type.
- * The heap is a binary tree structure that satisfies the heap property,
- * which depends on the type of heap (min-heap or max-heap).
+ * Supplies the shape management and shared mechanics for a heap stored as a
+ * *complete* binary tree of linked nodes (with `parent/left/right`). Ordering
+ * (min/max) is delegated to derived classes via `heapifyUp` / `heapifyDown`.
  *
- * In a min-heap, the parent node is less than or equal to its children, while
- * in a max-heap, the parent node is greater than or equal to its children. The
- * heap structure is commonly used to implement priority queues and sorting
- * algorithms. This class provides common functionality for both min-heaps and
- * max-heaps.
+ * @tparam Type Element type. Must be MoveConstructible or CopyConstructible.
  *
- * @tparam Type The type of elements stored in the heap.
+ * @section shape Shape & storage
+ * - The tree is always complete: levels are filled left-to-right.
+ * - Child/parent placement is computed by bit-walking a 1-based level-order
+ *   index (see `findNodeByPath()`).
+ * - Nodes store `Type` by value; swaps move payloads, not pointers.
+ *
+ * @section base What the base provides
+ * - `extractRoot()` — remove & return the root, then restore the heap via
+ *   `heapifyDown()`; **O(log n)**.
+ * - `peekRoot()` — read (or move from, rvalue overload) the root without
+ * removal; **O(1)**.
+ * - Helpers: `findNodeByPath()`, `findLastNode()`, `swapData()`.
+ * - Deleted `insertLeft/insertRight` to protect the complete-tree invariant.
+ *
+ * @section derived What derived classes must provide
+ * - `heapifyUp(Node*)` and `heapifyDown(Node*)` to enforce their ordering.
+ * - `isValidHeap() const` for validation/testing.
+ * - An `insert(U&&)` that:
+ *    1) creates a new node at index `size()+1` using `findNodeByPath(path>>1)`,
+ *    2) links `parent/left/right`, increments `size_`,
+ *    3) calls `heapifyUp(newNode)`.
+ *
+ * @par Duplicate policy
+ * Duplicates are allowed; ordering semantics are defined by the derived type.
+ *
+ * @par Complexity
+ * - `extractRoot()`: O(log n) time, O(1) extra space.
+ * - `peekRoot()`: O(1) time/space.
+ * - `findNodeByPath()`: O(log n) time, O(1) space.
+ *
+ * @par Exception safety
+ * Operations propagate exceptions from `Type` move/assign. The base offers the
+ * **basic** guarantee: the tree remains structurally valid; element values may
+ * be partially moved if a `Type` operation throws.
  */
 template <typename Type>
 class Heap : public BinaryTree<Type> {
@@ -30,38 +62,37 @@ class Heap : public BinaryTree<Type> {
 
 
     /**
-     * @brief Finds a node in the complete binary tree (heap) using bit
-     * manipulation.
+     * @brief Find a node by its 1-based array index in the complete tree.
      *
-     * This method determines the path to the node by examining the binary
-     * representation of the node's index. After finding the most significant
-     * bit (MSB), it uses the remaining bits to navigate the tree: 0 for left
-     * child and 1 for right child.
+     * Interprets `index` in binary, skips the most-significant bit (the root),
+     * then walks remaining bits high→low: bit 0 = go left, bit 1 = go right.
      *
-     * The implementation uses efficient bit manipulation operations:
-     * - MSB detection through right-shifting
-     * - Bitwise AND for path determination
+     * @param idx 1-based index (1 = root).
+     * @return Pointer to the node at that index, or nullptr if the path is
+     * invalid.
      *
-     * @param path The index of the node to find.
-     * @return Pointer to the node at index n, or nullptr if not found.
-     *
-     * @complexity Time: O(log n) where n is the number of nodes
-     * @complexity Space: O(1) - uses only a constant amount of extra space
+     * @complexity Time: O(log n); Space: O(1).
      */
-    Node<Type>* findNodeByPath(const std::size_t path) const {
+    Node<Type>* findNodeByPath(const std::size_t idx) const noexcept {
         if (this->isEmpty())
             return nullptr;
 
+        if (idx == 0)
+            return nullptr;
+
+        if (idx == 1)
+            return this->root_;
+
         std::size_t msb = static_cast<size_t>(1)
                           << (std::numeric_limits<size_t>::digits - 1);
-        while (msb > 0 && !(path & msb))
+        while (msb > 0 && !(idx & msb))
             msb >>= 1;
 
         Node<Type>* current = this->root_;
         msb >>= 1;
 
         while (msb && current) {
-            if (path & msb)
+            if (idx & msb)
                 current = current->right;
             else
                 current = current->left;
@@ -82,20 +113,21 @@ class Heap : public BinaryTree<Type> {
      * @return Pointer to the last node in the heap, or nullptr if the heap is
      * empty.
      */
-    Node<Type>* findLastNode() const { return findNodeByPath(this->size()); }
+    Node<Type>* findLastNode() const noexcept {
+        return findNodeByPath(this->size());
+    }
 
 
     /**
-     * Swaps the data stored in two nodes of the binary tree.
+     * @brief Swap the payloads of two nodes using move operations.
      *
-     * This method exchanges the `data` field of the two provided nodes. If
-     * either node is null, the method does nothing.
+     * No effect if either pointer is null or both pointers are equal.
+     * May propagate exceptions from `Type` move construction/assignment.
      *
-     * @param node1 Pointer to the first node involved in the swap operation.
-     * @param node2 Pointer to the second node involved in the swap operation.
+     * @complexity O(1).
      */
-    void swapData(Node<Type>* node1, Node<Type>* node2) {
-        if (node1 == nullptr || node2 == nullptr)
+    void swapData(Node<Type>* node1, Node<Type>* node2) noexcept {
+        if (!node1 || !node2 || node1 == node2)
             return;
 
         Type temp = std::move(node1->data);
@@ -126,63 +158,75 @@ class Heap : public BinaryTree<Type> {
         return *this;
     }
 
-    void insertLeft(const Type& element) = delete;
-    void insertRight(const Type& element) = delete;
+    template <typename U>
+    void insertLeft(U&&) = delete;
+    template <typename U>
+    void insertRight(U&&) = delete;
 
     [[nodiscard]]
     virtual bool isValidHeap() const = 0;
 
 
     /**
-     * Removes and returns the root element of the heap, maintaining the heap
-     * property.
+     * @brief Remove and return the root while maintaining the heap property.
      *
-     * This method retrieves the value of the root node, then replaces the root
-     * with the value of the last node in level-order. After removing the last
-     * node, the heap property is restored by a downward adjustment from the
-     * root. If the heap is empty, an exception is thrown.
+     * Swaps the root with the last node (by 1-based level-order index),
+     * unlinks and deletes the last node, then heapifies down from the root.
      *
-     * @return The value of the root element that was removed from the heap.
-     * @throws std::out_of_range If the heap is empty.
+     * @return The former root value (moved).
+     * @throws std::out_of_range if the heap is empty.
+     *
+     * @complexity Time: O(log n); Space: O(1).
      */
     Type extractRoot() {
         if (this->isEmpty())
-            throw std::out_of_range("Heap is empty. Cannot extract root.");
+            throw std::out_of_range("Heap is empty");
+        Type out = std::move(this->root_->data);
 
-        Type rootValue = std::move(this->root_->data);
-
-        if (Node<Type>* lastNode = findLastNode(); lastNode == this->root_) {
+        Node<Type>* last = findLastNode();
+        if (last == this->root_) {
             delete this->root_;
             this->root_ = nullptr;
             this->size_ = 0;
-        } else {
-            this->root_->data = std::move(lastNode->data);
-
-            if (lastNode->parent->left == lastNode)
-                lastNode->parent->left = nullptr;
-            else
-                lastNode->parent->right = nullptr;
-
-            delete lastNode;
-            --this->size_;
-            heapifyDown(this->root_);
+            return out;
         }
 
-        return rootValue;
+        this->swapData(this->root_, last);
+
+        if (last->parent->left == last)
+            last->parent->left = nullptr;
+        else
+            last->parent->right = nullptr;
+
+        delete last;
+        --this->size_;
+        heapifyDown(this->root_);
+        return out;
     }
 
 
     /**
-     * Retrieves and returns the value stored at the root of the heap.
-     *
-     * This method provides access to the root element of the heap without
-     * removing it. If the heap is empty, an exception is thrown to indicate the
-     * error.
-     *
-     * @return The value stored at the root of the heap.
-     * @throws std::out_of_range If the heap is empty.
+     * @brief Move out the root value from an rvalue heap without removing it.
+     * @return The root value (moved).
+     * @throws std::out_of_range if the heap is empty.
+     * @complexity O(1).
      */
-    Type peekRoot() const {
+    [[nodiscard]]
+    Type peekRoot() && {
+        if (this->isEmpty())
+            throw std::out_of_range("Heap is empty");
+        return std::move(this->root_->data);
+    }
+
+
+    /**
+     * @brief Access the root value without removing it.
+     * @return Const reference to the root value.
+     * @throws std::out_of_range if the heap is empty.
+     * @complexity O(1).
+     */
+    [[nodiscard]]
+    const Type& peekRoot() const& {
         if (this->isEmpty())
             throw std::out_of_range("Heap is empty");
         return this->root_->data;

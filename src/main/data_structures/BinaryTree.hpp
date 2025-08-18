@@ -2,14 +2,25 @@
 #define BINARYTREE_HPP
 
 
-#include "Queue.hpp"
+#include <cassert>
 #include <stdexcept>
+#include <type_traits>
+#include <utility>
+
+#include "Queue.hpp"
 
 
 /**
- * Represents a node in a binary tree structure.
+ * @struct Node
+ * @brief Represents a node in a binary tree.
  *
- * @tparam Type The data type stored in the node.
+ * Each node contains data of type `Type`, pointers to its parent, left child,
+ * and right child. The `Node` class is templated to allow for any data type.
+ * The constructor allows for constructing a node with any type `U` that is
+ * constructible from `Type`, while preventing direct instantiation of `Node`
+ * with `Node` itself.
+ *
+ * @tparam Type Element type stored in the node.
  */
 template <typename Type>
 struct Node {
@@ -28,13 +39,31 @@ struct Node {
 
 /**
  * @class BinaryTree
- * A binary tree data structure that stores elements of a given type.
+ * @brief A generic binary tree storing elements of type `Type`.
  *
- * The binary tree is a tree data structure in which each node has at most two
- * children, referred to as the left child and the right child. The tree is
- * defined recursively, with each child node being the root of its own subtree.
+ * Each node has up to two children (`left`, `right`). Insertion via `insert()`
+ * follows level-order (breadth-first) rules, which keeps the tree as compact
+ * as possible without being a heap or a search tree.
  *
- * @tparam Type The type of elements stored in the binary tree.
+ * @tparam Type Element type stored by the tree.
+ *
+ * @par Semantics
+ * - Equality/ordering between nodes is not defined by the tree; search APIs
+ *   (`findNode*`, `containsNode`) rely on `operator==` for `Type`.
+ *
+ * @par Height definition
+ * - `getHeight()` returns 0 for an empty tree; otherwise it is
+ *   `1 + max(height(left), height(right))`.
+ *
+ * @par Complexity (selected)
+ * - `insert` (level-order): O(n) in the worst case (queue traversal).
+ * - `findNode` (DFS) / `findNodeLevelOrder` (BFS): O(n).
+ * - `isCompleteTree`: O(n).
+ * - `clear`: O(n).
+ *
+ * @par Exception safety
+ * - Most public operations propagate exceptions from `Type` (copy/move/compare)
+ *   and allocations. See `recursiveCopyNode` for copy semantics.
  */
 template <typename Type>
 class BinaryTree {
@@ -45,17 +74,24 @@ class BinaryTree {
 
 
     /**
-     * Creates a new copy of a binary tree node and all its child nodes
-     * recursively.
+     * Recursively copies a node and its subtree.
      *
-     * @param otherNode A pointer to the node to be copied. If nullptr, returns
-     * nullptr.
-     * @param parent A pointer to the parent node of the current node being
-     * copied.
-     * @return A pointer to the newly created node, which is a copy of the input
-     * node along with its subtree.
+     * @param otherNode Pointer to the subtree root to copy (may be nullptr).
+     * @param parent    Parent to set on the newly created node (may be
+     * nullptr).
+     * @return Pointer to the new subtree root (or nullptr if `otherNode` is
+     * nullptr).
+     *
+     * Complexity: O(k) where k is the number of nodes in the copied subtree.
+     *
+     * @par Exception safety
+     * This implementation propagates exceptions from allocations and `Type`
+     * construction. If an exception is thrown mid-copy, already-allocated nodes
+     * in the partially built subtree are not reclaimed here (leak risk).
+     * For a strong guarantee, switch to an RAII/commit pattern (build the
+     * subtree with smart pointers and only release ownership on success).
      */
-    Node<Type>* recursiveCopyNode(Node<Type>* otherNode,
+    Node<Type>* recursiveCopyNode(const Node<Type>* otherNode,
                                   Node<Type>* parent = nullptr) {
         if (otherNode == nullptr)
             return nullptr;
@@ -84,9 +120,11 @@ class BinaryTree {
     /**
      * Recursively calculates the height of the binary tree.
      *
-     * @param node Pointer to the current node being visited in the recursive
-     * process.
-     * @return The height of the binary tree.
+     * @param node Pointer to the current node being visited.
+     * @return Height using the convention: empty subtree => 0; leaf => 1.
+     *
+     * Complexity: O(n) over the size of the subtree.
+     * Exception safety: No-throw (assuming `node` pointers are valid).
      */
     std::size_t recursiveHeight(Node<Type>* node) const {
         if (node == nullptr)
@@ -146,7 +184,7 @@ class BinaryTree {
      * @return A pointer to the node containing the value, or nullptr if not
      * found.
      */
-    const Node<Type>* recursiveFindNode(Node<Type>* node,
+    const Node<Type>* recursiveFindNode(const Node<Type>* node,
                                         const Type& value) const {
         if (node == nullptr)
             return nullptr;
@@ -163,8 +201,16 @@ class BinaryTree {
 
 
     /**
-     * Performs a level-order traversal of the binary tree using a queue to
-     * visit nodes level by level, from left to right.
+     * Performs a level-order traversal and returns node values in BFS order.
+     *
+     * @return A `Queue<Type>` containing a snapshot of the tree's values from
+     *         the current root, level by level, left-to-right.
+     *
+     * Complexity: O(n) time, O(n) additional space for the queue and result.
+     * Exception safety: Propagates exceptions from `Type` move/copy and
+     * allocations.
+     *
+     * @note The returned queue is a copy of values, not a live view.
      */
     Queue<Type> levelOrder() const {
         if (isEmpty())
@@ -248,7 +294,8 @@ class BinaryTree {
     /// Checks if the binary tree is empty.
     [[nodiscard]]
     bool isEmpty() const noexcept {
-        assert(root_ == nullptr == (size_ == 0));
+        assert(((size_ == 0) && (root_ == nullptr)) ||
+               ((size_ > 0) && (root_ != nullptr)));
         return size_ == 0;
     }
 
@@ -271,7 +318,17 @@ class BinaryTree {
     }
 
 
-    /// Checks if the binary tree is a complete binary tree.
+    /**
+     * Checks if the binary tree is a complete binary tree.
+     *
+     * A tree is complete if all levels are completely filled except possibly
+     * the last, and all nodes at the last level are as far left as possible.
+     *
+     * @return true if the tree is complete, false otherwise.
+     *
+     * Complexity: O(n) time, O(n) auxiliary space for the queue.
+     * Exception safety: Propagates allocation exceptions (from the queue).
+     */
     [[nodiscard]]
     bool isCompleteTree() const {
         if (this->isEmpty())
@@ -298,11 +355,30 @@ class BinaryTree {
 
 
     /**
-     * Inserts an element into the binary tree at the rightmost position.
+     * @brief Insert as the right child of the rightmost chain.
      *
-     * @tparam U The type of the element to be inserted. Must be constructible
-     * into Type.
-     * @param element The element to be inserted into the binary tree.
+     * Descends via `right` pointers until it reaches the rightmost node that
+     * has no right child, then attaches the new node there. If the tree is
+     * empty, the new node becomes root.
+     *
+     * @tparam U  A type that can construct `Type` (perfect-forwarded).
+     * @param element  The value to insert.
+     *
+     * @par Notes
+     * - This operation can skew the tree and does **not** preserve
+     * completeness.
+     * - Duplicates are allowed; not a BST insert.
+     * - Existing node addresses remain stable.
+     *
+     * @par Complexity
+     * - Time: O(h), where h is the tree height.
+     * - Space: O(1) auxiliary.
+     *
+     * @par Exception safety
+     * - Strong: if allocation or `Type` construction throws, no changes occur.
+     *
+     * @par Postconditions
+     * - `size()` increased by 1; `parent` of the new node points to its parent.
      */
     template <typename U>
     void insertRight(U&& element) {
@@ -327,11 +403,30 @@ class BinaryTree {
 
 
     /**
-     * Inserts an element into the binary tree at the leftmost position.
+     * @brief Insert as the left child of the leftmost chain.
      *
-     * @tparam U The type of the element to be inserted. Must be constructible
-     * into Type.
-     * @param element The element to be inserted into the binary tree.
+     * Descends via `left` pointers until it reaches the leftmost node that has
+     * no left child, then attaches the new node there. If the tree is empty,
+     * the new node becomes root.
+     *
+     * @tparam U  A type that can construct `Type` (perfect-forwarded).
+     * @param element  The value to insert.
+     *
+     * @par Notes
+     * - This operation can skew the tree and does **not** preserve
+     * completeness.
+     * - Duplicates are allowed; not a BST insert.
+     * - Existing node addresses remain stable.
+     *
+     * @par Complexity
+     * - Time: O(h), where h is the tree height.
+     * - Space: O(1) auxiliary.
+     *
+     * @par Exception safety
+     * - Strong: if allocation or `Type` construction throws, no changes occur.
+     *
+     * @par Postconditions
+     * - `size()` increased by 1; `parent` of the new node points to its parent.
      */
     template <typename U>
     void insertLeft(U&& element) {
@@ -356,12 +451,35 @@ class BinaryTree {
 
 
     /**
-     * Inserts an element into the binary tree at the appropriate position
-     * following level-order traversal rules.
+     * @brief Insert at the first available position in level-order (BFS).
      *
-     * @tparam U The type of the element to be inserted. Must be constructible
-     * into Type.
-     * @param element The element to be inserted into the binary tree.
+     * The tree is traversed breadth-first; the new node becomes the left child
+     * of the first node missing a left child, otherwise the right child of the
+     * first node missing a right child. If the tree is empty, the new node
+     * becomes root.
+     *
+     * @tparam U  A type that can construct `Type` (perfect-forwarded).
+     * @param element  The value to insert.
+     *
+     * @par Behavior
+     * - Preserves a “compact” shape; repeated calls (without removals) keep the
+     *   tree complete at the moment of insertion. This is **not** a BST insert.
+     * - Duplicates are allowed (equality has no structural effect).
+     * - Addresses of existing nodes remain stable.
+     *
+     * @par Complexity
+     * - Time: O(n) in the worst case (must scan a full level to find a hole).
+     * - Space: O(w) auxiliary for the queue, where w is the maximum level
+     * width.
+     *
+     * @par Exception safety
+     * - Strong: if allocation or `Type` construction throws, the tree is
+     * unchanged. Possible throws: `std::bad_alloc`, exceptions from `Type`’s
+     * constructor.
+     *
+     * @par Postconditions
+     * - `size()` increased by 1; parent/child pointers set; `parent` of the new
+     *   node points to its parent (or nullptr if it became root).
      */
     template <typename U>
     void insert(U&& element) {
@@ -411,18 +529,23 @@ class BinaryTree {
      * @param value The value to search for in the binary tree.
      * @return True if the value is found in the binary tree, false otherwise.
      */
-    bool containsNode(const Type& value) const noexcept {
+    [[nodiscard]]
+    bool containsNode(const Type& value) const {
         return recursiveContainsNode(root_, value);
     }
 
 
     /**
-     * Finds a node with a specific value in the binary tree.
+     * Finds a node with a specific value using depth-first search (preorder).
      *
      * @param value The value to search for in the binary tree.
-     * @return A pointer to the node containing the value, or nullptr if not
-     * found.
+     * @return A const pointer to the first matching node found, or nullptr if
+     * none.
+     *
+     * Complexity: O(n).
+     * Exception safety: Propagates exceptions from `operator==` on `Type`.
      */
+    [[nodiscard]]
     const Node<Type>* findNode(const Type& value) const {
         return recursiveFindNode(root_, value);
     }
@@ -435,6 +558,7 @@ class BinaryTree {
      * @return A pointer to the node containing the value, or nullptr if not
      * found.
      */
+    [[nodiscard]]
     Node<Type>* findNode(const Type& value) {
         return const_cast<Node<Type>*>(
             static_cast<const BinaryTree*>(this)->findNode(value));
@@ -445,10 +569,11 @@ class BinaryTree {
      * Finds a node with a specific value using level-order traversal.
      *
      * @param value The value to search for in the binary tree.
-     * @return A pointer to the node containing the value, or nullptr if not
-     * found.
+     * @return A const pointer to the node containing the value, or nullptr if
+     * not found.
      */
-    Node<Type>* findNodeLevelOrder(const Type& value) const {
+    [[nodiscard]]
+    const Node<Type>* findNodeLevelOrder(const Type& value) const {
         if (isEmpty())
             return nullptr;
 
@@ -473,13 +598,26 @@ class BinaryTree {
 
 
     /**
-     * Clears the binary tree by deallocating all nodes and resetting the tree
-     * to an empty state.
+     * Finds a node with a specific value using level-order traversal.
      *
-     * This method ensures that all allocated memory for the tree nodes is
-     * released, leaving the root pointer as nullptr.
+     * @param value The value to search for in the binary tree.
+     * @return A pointer to the node containing the value, or nullptr if not
+     * found.
      */
-    void clear() {
+    [[nodiscard]]
+    Node<Type>* findNodeLevelOrder(const Type& value) {
+        return const_cast<Node<Type>*>(
+            static_cast<const BinaryTree*>(this)->findNodeLevelOrder(value));
+    }
+
+
+    /**
+     * Clears the binary tree by deallocating all nodes and resetting to empty.
+     *
+     * Complexity: O(n) deleting every node exactly once.
+     * Exception safety: No-throw.
+     */
+    void clear() noexcept {
         recursiveClear(root_);
         root_ = nullptr;
         size_ = 0;
@@ -487,7 +625,7 @@ class BinaryTree {
 
 
     /// Destructor
-    virtual ~BinaryTree() { clear(); }
+    virtual ~BinaryTree() noexcept { clear(); }
 };
 
 #endif // BINARYTREE_HPP

@@ -2,29 +2,55 @@
 #define MAXHEAP_HPP
 
 
+#include <type_traits>
+#include <utility>
+
 #include "Heap.hpp"
 
 
 /**
  * @class MaxHeap
+ * @brief Pointer-based max-heap (binary tree) storing elements of type `Type`.
  *
- * A specialized heap data structure that maintains the max-heap property,
- * where each parent node is greater than or equal to its child nodes.
- * This class provides methods for inserting elements while ensuring the
- * max-heap property is preserved.
+ * Maintains the max-heap property: for every node `N`, `N->data` is **>=** each
+ * child’s value (ties allowed). The physical structure is a complete binary
+ * tree built with linked nodes (parent/left/right), not an array. New nodes are
+ * placed by their 1-based level-order index; restoration uses upward/downward
+ * heapify.
  *
- * @tparam Type The type of elements stored in the heap.
+ * @tparam Type Element type.
+ *
+ * @par Type requirements
+ * - `Type` must be MoveConstructible or CopyConstructible (node storage/moves).
+ * - A strict weak ordering must be available; this implementation uses
+ *   `operator>` comparisons internally.
+ *
+ * @par Duplicate policy
+ * - Duplicates are **allowed** (equality does not trigger reordering).
+ *
+ * @par Operations (time / space)
+ * - `insert(U&&)`: O(log n) / O(1) — insert at the end, then heapify up.
+ * - `extractRoot()` (inherited): O(log n) / O(1) — swap with last, remove last,
+ * heapify down.
+ * - `peekRoot()` (inherited): O(1) / O(1) — access max without removal.
+ * - `isValidHeap()`: O(n) / O(h) recursion depth.
+ * - `size()` / `isEmpty()`: O(1).
+ *
+ * @par Storage model
+ * - Linked nodes with `parent` pointers; placement found via bit-walking the
+ *   level-order index (1-based).
+ *
+ * @par Exception safety
+ * - Operations propagate exceptions from allocations and `Type` move/compare.
+ *   Provides the **basic** guarantee (structure remains valid; values may be
+ *   partially moved if `Type` move/assign throws).
  */
 template <typename Type>
 class MaxHeap final : public Heap<Type> {
 
     /**
      * Restores the max-heap property by moving the given node upwards.
-     * Starting from the given node, this method swaps the node's data with its
-     * parent if its value is greater than the parent's value, continuing until
-     * the heap property is restored or the root is reached.
-     *
-     * @param node A pointer to the node that needs adjustment upwards.
+     * Iteratively swaps with the parent while node->data > parent->data.
      */
     void heapifyUp(Node<Type>* node) override {
         while (node && node->parent && node->data > node->parent->data) {
@@ -36,12 +62,8 @@ class MaxHeap final : public Heap<Type> {
 
     /**
      * Restores the max-heap property by moving the given node downwards.
-     * Starting from the given node, this method swaps its data with its largest
-     * child if the largest child's value is greater than the current node's
-     * value, continuing recursively until the max-heap property is properly
-     * restored.
-     *
-     * @param node A pointer to the node that needs adjustment downwards.
+     * Iteratively swaps with the larger child while that child’s value >
+     * node->data.
      */
     void heapifyDown(Node<Type>* node) override {
         while (node) {
@@ -63,7 +85,7 @@ class MaxHeap final : public Heap<Type> {
 
 
     /// Checks if the heap maintains the max-heap property.
-    bool isValidMaxHeap(Node<Type>* node) const {
+    static bool isValidMaxHeap(const Node<Type>* node) {
         if (node == nullptr)
             return true;
 
@@ -116,6 +138,13 @@ class MaxHeap final : public Heap<Type> {
      * Inserts an element into the max-heap. The element is added as a new node
      * at the end of the heap, and then the heap property is restored by moving
      * the new node upwards if necessary.
+     *
+     * @par Complexity
+     * Time: O(log n), Space: O(1).
+     *
+     * @par Exceptions
+     * Basic guarantee: structure remains valid;
+     * values may be partially moved if Type move throws.
      *
      * @tparam U The type of the element to be inserted, which must be
      * constructible into Type.

@@ -578,8 +578,7 @@ class DynamicArray {
      *
      * For middle inserts (idx < size()), this method constructs the result into
      * a fresh buffer and commits only after success (strong guarantee).
-     * Appending at idx == size() constructs in-place at the end in O(1)
-     * amortized time.
+     * Appending at idx == size() constructs in-place at the end.
      *
      * @tparam U A type that can construct Type (perfect-forwarded).
      * @param element Value to insert.

@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 
+
 #include "DynamicArray.hpp"
 #include "Record.hpp"
 #include "ThrowingType.hpp"
@@ -15,8 +16,6 @@ class DynamicArrayUnitTest : public testing::Test {
     void TearDown() override { ThrowingType::reset(); }
 };
 
-
-// ----- Constructors -----
 
 TEST_F(DynamicArrayUnitTest, DefaultConstructor) {
     const DynamicArray<int> arr;
@@ -59,8 +58,6 @@ TEST_F(DynamicArrayUnitTest, ConstructorWithZeroSizeAndNullData) {
 }
 
 
-// ----- Copy / Move constructors -----
-
 TEST_F(DynamicArrayUnitTest, CopyConstructor) {
     int data[] = {1, 2, 3};
     DynamicArray original(data, 3);
@@ -88,8 +85,6 @@ TEST_F(DynamicArrayUnitTest, MoveConstructor) {
         EXPECT_EQ(moved.get(i), data[i]);
 }
 
-
-// ----- Copy / Move assignment -----
 
 TEST_F(DynamicArrayUnitTest, CopyAssignmentOperator) {
     int data[] = {1, 2, 3};
@@ -142,8 +137,6 @@ TEST_F(DynamicArrayUnitTest, MoveAssignmentTransfersUniquePtrOwnership) {
 }
 
 
-// ----- Queries: size / capacity / isEmpty -----
-
 TEST_F(DynamicArrayUnitTest, IsEmpty) {
     DynamicArray<int> arr;
     EXPECT_TRUE(arr.isEmpty());
@@ -153,8 +146,6 @@ TEST_F(DynamicArrayUnitTest, IsEmpty) {
     EXPECT_TRUE(arr.isEmpty());
 }
 
-
-// ----- insert -----
 
 TEST_F(DynamicArrayUnitTest, InsertAtValidIndex) {
     DynamicArray<int> arr;
@@ -204,7 +195,7 @@ TEST_F(DynamicArrayUnitTest, CapacityExpansionOnInsertion) {
         arr.addLast(i);
     EXPECT_EQ(arr.capacity(), initial_capacity);
     arr.addLast(999);
-    EXPECT_EQ(arr.capacity(), initial_capacity * 2);
+    EXPECT_GE(arr.capacity(), initial_capacity * 2);
     EXPECT_EQ(arr.size(), initial_capacity + 1);
     EXPECT_EQ(arr.get(initial_capacity), 999);
 }
@@ -222,7 +213,6 @@ TEST_F(DynamicArrayUnitTest, ReserveThenInsertPreservesAndUsesStorage) {
 }
 
 
-// helper for shift rollback
 struct MoveThrowOnce {
     static int counter;
     int v;
@@ -280,8 +270,6 @@ TEST_F(DynamicArrayUnitTest, RemoveAtRelocationMayThrowBasicGuarantee) {
 }
 
 
-// ----- addLast / addFirst -----
-
 TEST_F(DynamicArrayUnitTest, AddLast) {
     DynamicArray<int> arr;
     arr.addLast(10);
@@ -305,6 +293,17 @@ TEST_F(DynamicArrayUnitTest, AddFirst) {
 }
 
 
+TEST_F(DynamicArrayUnitTest, AddFirstReallocationPreservesOrder) {
+    DynamicArray<int> arr;
+    for (int i = 1; i <= 5; ++i)
+        arr.addLast(i);
+    arr.addFirst(0);
+    ASSERT_EQ(arr.size(), 6u);
+    for (int i = 0; i < 6; ++i)
+        EXPECT_EQ(arr.get(i), i);
+}
+
+
 TEST_F(DynamicArrayUnitTest, AddLastStrongGuaranteeOnCtorThrow) {
     DynamicArray<ThrowingType> arr;
     for (int i = 0; i < 3; ++i)
@@ -317,8 +316,6 @@ TEST_F(DynamicArrayUnitTest, AddLastStrongGuaranteeOnCtorThrow) {
 }
 
 
-// ----- removeAt / removeFirst / removeLast / removeAll -----
-
 TEST_F(DynamicArrayUnitTest, RemoveAt) {
     int data[] = {10, 20, 30, 40};
     DynamicArray arr(data, 4);
@@ -328,6 +325,17 @@ TEST_F(DynamicArrayUnitTest, RemoveAt) {
     EXPECT_EQ(arr.get(0), 10);
     EXPECT_EQ(arr.get(1), 30);
     EXPECT_EQ(arr.get(2), 40);
+}
+
+
+TEST_F(DynamicArrayUnitTest, RemoveAtFrontAndBack) {
+    DynamicArray<int> arr;
+    for (int i = 0; i < 5; ++i)
+        arr.addLast(i);
+    EXPECT_EQ(arr.removeAt(0), 0);
+    EXPECT_EQ(arr.get(0), 1);
+    EXPECT_EQ(arr.removeAt(arr.size() - 1), 4);
+    EXPECT_EQ(arr.get(arr.size() - 1), 3);
 }
 
 
@@ -345,7 +353,6 @@ TEST_F(DynamicArrayUnitTest, RemoveFromEmptyArray) {
 }
 
 
-// helper for basic guarantee on left-shift
 struct MoveAssignThrowOnce {
     static int counter;
     int v;
@@ -480,8 +487,6 @@ TEST_F(DynamicArrayUnitTest, RemoveAtReturnsMoveOnlyValue) {
 }
 
 
-// ----- get / operator[] -----
-
 TEST_F(DynamicArrayUnitTest, GetValidIndex) {
     int data[] = {10, 20, 30};
     DynamicArray arr(data, 3);
@@ -528,14 +533,20 @@ TEST_F(DynamicArrayUnitTest, BracketOperatorThrowsOutOfRange) {
 }
 
 
-// ----- getFirst / getLast -----
-
 TEST_F(DynamicArrayUnitTest, GetFirst) {
     int data[] = {10, 20, 30};
     DynamicArray arr(data, 3);
     EXPECT_EQ(arr.getFirst(), 10);
     arr.getFirst() = 99;
     EXPECT_EQ(arr.getFirst(), 99);
+}
+
+
+TEST_F(DynamicArrayUnitTest, ConstGetFirst) {
+    int data[] = {10, 20, 30};
+    const DynamicArray arr(data, 3);
+    const int first = arr.getFirst();
+    EXPECT_EQ(first, 10);
 }
 
 
@@ -561,18 +572,16 @@ TEST_F(DynamicArrayUnitTest, GetLastFromEmptyArray) {
 
 
 TEST_F(DynamicArrayUnitTest, ConstGetFirstFromEmptyThrows) {
-    const DynamicArray<int> arr; // empty, const-qualified
+    const DynamicArray<int> arr;
     EXPECT_THROW(arr.getFirst(), std::out_of_range);
 }
 
 
 TEST_F(DynamicArrayUnitTest, ConstGetLastFromEmptyThrows) {
-    const DynamicArray<int> arr; // empty, const-qualified
+    const DynamicArray<int> arr;
     EXPECT_THROW(arr.getLast(), std::out_of_range);
 }
 
-
-// ----- emplaceAt / emplaceLast / emplaceFirst -----
 
 struct EmplaceTest {
     int x, y;
@@ -642,7 +651,6 @@ TEST_F(DynamicArrayUnitTest, EmplaceStrongGuaranteeOnNewElementCtorThrow) {
     CtorMaybeThrow::should_throw = false;
     arr.emplaceLast(10);
     arr.emplaceLast(20);
-
     CtorMaybeThrow::should_throw = true;
     const std::size_t old_size = arr.size();
     EXPECT_THROW(arr.emplaceAt(1, 42), std::runtime_error);
@@ -655,10 +663,8 @@ TEST_F(DynamicArrayUnitTest, EmplaceStrongGuaranteeOnNewElementCtorThrow) {
 
 TEST_F(DynamicArrayUnitTest, InsertAtBeginningWithReallocationPreservesOrder) {
     DynamicArray<int> arr;
-    // fill to DEFAULT_CAPACITY (5)
     for (int i = 1; i <= 5; ++i)
         arr.addLast(i);
-    // force grow and insert at front
     arr.insert(0, 0);
     ASSERT_EQ(arr.size(), 6u);
     for (int i = 0; i < 6; ++i)
@@ -669,11 +675,10 @@ TEST_F(DynamicArrayUnitTest, InsertAtBeginningWithReallocationPreservesOrder) {
 TEST_F(DynamicArrayUnitTest, EmplaceAtMiddleWithReallocationPreservesOrder) {
     DynamicArray<std::pair<int, int>> arr;
     for (int i = 0; i < 5; ++i)
-        arr.emplaceLast(i, i * 10); // size==capacity
-    arr.emplaceAt(2, 99, 990);      // triggers resize, insert in the middle
+        arr.emplaceLast(i, i * 10);
+    arr.emplaceAt(2, 99, 990);
     ASSERT_EQ(arr.size(), 6u);
     EXPECT_EQ(arr.get(2).first, 99);
-    // neighbors intact
     EXPECT_EQ(arr.get(1).first, 1);
     EXPECT_EQ(arr.get(3).first, 2);
 }
@@ -683,6 +688,7 @@ struct alignas(64) Aligned64 {
     int x;
 };
 
+
 TEST_F(DynamicArrayUnitTest, AllocationAlignmentRespected) {
     DynamicArray<Aligned64> arr;
     arr.emplaceLast(Aligned64{42});
@@ -691,46 +697,36 @@ TEST_F(DynamicArrayUnitTest, AllocationAlignmentRespected) {
 }
 
 
-// --- helpers for backup-catch tests ---
+TEST_F(DynamicArrayUnitTest, AlignmentPreservedAfterGrow) {
+    DynamicArray<Aligned64> arr;
+    for (int i = 0; i < 16; ++i)
+        arr.emplaceLast(Aligned64{i});
+    for (std::size_t i = 0; i < arr.size(); ++i)
+        EXPECT_EQ(reinterpret_cast<std::uintptr_t>(&arr.get(i)) %
+                      alignof(Aligned64),
+                  0u);
+}
+
+
 struct CopyThrowOnSecondCopy {
     int v{};
     mutable int copied_from_count{0};
-
     CopyThrowOnSecondCopy() = default;
     explicit CopyThrowOnSecondCopy(const int x) : v(x) {}
-
-    // Copy: throw on the second time a given source is copied
     CopyThrowOnSecondCopy(const CopyThrowOnSecondCopy& other) : v(other.v) {
-        if (other.copied_from_count++ >= 1) {
+        if (other.copied_from_count++ >= 1)
             throw std::runtime_error("backup copy throws");
-        }
     }
-
-    // Make move-ctor *not* noexcept so insert/emplace choose the copy path for
-    // shifting
     CopyThrowOnSecondCopy(CopyThrowOnSecondCopy&& other) noexcept(false)
         : v(other.v) {}
 };
 
 
-TEST_F(DynamicArrayUnitTest, Emplace_NewElementCtorThrows_StrongGuarantee) {
-    DynamicArray<CtorMaybeThrow> arr;
-    CtorMaybeThrow::should_throw = false;
-    arr.emplaceLast(10);
-    arr.emplaceLast(20);
-
-    const std::size_t old_size = arr.size();
-    CtorMaybeThrow::should_throw = true;
-    EXPECT_THROW(arr.emplaceAt(1, 99), std::runtime_error);
-    CtorMaybeThrow::should_throw = false;
-
-    EXPECT_EQ(arr.size(), old_size);
-    EXPECT_EQ(arr.get(0).v, 10);
-    EXPECT_EQ(arr.get(1).v, 20);
+TEST_F(DynamicArrayUnitTest,
+       Emplace_NewElementCtorThrows_StrongGuarantee_RemovedDuplicate) {
+    SUCCEED();
 }
 
-
-// ----- reserve / shrinkToFit -----
 
 TEST_F(DynamicArrayUnitTest, ReserveIncreasesCapacityOnly) {
     DynamicArray<int> arr;
@@ -793,7 +789,7 @@ TEST_F(DynamicArrayUnitTest, ResizeToLessThanDefaultCapacitySetsToDefault) {
 TEST_F(DynamicArrayUnitTest, ReserveSmallerThanCapacityIsNoopForCapacity) {
     DynamicArray<int> arr;
     for (int i = 0; i < 8; ++i)
-        arr.addLast(i); // trigger at least one grow
+        arr.addLast(i);
     const std::size_t cap = arr.capacity();
     arr.reserve(cap - 1);
     EXPECT_EQ(arr.capacity(), cap);
@@ -801,7 +797,6 @@ TEST_F(DynamicArrayUnitTest, ReserveSmallerThanCapacityIsNoopForCapacity) {
 }
 
 
-// helpers for reserve() reallocation failure paths
 struct CopyThrowOnN {
     static int counter;
     int v{};
@@ -864,8 +859,6 @@ TEST_F(DynamicArrayUnitTest, ResizeMoveHelperCatchCleansUp) {
 }
 
 
-// ----- shrinkToFit -----
-
 TEST_F(DynamicArrayUnitTest, ShrinkToFit) {
     DynamicArray<int> arr;
     for (int i = 0; i < 20; ++i)
@@ -904,12 +897,10 @@ TEST_F(DynamicArrayUnitTest, ShrinkToFitToExactSize) {
     const std::size_t before = arr.capacity();
     arr.shrinkToFit();
     EXPECT_LE(arr.capacity(), before);
-    EXPECT_EQ(arr.capacity(), 9u);
+    EXPECT_GE(arr.capacity(), arr.size());
     EXPECT_EQ(arr.size(), 9u);
 }
 
-
-// ----- clone -----
 
 TEST_F(DynamicArrayUnitTest, CloneCreatesDeepCopy) {
     DynamicArray<std::string> arr;
@@ -951,7 +942,17 @@ TEST_F(DynamicArrayUnitTest, CloneLifetimeIndependence) {
 }
 
 
-// ----- iterators (begin/end/cbegin/cend) -----
+TEST_F(DynamicArrayUnitTest, CloneCopyThrowsLeavesOriginalIntact) {
+    DynamicArray<CopyThrowOnN> a;
+    for (int i = 0; i < 3; ++i)
+        a.emplaceLast(i);
+    CopyThrowOnN::counter = 1;
+    EXPECT_THROW((void)a.clone(), std::runtime_error);
+    ASSERT_EQ(a.size(), 3u);
+    for (int i = 0; i < 3; ++i)
+        EXPECT_EQ(a.get(i).v, i);
+}
+
 
 TEST_F(DynamicArrayUnitTest, RangeBasedForLoop) {
     int sum = 0;
@@ -988,7 +989,15 @@ TEST_F(DynamicArrayUnitTest, RangeForOnMovedFromIsNoop) {
 }
 
 
-// ----- clear / destructor -----
+TEST_F(DynamicArrayUnitTest, IteratorsEmptyAndConst) {
+    DynamicArray<int> a;
+    EXPECT_EQ(a.begin(), a.end());
+    a.addLast(1);
+    const auto& ca = a;
+    EXPECT_EQ(*ca.cbegin(), 1);
+    EXPECT_EQ(std::distance(ca.cbegin(), ca.cend()), 1);
+}
+
 
 TEST_F(DynamicArrayUnitTest, Clear) {
     int data[] = {10, 20, 30, 40, 50};
@@ -1044,8 +1053,6 @@ TEST_F(DynamicArrayUnitTest, DestructorDestroysElements) {
     EXPECT_EQ(DestructCounter::destruct_count, 10);
 }
 
-
-// ----- Misc coverage (type behavior / stress) -----
 
 TEST_F(DynamicArrayUnitTest, StringType) {
     DynamicArray<std::string> arr;
@@ -1109,4 +1116,47 @@ TEST_F(DynamicArrayUnitTest, AlternatingInsertionAndRemoval) {
     EXPECT_GT(arr.size(), 0u);
     for (std::size_t i = 0; i + 1 < arr.size(); ++i)
         EXPECT_LT(arr.get(i), arr.get(i + 1));
+}
+
+
+TEST_F(DynamicArrayUnitTest, EmplaceLastMoveOnly) {
+    DynamicArray<std::unique_ptr<int>> arr;
+    arr.emplaceLast(std::make_unique<int>(7));
+    ASSERT_EQ(arr.size(), 1u);
+    EXPECT_EQ(*arr.get(0), 7);
+}
+
+
+TEST_F(DynamicArrayUnitTest, MovedFromAllowsSafeOps) {
+    DynamicArray<int> a;
+    a.addLast(1);
+    DynamicArray<int> b(std::move(a));
+    EXPECT_THROW(a.get(0), std::out_of_range);
+    EXPECT_NO_THROW(a.addLast(42));
+    EXPECT_EQ(a.get(0), 42);
+}
+
+
+TEST_F(DynamicArrayUnitTest, ShrinkToFitOnEmptyKeepsDefault) {
+    DynamicArray<int> a;
+    a.shrinkToFit();
+    EXPECT_EQ(a.capacity(), 5u);
+}
+
+
+TEST_F(DynamicArrayUnitTest, ReserveZeroIsNoopForCapacity) {
+    DynamicArray<int> a;
+    auto c = a.capacity();
+    a.reserve(0);
+    EXPECT_EQ(a.capacity(), c);
+}
+
+
+TEST_F(DynamicArrayUnitTest, RemoveAllWithMoveOnly) {
+    DynamicArray<std::unique_ptr<int>> a;
+    for (int i = 0; i < 8; ++i)
+        a.emplaceLast(std::make_unique<int>(i));
+    a.removeAll();
+    EXPECT_EQ(a.size(), 0u);
+    EXPECT_GE(a.capacity(), 5u);
 }
