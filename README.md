@@ -215,3 +215,30 @@ minHeap.insert(5);
 minHeap.insert(3);
 minHeap.insert(7);
 int minval = minHeap.extractRoot(); // 3
+```
+
+## 🧪 Testing
+
+Each data structure is rigorously tested with comprehensive test cases in the `src/test/data_structures` directory:
+
+- **Unit Tests**: Verify individual operations
+- **Integration Tests**: Ensure data structures work together correctly
+- **Edge Cases**: Test boundary conditions and error handling
+- **Performance Tests**: Validate complexity guarantees
+
+## 🚧 Future Roadmap
+
+- **Balanced Trees**: Implement AVL and Red-Black tree balancing algorithms
+- **Advanced Data Structures**: Add Trie, Graph, and Hash Table implementations
+- **Iterators**: Provide STL-compatible iterators for all containers
+- **Parallelism**: Explore thread-safe variants of selected data structures
+- **Benchmarking**: Add comprehensive performance benchmarking suite
+- **Serialization**: Support for persistence and serialization operations
+
+---
+
+<div align="center">
+
+**Built with ❤️ and Modern C++23**
+
+</div>
