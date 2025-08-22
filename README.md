@@ -219,7 +219,7 @@ int minval = minHeap.extractRoot(); // 3
 
 ## 🧪 Testing
 
-Each data structure is rigorously tested with comprehensive test cases in the `src/test/data_structures` directory:
+Each data structure is rigorously tested with comprehensive test cases in the `src/test` directory:
 
 - **Unit Tests**: Verify individual operations
 - **Integration Tests**: Ensure data structures work together correctly
