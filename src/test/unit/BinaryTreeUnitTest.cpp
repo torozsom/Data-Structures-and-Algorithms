@@ -9,13 +9,8 @@
 
 class BinaryTreeUnitTest : public testing::Test {
   protected:
-    void SetUp() override {
-        // Setup code that runs before each test
-    }
-
-    void TearDown() override {
-        // Cleanup code that runs after each test
-    }
+    void SetUp() override { }
+    void TearDown() override { }
 };
 
 
@@ -38,8 +33,8 @@ TEST_F(BinaryTreeUnitTest, HeightShouldReflectTreeStructure) {
     const BinaryTree filledTree(values, 5);
 
     EXPECT_EQ(tree.getHeight(), 0);
-    EXPECT_EQ(filledTree.getHeight(),
-              3); // Level-order insertion will create a tree of height 3
+    // Level-order insertion will create a tree of height 3
+    EXPECT_EQ(filledTree.getHeight(), 3);
 }
 
 

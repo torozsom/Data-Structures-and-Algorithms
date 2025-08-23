@@ -9,13 +9,8 @@
 
 class BinarySearchTreeUnitTest : public testing::Test {
   protected:
-    void SetUp() override {
-        // Setup code that runs before each test
-    }
-
-    void TearDown() override {
-        // Cleanup code that runs after each test
-    }
+    void SetUp() override { }
+    void TearDown() override { }
 };
 
 
@@ -159,6 +154,7 @@ TEST_F(BinarySearchTreeUnitTest, MoveConstructorShouldTransferOwnership) {
     EXPECT_TRUE(moved.isValidBST());
 }
 
+
 TEST_F(BinarySearchTreeUnitTest, DeletedInsertMethodsShouldNotBeAccessible) {
     const BinarySearchTree<int> tree;
     // The following lines should not compile:
@@ -201,6 +197,7 @@ TEST_F(BinarySearchTreeUnitTest, ShouldWorkWithCustomTypes) {
     EXPECT_TRUE(tree.isValidBST());
 }
 
+
 TEST_F(BinarySearchTreeUnitTest, MoveAssignmentShouldTransferOwnership) {
     BinarySearchTree<int> original;
     original.insert(5);
@@ -218,6 +215,7 @@ TEST_F(BinarySearchTreeUnitTest, MoveAssignmentShouldTransferOwnership) {
     EXPECT_TRUE(moved.contains(7));
     EXPECT_TRUE(moved.isValidBST());
 }
+
 
 TEST_F(BinarySearchTreeUnitTest, AssignmentOperatorShouldCreateDeepCopy) {
     BinarySearchTree<int> original;
@@ -247,6 +245,7 @@ TEST_F(BinarySearchTreeUnitTest, AssignmentOperatorShouldCreateDeepCopy) {
     EXPECT_TRUE(copy.contains(3)); // Should still be in copy
 }
 
+
 TEST_F(BinarySearchTreeUnitTest, RemoveRootNodeShouldWorkCorrectly) {
     BinarySearchTree<int> tree;
     tree.insert(5);
@@ -272,6 +271,7 @@ TEST_F(BinarySearchTreeUnitTest, RemoveRootNodeShouldWorkCorrectly) {
     EXPECT_TRUE(tree.contains(9));
 }
 
+
 TEST_F(BinarySearchTreeUnitTest, RemoveNonExistentElementShouldNotAffectTree) {
     BinarySearchTree<int> tree;
     tree.insert(5);
@@ -287,6 +287,7 @@ TEST_F(BinarySearchTreeUnitTest, RemoveNonExistentElementShouldNotAffectTree) {
     EXPECT_TRUE(tree.contains(3));
     EXPECT_TRUE(tree.contains(7));
 }
+
 
 TEST_F(BinarySearchTreeUnitTest, DuplicateInsertsShouldNotIncreaseSize) {
     BinarySearchTree<int> tree;
@@ -304,6 +305,7 @@ TEST_F(BinarySearchTreeUnitTest, DuplicateInsertsShouldNotIncreaseSize) {
     EXPECT_EQ(tree.size(), originalSize); // Size should not change
     EXPECT_TRUE(tree.isValidBST());
 }
+
 
 TEST_F(BinarySearchTreeUnitTest, EmptyTreeOperationsShouldWork) {
     BinarySearchTree<int> tree;

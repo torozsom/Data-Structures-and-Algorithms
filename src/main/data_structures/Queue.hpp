@@ -60,6 +60,7 @@ template <typename Type>
 class Queue {
 
     DynamicArray<Type> array_;
+
     std::size_t front_idx_;
     std::size_t size_;
     std::size_t shrink_check_counter_ = 0;

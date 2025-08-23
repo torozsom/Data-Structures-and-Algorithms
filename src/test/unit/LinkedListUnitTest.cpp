@@ -11,13 +11,8 @@
 
 class LinkedListUnitTest : public testing::Test {
   protected:
-    void SetUp() override {
-        // Setup code that runs before each test
-    }
-
-    void TearDown() override {
-        // Cleanup code that runs after each test
-    }
+    void SetUp() override { }
+    void TearDown() override { }
 };
 
 

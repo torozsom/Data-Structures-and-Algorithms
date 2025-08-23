@@ -158,10 +158,10 @@ class Heap : public BinaryTree<Type> {
         return *this;
     }
 
-    template <typename U>
-    void insertLeft(U&&) = delete;
-    template <typename U>
-    void insertRight(U&&) = delete;
+
+    template <typename U> void insertLeft(U&&) = delete;
+    template <typename U> void insertRight(U&&) = delete;
+
 
     [[nodiscard]]
     virtual bool isValidHeap() const = 0;

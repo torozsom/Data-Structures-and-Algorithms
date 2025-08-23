@@ -324,10 +324,8 @@ class BinarySearchTree : public BinaryTree<Type> {
     }
 
 
-    template <typename U>
-    void insertLeft(U&&) = delete;
-    template <typename U>
-    void insertRight(U&&) = delete;
+    template <typename U> void insertLeft(U&&) = delete;
+    template <typename U> void insertRight(U&&) = delete;
 
 
     /**

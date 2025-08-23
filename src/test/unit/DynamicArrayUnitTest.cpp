@@ -12,7 +12,7 @@
 
 class DynamicArrayUnitTest : public testing::Test {
   protected:
-    void SetUp() override {}
+    void SetUp() override { }
     void TearDown() override { ThrowingType::reset(); }
 };
 
@@ -64,8 +64,10 @@ TEST_F(DynamicArrayUnitTest, CopyConstructor) {
     DynamicArray copy(original);
     EXPECT_EQ(copy.size(), original.size());
     EXPECT_EQ(copy.capacity(), original.capacity());
+
     for (std::size_t i = 0; i < copy.size(); ++i)
         EXPECT_EQ(copy.get(i), original.get(i));
+
     original.addLast(999);
     EXPECT_NE(copy.size(), original.size());
 }
@@ -77,10 +79,12 @@ TEST_F(DynamicArrayUnitTest, MoveConstructor) {
     const std::size_t original_size = original.size();
     const std::size_t original_capacity = original.capacity();
     DynamicArray moved(std::move(original));
+
     EXPECT_EQ(moved.size(), original_size);
     EXPECT_EQ(moved.capacity(), original_capacity);
     EXPECT_EQ(original.size(), 0u);
     EXPECT_EQ(original.capacity(), 0u);
+
     for (int i = 0; i < 3; ++i)
         EXPECT_EQ(moved.get(i), data[i]);
 }
@@ -91,12 +95,16 @@ TEST_F(DynamicArrayUnitTest, CopyAssignmentOperator) {
     DynamicArray original(data, 3);
     DynamicArray<int> copy;
     copy = original;
+
     EXPECT_EQ(copy.size(), original.size());
     EXPECT_EQ(copy.capacity(), original.capacity());
+
     for (std::size_t i = 0; i < copy.size(); ++i)
         EXPECT_EQ(copy.get(i), original.get(i));
+
     original = original;
     EXPECT_EQ(original.size(), 3u);
+
     for (int i = 0; i < 3; ++i)
         EXPECT_EQ(original.get(i), data[i]);
 }
@@ -107,14 +115,18 @@ TEST_F(DynamicArrayUnitTest, MoveAssignmentOperator) {
     DynamicArray original(data, 3);
     const std::size_t original_size = original.size();
     const std::size_t original_capacity = original.capacity();
+
     DynamicArray<int> moved;
     moved = std::move(original);
+
     EXPECT_EQ(moved.size(), original_size);
     EXPECT_EQ(moved.capacity(), original_capacity);
     EXPECT_EQ(original.size(), 0u);
     EXPECT_EQ(original.capacity(), 0u);
+
     moved = std::move(moved);
     EXPECT_EQ(moved.size(), original_size);
+
     for (int i = 0; i < 3; ++i)
         EXPECT_EQ(moved.get(i), data[i]);
 }
@@ -128,6 +140,7 @@ TEST_F(DynamicArrayUnitTest, MoveAssignmentTransfersUniquePtrOwnership) {
     const std::size_t original_capacity = original.capacity();
     DynamicArray<std::unique_ptr<int>> moved;
     moved = std::move(original);
+
     EXPECT_EQ(moved.size(), original_size);
     EXPECT_EQ(moved.capacity(), original_capacity);
     EXPECT_EQ(*moved.get(0), 1);
@@ -191,8 +204,10 @@ TEST_F(DynamicArrayUnitTest, InsertAtInvalidIndex) {
 TEST_F(DynamicArrayUnitTest, CapacityExpansionOnInsertion) {
     DynamicArray<int> arr;
     const std::size_t initial_capacity = arr.capacity();
+
     for (std::size_t i = 0; i < initial_capacity; ++i)
         arr.addLast(i);
+
     EXPECT_EQ(arr.capacity(), initial_capacity);
     arr.addLast(999);
     EXPECT_GE(arr.capacity(), initial_capacity * 2);
@@ -234,11 +249,14 @@ int MoveThrowOnce::counter = 0;
 TEST_F(DynamicArrayUnitTest, InsertShiftRollbackOnMoveCtorThrow) {
     DynamicArray<MoveThrowOnce> arr;
     arr.reserve(10);
+
     for (int i = 0; i < 5; ++i)
         arr.emplaceLast(i);
+
     MoveThrowOnce::counter = 0;
     EXPECT_THROW(arr.insert(MoveThrowOnce(99), 2), std::runtime_error);
     EXPECT_EQ(arr.size(), 5u);
+
     for (int i = 0; i < 5; ++i)
         EXPECT_EQ(arr.get(i).v, i);
 }
@@ -263,6 +281,7 @@ TEST_F(DynamicArrayUnitTest, RemoveAtRelocationMayThrowBasicGuarantee) {
     DynamicArray<MoveCtorThrowOn2> arr;
     for (int i = 0; i < 5; ++i)
         arr.emplaceLast(i);
+
     MoveCtorThrowOn2::counter = 0;
     EXPECT_THROW((void)arr.removeAt(1), std::runtime_error);
     EXPECT_NO_THROW(arr.removeAll());
@@ -651,6 +670,7 @@ TEST_F(DynamicArrayUnitTest, EmplaceStrongGuaranteeOnNewElementCtorThrow) {
     CtorMaybeThrow::should_throw = false;
     arr.emplaceLast(10);
     arr.emplaceLast(20);
+
     CtorMaybeThrow::should_throw = true;
     const std::size_t old_size = arr.size();
     EXPECT_THROW(arr.emplaceAt(1, 42), std::runtime_error);
@@ -1064,12 +1084,14 @@ TEST_F(DynamicArrayUnitTest, StringType) {
 }
 
 
+struct Point {
+    int x, y;
+    explicit Point(const int xx = 0, const int yy = 0) : x(xx), y(yy) {}
+    bool operator==(const Point& o) const { return x == o.x && y == o.y; }
+};
+
+
 TEST_F(DynamicArrayUnitTest, CustomObjectType) {
-    struct Point {
-        int x, y;
-        explicit Point(const int xx = 0, const int yy = 0) : x(xx), y(yy) {}
-        bool operator==(const Point& o) const { return x == o.x && y == o.y; }
-    };
     DynamicArray<Point> arr;
     arr.addLast(Point(1, 2));
     arr.addLast(Point(3, 4));
@@ -1146,7 +1168,7 @@ TEST_F(DynamicArrayUnitTest, ShrinkToFitOnEmptyKeepsDefault) {
 
 TEST_F(DynamicArrayUnitTest, ReserveZeroIsNoopForCapacity) {
     DynamicArray<int> a;
-    auto c = a.capacity();
+    const auto c = a.capacity();
     a.reserve(0);
     EXPECT_EQ(a.capacity(), c);
 }
