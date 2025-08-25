@@ -9,6 +9,9 @@
 #include "ThrowingType.hpp"
 
 
+using data_structs::Queue;
+
+
 class QueueUnitTest : public testing::Test {
   protected:
     void SetUp() override {}

@@ -10,6 +10,9 @@
 #include "DynamicArray.hpp"
 
 
+namespace data_structs {
+
+
 /**
  * @class Queue
  * @brief A FIFO (first-in, first-out) container built on a growable, contiguous
@@ -850,5 +853,7 @@ class Queue {
         return const_reverse_iterator(cbegin());
     }
 };
+
+} // namespace data_structs
 
 #endif // QUEUE_HPP

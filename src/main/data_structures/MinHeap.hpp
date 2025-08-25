@@ -8,6 +8,9 @@
 #include "Heap.hpp"
 
 
+namespace data_structs {
+
+
 /**
  * @class MinHeap
  * @brief Pointer-based binary **min-heap** over `Type`.
@@ -185,5 +188,7 @@ class MinHeap final : public Heap<Type> {
 
     ~MinHeap() override = default;
 };
+
+} // namespace data_structs
 
 #endif // MINHEAP_HPP

@@ -10,6 +10,9 @@
 #include "Queue.hpp"
 
 
+namespace data_structs {
+
+
 /**
  * @struct Node
  * @brief Represents a node in a binary tree.
@@ -530,7 +533,7 @@ class BinaryTree {
      * @return True if the value is found in the binary tree, false otherwise.
      */
     [[nodiscard]]
-    bool containsNode(const Type& value) const {
+    virtual bool contains(const Type& value) const {
         return recursiveContainsNode(root_, value);
     }
 
@@ -627,5 +630,7 @@ class BinaryTree {
     /// Destructor
     virtual ~BinaryTree() noexcept { clear(); }
 };
+
+} // namespace data_structs
 
 #endif // BINARYTREE_HPP

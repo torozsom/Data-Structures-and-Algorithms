@@ -10,9 +10,12 @@
 #include "ThrowingType.hpp"
 
 
+using data_structs::DynamicArray;
+
+
 class DynamicArrayUnitTest : public testing::Test {
   protected:
-    void SetUp() override { }
+    void SetUp() override {}
     void TearDown() override { ThrowingType::reset(); }
 };
 

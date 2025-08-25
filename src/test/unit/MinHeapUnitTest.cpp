@@ -8,10 +8,12 @@
 #include "MinHeap.hpp"
 
 
+using data_structs::MinHeap;
+
 class MinHeapUnitTest : public testing::Test {
   protected:
-    void SetUp() override { }
-    void TearDown() override { }
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 

@@ -7,10 +7,15 @@
 #include "BinarySearchTree.hpp"
 
 
+using data_structs::BinarySearchTree;
+using data_structs::BinaryTree;
+using data_structs::Node;
+
+
 class BinarySearchTreeUnitTest : public testing::Test {
   protected:
-    void SetUp() override { }
-    void TearDown() override { }
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 

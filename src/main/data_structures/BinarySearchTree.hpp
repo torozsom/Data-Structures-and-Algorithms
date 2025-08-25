@@ -5,6 +5,9 @@
 #include "BinaryTree.hpp"
 
 
+namespace data_structs {
+
+
 /**
  * @class BinarySearchTree
  * @brief Unbalanced binary search tree storing elements of type `Type`.
@@ -359,7 +362,7 @@ class BinarySearchTree : public BinaryTree<Type> {
      * - Time: O(h) (average ≈ O(log n), worst O(n)).
      * - Space: O(1).
      */
-    bool contains(const Type& element) const {
+    bool contains(const Type& element) const override {
         Node<Type>* current = this->root_;
         while (current) {
             if (element < current->data)
@@ -408,5 +411,6 @@ class BinarySearchTree : public BinaryTree<Type> {
     ~BinarySearchTree() override = default;
 };
 
+} // namespace data_structs
 
 #endif // BINARYSEARCHTREE_HPP

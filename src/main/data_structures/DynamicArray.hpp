@@ -10,6 +10,9 @@
 #include <type_traits>
 
 
+namespace data_structs {
+
+
 /**
  * @class DynamicArray
  * @brief A vector-like, resizable, contiguous container with explicit lifetime
@@ -574,6 +577,25 @@ class DynamicArray {
 
 
     /**
+     * @brief Checks if the element is already stored in
+     * the dynamic array.
+     *
+     * If found, it returns its index [0 ; size_ - 1],
+     * otherwise size_.
+     *
+     * @param element The element to look for.
+     * @return The index of the found element.
+     */
+    [[nodiscard]]
+    std::size_t contains(const Type& element) const noexcept {
+        for (std::size_t i = 0; i < size_; ++i)
+            if (data_[i] == element)
+                return i;
+        return size_;
+    }
+
+
+    /**
      * @brief Insert an element at index idx.
      *
      * For middle inserts (idx < size()), this method constructs the result into
@@ -646,6 +668,100 @@ class DynamicArray {
     template <typename U>
     void addFirst(U&& element) {
         insert(std::forward<U>(element), 0);
+    }
+
+
+    /**
+     * @brief Emplace-construct an element at index idx.
+     *
+     * For middle inserts (idx < size()), constructs the result into a fresh
+     * buffer (prefix, new element, suffix) and commits only after success
+     * (strong guarantee). Appending at idx == size() constructs in-place at the
+     * end.
+     *
+     * @tparam Args Argument types forwarded to Type's constructor.
+     * @param idx Insertion position, 0 <= idx <= size().
+     * @param args Constructor arguments for the new element.
+     *
+     * @par Complexity
+     * - Append: amortized O(1); O(n) when growth occurs.
+     * - Middle insert: O(n) time; O(n) temporary storage during rebuild.
+     *
+     * @par Exception Safety
+     * - Strong: on failure (allocation or construction), the array is
+     * unchanged.
+     *
+     * @throws std::out_of_range If idx > size().
+     * @throws std::length_error If growth is needed and capacity() ==
+     * MAX_CAPACITY.
+     * @throws std::bad_alloc On allocation failure.
+     */
+    template <typename... Args>
+    void emplaceAt(const std::size_t idx, Args&&... args) {
+        static_assert(std::is_constructible_v<Type, Args&&...>);
+        if (idx > size_)
+            throw std::out_of_range("Index out of range");
+
+        ensureCapacity();
+
+        if (idx == size_) {
+            new (data_ + size_) Type(std::forward<Args>(args)...);
+            ++size_;
+            return;
+        }
+
+        rebuildBuffer(idx, std::forward<Args>(args)...);
+    }
+
+
+    /**
+     * @brief Emplace-construct an element at the end (append).
+     *
+     * Delegates to emplaceAt(size(), args...).
+     *
+     * @tparam Args Argument types forwarded to Type's constructor.
+     * @param args Constructor arguments.
+     *
+     * @par Complexity
+     * - Amortized O(1); O(n) when growth occurs.
+     */
+    template <typename... Args>
+    void emplaceLast(Args&&... args) {
+        emplaceAt(size_, std::forward<Args>(args)...);
+    }
+
+
+    /**
+     * @brief Emplace-construct an element at the front (index 0).
+     *
+     * Delegates to emplaceAt(0, args...). This is an O(n) middle insert that
+     * rebuilds into a fresh buffer and commits on success (strong guarantee).
+     *
+     * @tparam Args Argument types forwarded to Type's constructor.
+     * @param args Constructor arguments.
+     */
+    template <typename... Args>
+    void emplaceFirst(Args&&... args) {
+        emplaceAt(0, std::forward<Args>(args)...);
+    }
+
+
+    /**
+     * @brief Removes the element from the array.
+     *
+     * First it checks if the array contains the given element
+     * and finds its index. If it is not found, it returns false,
+     * otherwise true.
+     *
+     * @param element The element to remove.
+     * @return True if successfully removed, otherwise false.
+     */
+    bool remove(const Type& element) {
+        const std::size_t idx = contains(element);
+        if (idx == size_)
+            return false;
+        removeAt(idx);
+        return true;
     }
 
 
@@ -845,81 +961,6 @@ class DynamicArray {
 
 
     /**
-     * @brief Emplace-construct an element at index idx.
-     *
-     * For middle inserts (idx < size()), constructs the result into a fresh
-     * buffer (prefix, new element, suffix) and commits only after success
-     * (strong guarantee). Appending at idx == size() constructs in-place at the
-     * end.
-     *
-     * @tparam Args Argument types forwarded to Type's constructor.
-     * @param idx Insertion position, 0 <= idx <= size().
-     * @param args Constructor arguments for the new element.
-     *
-     * @par Complexity
-     * - Append: amortized O(1); O(n) when growth occurs.
-     * - Middle insert: O(n) time; O(n) temporary storage during rebuild.
-     *
-     * @par Exception Safety
-     * - Strong: on failure (allocation or construction), the array is
-     * unchanged.
-     *
-     * @throws std::out_of_range If idx > size().
-     * @throws std::length_error If growth is needed and capacity() ==
-     * MAX_CAPACITY.
-     * @throws std::bad_alloc On allocation failure.
-     */
-    template <typename... Args>
-    void emplaceAt(const std::size_t idx, Args&&... args) {
-        static_assert(std::is_constructible_v<Type, Args&&...>);
-        if (idx > size_)
-            throw std::out_of_range("Index out of range");
-
-        ensureCapacity();
-
-        if (idx == size_) {
-            new (data_ + size_) Type(std::forward<Args>(args)...);
-            ++size_;
-            return;
-        }
-
-        rebuildBuffer(idx, std::forward<Args>(args)...);
-    }
-
-
-    /**
-     * @brief Emplace-construct an element at the end (append).
-     *
-     * Delegates to emplaceAt(size(), args...).
-     *
-     * @tparam Args Argument types forwarded to Type's constructor.
-     * @param args Constructor arguments.
-     *
-     * @par Complexity
-     * - Amortized O(1); O(n) when growth occurs.
-     */
-    template <typename... Args>
-    void emplaceLast(Args&&... args) {
-        emplaceAt(size_, std::forward<Args>(args)...);
-    }
-
-
-    /**
-     * @brief Emplace-construct an element at the front (index 0).
-     *
-     * Delegates to emplaceAt(0, args...). This is an O(n) middle insert that
-     * rebuilds into a fresh buffer and commits on success (strong guarantee).
-     *
-     * @tparam Args Argument types forwarded to Type's constructor.
-     * @param args Constructor arguments.
-     */
-    template <typename... Args>
-    void emplaceFirst(Args&&... args) {
-        emplaceAt(0, std::forward<Args>(args)...);
-    }
-
-
-    /**
      * @brief Ensure capacity() >= new_capacity (size unchanged).
      *
      * If new_capacity > capacity(), reallocate to exactly new_capacity and
@@ -1056,5 +1097,6 @@ class DynamicArray {
     }
 };
 
+} // namespace data_structs
 
 #endif // DYNAMICARRAY_HPP

@@ -9,6 +9,9 @@
 #include "DynamicArray.hpp"
 
 
+namespace data_structs {
+
+
 /**
  * @class Stack
  * @brief A LIFO (last-in, first-out) container backed by a resizable contiguous
@@ -245,5 +248,7 @@ class Stack {
 
     ~Stack() = default;
 };
+
+} // namespace data_structs
 
 #endif // STACK_HPP

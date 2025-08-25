@@ -9,10 +9,13 @@
 #include "ThrowingType.hpp"
 
 
+using data_structs::LinkedList;
+
+
 class LinkedListUnitTest : public testing::Test {
   protected:
-    void SetUp() override { }
-    void TearDown() override { }
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 

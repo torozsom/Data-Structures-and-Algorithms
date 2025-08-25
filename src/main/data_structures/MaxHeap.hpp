@@ -8,6 +8,9 @@
 #include "Heap.hpp"
 
 
+namespace data_structs {
+
+
 /**
  * @class MaxHeap
  * @brief Pointer-based max-heap (binary tree) storing elements of type `Type`.
@@ -186,5 +189,7 @@ class MaxHeap final : public Heap<Type> {
 
     ~MaxHeap() override = default;
 };
+
+} // namespace data_structs
 
 #endif // MAXHEAP_HPP

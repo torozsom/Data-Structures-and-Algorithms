@@ -8,6 +8,9 @@
 #include "ThrowingType.hpp"
 
 
+using data_structs::Stack;
+
+
 class StackUnitTest : public testing::Test {
   protected:
     void SetUp() override {}

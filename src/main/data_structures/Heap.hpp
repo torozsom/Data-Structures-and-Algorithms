@@ -8,6 +8,9 @@
 #include "BinaryTree.hpp"
 
 
+namespace data_structs {
+
+
 /**
  * @class Heap
  * @brief Abstract base for pointer-based binary heaps over `Type`.
@@ -236,5 +239,7 @@ class Heap : public BinaryTree<Type> {
     /// Destructor
     ~Heap() override = default;
 };
+
+} // namespace data_structs
 
 #endif // HEAP_HPP

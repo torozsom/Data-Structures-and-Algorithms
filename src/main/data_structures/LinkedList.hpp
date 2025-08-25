@@ -8,6 +8,9 @@
 #include <utility>
 
 
+namespace data_structs {
+
+
 /**
  * @class LinkedList
  *
@@ -890,5 +893,6 @@ class LinkedList {
     }
 };
 
+} // namespace data_structs
 
 #endif // LINKEDLIST_HPP

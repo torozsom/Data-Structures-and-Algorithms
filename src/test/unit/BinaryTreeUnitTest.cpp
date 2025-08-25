@@ -7,10 +7,14 @@
 #include "Record.hpp"
 
 
+using data_structs::BinaryTree;
+using data_structs::Node;
+
+
 class BinaryTreeUnitTest : public testing::Test {
   protected:
-    void SetUp() override { }
-    void TearDown() override { }
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 
@@ -54,12 +58,12 @@ TEST_F(BinaryTreeUnitTest, ContainsShouldFindExistingValues) {
     const int values[] = {1, 2, 3, 4, 5};
     const BinaryTree tree(values, 5);
 
-    EXPECT_TRUE(tree.containsNode(1));  // root
-    EXPECT_TRUE(tree.containsNode(2));  // left child
-    EXPECT_TRUE(tree.containsNode(3));  // right child
-    EXPECT_TRUE(tree.containsNode(4));  // left leaf
-    EXPECT_TRUE(tree.containsNode(5));  // right leaf
-    EXPECT_FALSE(tree.containsNode(6)); // non-existent value
+    EXPECT_TRUE(tree.contains(1));  // root
+    EXPECT_TRUE(tree.contains(2));  // left child
+    EXPECT_TRUE(tree.contains(3));  // right child
+    EXPECT_TRUE(tree.contains(4));  // left leaf
+    EXPECT_TRUE(tree.contains(5));  // right leaf
+    EXPECT_FALSE(tree.contains(6)); // non-existent value
 }
 
 
@@ -68,11 +72,11 @@ TEST_F(BinaryTreeUnitTest, LevelOrderConstructionShouldWorkCorrectly) {
     const BinaryTree tree(values, 5);
 
     EXPECT_EQ(tree.size(), 5);
-    EXPECT_TRUE(tree.containsNode(1)); // Level 1 (root)
-    EXPECT_TRUE(tree.containsNode(2)); // Level 2
-    EXPECT_TRUE(tree.containsNode(3)); // Level 2
-    EXPECT_TRUE(tree.containsNode(4)); // Level 3
-    EXPECT_TRUE(tree.containsNode(5)); // Level 3
+    EXPECT_TRUE(tree.contains(1)); // Level 1 (root)
+    EXPECT_TRUE(tree.contains(2)); // Level 2
+    EXPECT_TRUE(tree.contains(3)); // Level 2
+    EXPECT_TRUE(tree.contains(4)); // Level 3
+    EXPECT_TRUE(tree.contains(5)); // Level 3
 }
 
 
@@ -86,7 +90,7 @@ TEST_F(BinaryTreeUnitTest, CopyConstructorShouldCreateDeepCopy) {
 
     // Verify all values were copied
     for (int i = 1; i <= 5; ++i)
-        EXPECT_TRUE(copy.containsNode(i));
+        EXPECT_TRUE(copy.contains(i));
 
     // Verify deep copy by clearing original
     original.clear();
@@ -104,9 +108,9 @@ TEST_F(BinaryTreeUnitTest, MoveConstructorShouldTransferOwnership) {
     EXPECT_TRUE(original.isEmpty());
     EXPECT_EQ(original.size(), 0);
     EXPECT_EQ(moved.size(), 3);
-    EXPECT_TRUE(moved.containsNode(1));
-    EXPECT_TRUE(moved.containsNode(2));
-    EXPECT_TRUE(moved.containsNode(3));
+    EXPECT_TRUE(moved.contains(1));
+    EXPECT_TRUE(moved.contains(2));
+    EXPECT_TRUE(moved.contains(3));
 }
 
 
@@ -119,9 +123,9 @@ TEST_F(BinaryTreeUnitTest, MoveAssignmentShouldTransferOwnership) {
     EXPECT_TRUE(original.isEmpty());
     EXPECT_EQ(original.size(), 0);
     EXPECT_EQ(moved.size(), 3);
-    EXPECT_TRUE(moved.containsNode(1));
-    EXPECT_TRUE(moved.containsNode(2));
-    EXPECT_TRUE(moved.containsNode(3));
+    EXPECT_TRUE(moved.contains(1));
+    EXPECT_TRUE(moved.contains(2));
+    EXPECT_TRUE(moved.contains(3));
 }
 
 
@@ -136,7 +140,7 @@ TEST_F(BinaryTreeUnitTest, AssignmentOperatorShouldCreateDeepCopy) {
 
     // Verify all values were copied
     for (int i = 1; i <= 5; ++i)
-        EXPECT_TRUE(copy.containsNode(i));
+        EXPECT_TRUE(copy.contains(i));
 
     // Verify deep copy by clearing original
     original.clear();
@@ -150,10 +154,10 @@ TEST_F(BinaryTreeUnitTest, ShouldWorkWithNonTrivialTypes) {
     const BinaryTree tree(values, 3);
 
     EXPECT_EQ(tree.size(), 3);
-    EXPECT_TRUE(tree.containsNode("Hello"));
-    EXPECT_TRUE(tree.containsNode("World"));
-    EXPECT_TRUE(tree.containsNode("Test"));
-    EXPECT_FALSE(tree.containsNode("NotFound"));
+    EXPECT_TRUE(tree.contains("Hello"));
+    EXPECT_TRUE(tree.contains("World"));
+    EXPECT_TRUE(tree.contains("Test"));
+    EXPECT_FALSE(tree.contains("NotFound"));
 }
 
 
@@ -162,29 +166,29 @@ TEST_F(BinaryTreeUnitTest, InsertMethodsShouldWorkCorrectly) {
 
     // Test insertLeft
     tree.insertLeft(10);
-    EXPECT_TRUE(tree.containsNode(10));
+    EXPECT_TRUE(tree.contains(10));
 
     tree.insertLeft(5);
-    EXPECT_TRUE(tree.containsNode(5));
+    EXPECT_TRUE(tree.contains(5));
 
     tree.insertLeft(15);
-    EXPECT_TRUE(tree.containsNode(15));
+    EXPECT_TRUE(tree.contains(15));
 
     tree.insertLeft(20);
-    EXPECT_TRUE(tree.containsNode(20));
+    EXPECT_TRUE(tree.contains(20));
 
     // Test insertRight
     tree.insertRight(3);
-    EXPECT_TRUE(tree.containsNode(3));
+    EXPECT_TRUE(tree.contains(3));
 
     tree.insertRight(7);
-    EXPECT_TRUE(tree.containsNode(7));
+    EXPECT_TRUE(tree.contains(7));
 
     tree.insertRight(12);
-    EXPECT_TRUE(tree.containsNode(12));
+    EXPECT_TRUE(tree.contains(12));
 
     tree.insertRight(17);
-    EXPECT_TRUE(tree.containsNode(17));
+    EXPECT_TRUE(tree.contains(17));
 
     EXPECT_EQ(tree.size(), 8);
 }
@@ -203,7 +207,7 @@ TEST_F(BinaryTreeUnitTest, SelfAssignmentShouldMaintainTree) {
     EXPECT_EQ(tree.getHeight(), originalHeight);
 
     for (const int value : values)
-        EXPECT_TRUE(tree.containsNode(value));
+        EXPECT_TRUE(tree.contains(value));
 }
 
 
@@ -220,7 +224,7 @@ TEST_F(BinaryTreeUnitTest, SelfMoveAssignmentShouldMaintainTree) {
     EXPECT_EQ(tree.getHeight(), originalHeight);
 
     for (const int value : values)
-        EXPECT_TRUE(tree.containsNode(value));
+        EXPECT_TRUE(tree.contains(value));
 }
 
 
