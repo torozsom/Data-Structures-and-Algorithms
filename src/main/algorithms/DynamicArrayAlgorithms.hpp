@@ -5,9 +5,14 @@
 #include <DynamicArray.hpp>
 
 
-namespace algo {
+namespace array_algorithms {
+
 
 using data_structs::DynamicArray;
+
+
+//*** Utility Functions ***//
+
 
 /// Swap two elements
 template <typename Type>
@@ -156,6 +161,111 @@ void quickSortRecursive(DynamicArray<Type>& array, std::size_t left,
 }
 
 
+/**
+ * @brief Sift a node down in a max-heap (array-based, 0-indexed).
+ *
+ * Restores heap property in the range [0, size). No effect if start is a leaf.
+ *
+ * @param array The array representing the heap.
+ * @param start The index to sift down from (typically 0).
+ * @param size The heap size (considered range is [0, size)).
+ */
+template <typename Type>
+void siftDown(DynamicArray<Type>& array, const std::size_t start, const std::size_t size) {
+    std::size_t i = start;
+    while (true) {
+        const std::size_t left = 2 * i + 1;
+        if (left >= size)
+            break;
+
+        std::size_t largest = left;
+        const std::size_t right = left + 1;
+
+        if (right < size && array[right] > array[left])
+            largest = right;
+
+        if (array[i] >= array[largest])
+            break;
+
+        swap(array[i], array[largest]);
+        i = largest;
+    }
+}
+
+
+/**
+ * @brief Sift a node up in a max-heap (array-based, 0-indexed).
+ *
+ * Restores heap property assuming the new element is at index idx.
+ *
+ * @param array The array representing the heap.
+ * @param idx The index to sift up from (typically size-1 after an insertion).
+ */
+template <typename Type>
+void siftUp(DynamicArray<Type>& array, std::size_t idx) {
+    while (idx > 0) {
+        const std::size_t parent = (idx - 1) / 2;
+        if (array[parent] >= array[idx])
+            break;
+        swap(array[parent], array[idx]);
+        idx = parent;
+    }
+}
+
+
+/**
+ * @brief Transform the array into a max-heap in-place.
+ *
+ * Uses bottom-up heap construction in O(n) time.
+ *
+ * @param array The array to heapify (range is [0, a.size())).
+ */
+template <typename Type>
+void makeHeap(DynamicArray<Type>& array) {
+    const std::size_t n = array.size();
+    if (n <= 1)
+        return;
+
+    for (std::size_t i = (n - 2) / 2 + 1; i-- > 0; )
+        siftDown(array, i, n);
+}
+
+
+/**
+ * @brief Insert the last element into the heap (restore heap property).
+ *
+ * Assumes the logical heap occupies [0, size), with a new element placed at
+ * index size-1. After the call, [0, size) is a valid max-heap.
+ *
+ * @param array The array containing the heap.
+ * @param size The new heap size (must be in [1, a.size()]).
+ */
+template <typename Type>
+void pushHeap(DynamicArray<Type>& array, const std::size_t size) {
+    if (size == 0 || size > array.size())
+        return;
+    siftUp(array, size - 1);
+}
+
+
+/**
+ * @brief Move the max element to the end (size-1) and restore heap on prefix.
+ *
+ * Swaps array[0] with array[size-1] and then fixes the heap on [0, size-1).
+ * After the call, the range [size-1, size) contains the extracted maximum.
+ *
+ * @param array The array containing the heap.
+ * @param size The current heap size (must be in [1, array.size()]).
+ */
+template <typename Type>
+void popHeap(DynamicArray<Type>& array, const std::size_t size) {
+    if (size <= 1 || size > array.size())
+        return;
+    swap(array[0], array[size - 1]);
+    siftDown(array, 0, size - 1);
+}
+
+
 /// Checks if the array is sorted in ascending order.
 template <typename Type>
 bool isSorted(const DynamicArray<Type>& array) noexcept {
@@ -167,7 +277,7 @@ bool isSorted(const DynamicArray<Type>& array) noexcept {
 }
 
 
-/*** Sorting Algorithms ***/
+//*** Sorting Algorithms ***//
 
 
 /**
@@ -584,6 +694,214 @@ void BinSort(DynamicArray<Type>& array, const Type min_value,
 }
 
 
+/**
+ * @brief Sorts the array in ascending order using LSD Radix Sort (base 256).
+ *
+ * Stable O(k·n) for integral types, where k = sizeof(Type) bytes.
+ * Handles signed types by flipping the sign bit on the most significant byte
+ * pass so that negatives come before non-negatives.
+ *
+ * @par Constraints
+ * - Type must be an integral type.
+ * - Uses O(n) temporary buffer.
+ *
+ * @param array The array to sort.
+ */
+template <typename Type>
+void RadixSortLSD(DynamicArray<Type>& array) {
+    static_assert(std::numeric_limits<Type>::is_integer,
+                  "RadixSortLSD requires an integral Type.");
+
+    const std::size_t n = array.size();
+    if (n <= 1 || isSorted(array))
+        return;
+
+    using U = std::make_unsigned_t<Type>;
+    constexpr std::size_t RADIX = 256;
+    constexpr std::size_t BYTE_MASK = 0xFFu;
+    const std::size_t bytes = sizeof(Type);
+
+    // Temporary buffer for stable distribution
+    Type* temp = new Type[n];
+
+    // We alternate writes between array and temp each pass
+    for (std::size_t pass = 0; pass < bytes; ++pass) {
+        std::size_t count[RADIX] = {};
+        const bool msb_pass = (pass + 1 == bytes);
+
+        // Counting occurrences
+        for (std::size_t i = 0; i < n; ++i) {
+            U u = static_cast<U>(array[i]);
+            auto digit = static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+
+            // For signed types, flip the sign bit on the MSB pass to ensure negatives first
+            if constexpr (std::numeric_limits<Type>::is_signed)
+                if (msb_pass)
+                    digit ^= 0x80u;
+
+            ++count[digit];
+        }
+
+        // Prefix sums to get starting positions
+        std::size_t pos[RADIX];
+        pos[0] = 0;
+        for (std::size_t d = 1; d < RADIX; ++d)
+            pos[d] = pos[d - 1] + count[d - 1];
+
+        // Stable distribution: even passes write to temp, odd passes back to array
+        if (pass % 2 == 0) {
+            for (std::size_t i = 0; i < n; ++i) {
+                U u = static_cast<U>(array[i]);
+                auto digit = static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+
+                if constexpr (std::numeric_limits<Type>::is_signed)
+                    if (msb_pass)
+                        digit ^= 0x80u;
+
+                temp[pos[digit]++] = array[i];
+            }
+        } else {
+            for (std::size_t i = 0; i < n; ++i) {
+                U u = static_cast<U>(temp[i]);
+                auto digit = static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+
+                if constexpr (std::numeric_limits<Type>::is_signed)
+                    if (msb_pass)
+                        digit ^= 0x80u;
+
+                array[pos[digit]++] = temp[i];
+            }
+        }
+    }
+
+    // If number of passes is odd, last write was into temp -> copy back
+    if ((bytes % 2) == 1)
+        for (std::size_t i = 0; i < n; ++i)
+            array[i] = temp[i];
+
+    delete[] temp;
+}
+
+
+/**
+ * @brief Sorts the array in ascending order using MSD Radix Sort (base 256).
+ *
+ * Stable O(k·n) for integral types, where k = sizeof(Type) bytes.
+ * Starts from the most significant byte and recursively sorts buckets by the
+ * next less significant byte. For signed types, the MSB pass flips the sign bit
+ * so that negatives precede non-negatives.
+ *
+ * @par Constraints
+ * - Type must be an integral type.
+ * - Uses O(n) temporary buffer reused across recursion.
+ *
+ * @param array The array to sort.
+ */
+template <typename Type>
+void RadixSortMSD(DynamicArray<Type>& array) {
+    static_assert(std::numeric_limits<Type>::is_integer,
+                  "RadixSortMSD requires an integral Type.");
+
+    const std::size_t n = array.size();
+    if (n <= 1 || isSorted(array))
+        return;
+
+    using U = std::make_unsigned_t<Type>;
+    constexpr std::size_t RADIX = 256;
+
+    // Helper to get the byte at position 'byte' (0-based from LSB)
+    auto get_digit = [](U u, const int byte) -> std::size_t {
+        return static_cast<std::size_t>((u >> (8 * byte)) & 0xFFu);
+    };
+
+    // Reusable temporary buffer for stable distribution
+    Type* temp = new Type[n];
+
+    // Self-recursive lambda via fixpoint pattern: pass 'self' explicitly
+    auto msd_rec = [&](auto&& self, const std::size_t lo, const std::size_t hi,
+                       const int byte, const bool flip_msb) -> void {
+
+        if (const std::size_t len = hi - lo ; len <= 1 || byte < 0)
+            return;
+
+        std::size_t count[RADIX] = {};
+
+        // Count digits
+        for (std::size_t i = lo; i < hi; ++i) {
+            U u = static_cast<U>(array[i]);
+            std::size_t d = get_digit(u, byte);
+
+            if (flip_msb)
+                if constexpr (std::numeric_limits<Type>::is_signed)
+                    d ^= 0x80u; // map sign bit so negatives come first
+
+            ++count[d];
+        }
+
+        // Compute starting positions in [lo, hi)
+        std::size_t pos[RADIX];
+        pos[0] = lo;
+        for (std::size_t d = 1; d < RADIX; ++d)
+            pos[d] = pos[d - 1] + count[d - 1];
+
+        // Stable distribute into temp
+        for (std::size_t i = lo; i < hi; ++i) {
+            U u = static_cast<U>(array[i]);
+            std::size_t d = get_digit(u, byte);
+
+            if (flip_msb)
+                if constexpr (std::numeric_limits<Type>::is_signed)
+                    d ^= 0x80u;
+
+            temp[pos[d]++] = array[i];
+        }
+
+        // Copy back to array
+        for (std::size_t i = lo; i < hi; ++i)
+            array[i] = temp[i];
+
+        // Recurse on each non-empty bucket with next byte (no sign flip below MSB)
+        std::size_t start = lo;
+        for (const std::size_t cnt : count) {
+            if (cnt > 1)
+                self(self, start, start + cnt, byte - 1, false);
+            start += cnt;
+        }
+    };
+
+    // Start from the MSB (byte index sizeof(Type)-1), flip sign bit at MSB
+    msd_rec(msd_rec, 0, n, static_cast<int>(sizeof(Type)) - 1, true);
+    delete[] temp;
+}
+
+
+/**
+ * @brief Sorts the array in ascending order using HeapSort (max-heap).
+ *
+ * In-place, not stable. Builds a max-heap, then repeatedly moves the maximum
+ * to the end and shrinks the heap.
+ *
+ * Note for float/double: Arrays containing NaN are unsupported for ordering;
+ * results are unspecified.
+ *
+ * @par Complexity
+ * - O(n log n) time.
+ * - O(1) extra space (ignoring recursion stack as there is none).
+ *
+ * @param array The array to sort.
+ */
+template <typename Type>
+void HeapSort(DynamicArray<Type>& array) {
+    const std::size_t n = array.size();
+    if (n <= 1 || isSorted(array))
+        return;
+
+    makeHeap(array);
+    for (std::size_t heap_size = n; heap_size > 1; --heap_size)
+        popHeap(array, heap_size);
+}
+
+
 /*** Searching Algorithms ***/
 
 
@@ -649,6 +967,6 @@ std::size_t BinarySearch(const DynamicArray<Type>& array,
     return array.size();
 }
 
-} // namespace algo
+} // namespace algorithms
 
 #endif // DYNAMIC_ARRAY_ALGORITHMS_HPP
