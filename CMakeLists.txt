@@ -33,6 +33,8 @@ add_executable(algorithms_main
         src/main/data_structures/Heap.hpp
         src/main/data_structures/MaxHeap.hpp
         src/main/data_structures/Queue.hpp
+
+        src/main/algorithms/DynamicArrayAlgorithms.hpp
 )
 
 target_include_directories(algorithms_main PRIVATE src/main/data_structures)
