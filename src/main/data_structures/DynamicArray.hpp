@@ -304,7 +304,7 @@ class DynamicArray {
 
 
     /**
-     * @brief Ensure there is room for one more element (grow by doubling if
+     * @brief Ensure there is room for more elements (grow by doubling if
      * full).
      *
      * If size() == capacity(), this doubles capacity (clamped to MAX_CAPACITY).
@@ -465,6 +465,34 @@ class DynamicArray {
      */
     DynamicArray() : data_(nullptr), size_(0), capacity_(DEFAULT_CAPACITY) {
         data_ = allocate(capacity_);
+    }
+
+    /**
+     * Constructor that initializes the dynamic array with
+     * the given size. If 'size' > DEFAULT_CAPACITY then the
+     * capacity will be updated to 'size' as well.
+     *
+     * @param size The number of elements to allocate memory for.
+     */
+    explicit DynamicArray(const std::size_t size)
+        : data_(nullptr), size_(size),
+        capacity_(size < DEFAULT_CAPACITY ? DEFAULT_CAPACITY : size) {
+        if (size > 0) {
+            std::size_t i = 0;
+            try {
+                data_ = allocate(capacity_);
+                for (; i < capacity_; ++i)
+                    new (data_ + i) Type();
+            } catch (...) {
+                for (std::size_t j = 0; j < i; ++j)
+                    data_[j].~Type();
+                deallocate(data_);
+                data_ = nullptr;
+                size_ = 0;
+                capacity_ = 0;
+                throw;
+            }
+        }
     }
 
     /**
