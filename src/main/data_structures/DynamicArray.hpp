@@ -476,7 +476,7 @@ class DynamicArray {
      */
     explicit DynamicArray(const std::size_t size)
         : data_(nullptr), size_(size),
-        capacity_(size < DEFAULT_CAPACITY ? DEFAULT_CAPACITY : size) {
+          capacity_(size < DEFAULT_CAPACITY ? DEFAULT_CAPACITY : size) {
         if (size > 0) {
             std::size_t i = 0;
             try {

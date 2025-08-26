@@ -21,6 +21,9 @@ if (NOT GTest_FOUND)
     FetchContent_MakeAvailable(googletest)
 endif ()
 
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
 # Main executable (your application)
 add_executable(algorithms_main
         src/main/main.cpp
@@ -35,9 +38,24 @@ add_executable(algorithms_main
         src/main/data_structures/Queue.hpp
 
         src/main/algorithms/DynamicArrayAlgorithms.hpp
+        src/main/ui/array/ArrayWidget.cpp
+        src/main/ui/array/ArrayWidget.h
+        src/main/ui/array/LinearSearchAnimator.hpp
 )
 
-target_include_directories(algorithms_main PRIVATE src/main/data_structures)
+target_include_directories(algorithms_main PRIVATE
+        src/main/data_structures
+        src/main/algorithms
+        src/main/ui/array
+)
+
+set_target_properties(algorithms_main PROPERTIES
+        AUTOMOC ON
+        AUTOUIC ON
+        AUTORRC ON
+)
+
+target_link_libraries(algorithms_main PRIVATE Qt6::Widgets)
 
 # Unit test executable (Google Test based)
 add_executable(unit_tests

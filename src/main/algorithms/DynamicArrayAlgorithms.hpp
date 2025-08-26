@@ -26,6 +26,8 @@
 
 #include "DynamicArray.hpp"
 
+#include <functional>
+
 
 namespace array_algorithms {
 
@@ -719,7 +721,8 @@ void RadixSortLSD(DynamicArray<Type>& array) {
         if (use_array_as_source) {
             for (std::size_t i = 0; i < n; ++i) {
                 U u = static_cast<U>(array[i]);
-                auto digit = static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+                auto digit =
+                    static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
                 if constexpr (std::numeric_limits<Type>::is_signed)
                     if (msb_pass)
                         digit ^= 0x80u;
@@ -728,7 +731,8 @@ void RadixSortLSD(DynamicArray<Type>& array) {
         } else {
             for (std::size_t i = 0; i < n; ++i) {
                 U u = static_cast<U>(temp[i]);
-                auto digit = static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+                auto digit =
+                    static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
                 if constexpr (std::numeric_limits<Type>::is_signed)
                     if (msb_pass)
                         digit ^= 0x80u;
@@ -742,11 +746,13 @@ void RadixSortLSD(DynamicArray<Type>& array) {
         for (std::size_t d = 1; d < RADIX; ++d)
             pos[d] = pos[d - 1] + count[d - 1];
 
-        // Stable distribution: even passes write to temp, odd passes back to array
+        // Stable distribution: even passes write to temp, odd passes back to
+        // array
         if (use_array_as_source) {
             for (std::size_t i = 0; i < n; ++i) {
                 U u = static_cast<U>(array[i]);
-                auto digit = static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+                auto digit =
+                    static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
                 if constexpr (std::numeric_limits<Type>::is_signed)
                     if (msb_pass)
                         digit ^= 0x80u;
@@ -755,7 +761,8 @@ void RadixSortLSD(DynamicArray<Type>& array) {
         } else {
             for (std::size_t i = 0; i < n; ++i) {
                 U u = static_cast<U>(temp[i]);
-                auto digit = static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+                auto digit =
+                    static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
                 if constexpr (std::numeric_limits<Type>::is_signed)
                     if (msb_pass)
                         digit ^= 0x80u;
@@ -769,7 +776,6 @@ void RadixSortLSD(DynamicArray<Type>& array) {
         for (std::size_t i = 0; i < n; ++i)
             array[i] = temp[i];
 }
-
 
 
 /**
@@ -902,18 +908,21 @@ void HeapSort(DynamicArray<Type>& array) {
  *
  * @param array The array to search in.
  * @param element The element to search for.
+ * @param callback The callback function to invoke on each index visited.
  * @return The index of the found element, or array.size() if not found.
  *
  * @par Complexity
  * - O(n) time.
  * - O(1) space.
  */
-template <typename Type>
-std::size_t LinearSearch(const DynamicArray<Type>& array,
-                         const Type& element) noexcept {
-    for (std::size_t i = 0; i < array.size(); ++i)
+template <typename Type, typename Callback>
+std::size_t LinearSearch(const DynamicArray<Type>& array, const Type& element,
+                         Callback&& callback) {
+    for (std::size_t i = 0; i < array.size(); ++i) {
+        callback(i);
         if (array[i] == element)
             return i;
+    }
     return array.size();
 }
 
