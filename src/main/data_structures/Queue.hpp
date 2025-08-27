@@ -5,6 +5,7 @@
 #include <limits>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 
 
 #include "DynamicArray.hpp"

@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <gtest/gtest.h>
-#include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "MaxHeap.hpp"

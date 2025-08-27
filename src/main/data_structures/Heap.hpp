@@ -3,6 +3,7 @@
 
 
 #include <limits>
+#include <stdexcept>
 #include <utility>
 
 #include "BinaryTree.hpp"

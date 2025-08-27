@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "BinaryTree.hpp"
 #include "Record.hpp"

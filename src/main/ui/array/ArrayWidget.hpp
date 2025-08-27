@@ -12,6 +12,7 @@
 #include <QPolygonF>
 #include <QRectF>
 #include <QString>
+#include <QWidget>
 
 
 #include "DynamicArray.hpp"

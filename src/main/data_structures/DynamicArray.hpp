@@ -2,13 +2,13 @@
 #define DYNAMICARRAY_HPP
 
 
-#include <algorithm>
 #include <cassert>
 #include <initializer_list>
 #include <limits>
 #include <new>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 
 
 namespace data_structs {

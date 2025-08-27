@@ -2,6 +2,7 @@
 #define STACK_HPP
 
 
+#include <initializer_list>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>

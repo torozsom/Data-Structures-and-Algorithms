@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
-#include <memory>
 #include <stdexcept>
-#include <string>
-#include <vector>
+#include <utility>
 
 #include "BinarySearchTree.hpp"
 
