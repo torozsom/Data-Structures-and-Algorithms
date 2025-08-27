@@ -244,7 +244,14 @@ class BinarySearchTree : public BinaryTree<Type> {
 
   public:
     /// Default constructor
-    BinarySearchTree() : BinaryTree<Type>() {}
+    BinarySearchTree() noexcept : BinaryTree<Type>() {}
+
+    /// Constructor for braced-init-lists
+    BinarySearchTree(std::initializer_list<Type> initial_data)
+        : BinaryTree<Type>() {
+        for (const Type& element : initial_data)
+            this->insert(element);
+    }
 
     /**
      * Constructor that initializes the binary search tree with an array of

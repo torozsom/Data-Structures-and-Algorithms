@@ -75,12 +75,14 @@ class Stack {
     DynamicArray<Type> array_;
 
   public:
+    /// Default constructor
     Stack() : array_() {}
 
     /// Constructor with initial capacity
-    explicit Stack(const std::size_t capacity) : array_() {
-        array_.reserve(capacity);
-    }
+    explicit Stack(std::size_t capacity) : array_(capacity) {}
+
+    /// Constructor for braced-init-lists
+    Stack(std::initializer_list<Type> initial_data) : array_(initial_data) {}
 
     /**
      * Constructor with initial data and size.

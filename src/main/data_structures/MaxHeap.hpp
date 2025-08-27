@@ -105,6 +105,12 @@ class MaxHeap final : public Heap<Type> {
     /// Default constructor
     MaxHeap() : Heap<Type>() {}
 
+    /// Constructor for braced-init-lists
+    MaxHeap(std::initializer_list<Type> initial_data) : Heap<Type>() {
+        for (const Type& element : initial_data)
+            this->insert(element);
+    }
+
     /**
      * Constructs a MaxHeap from an array of elements. Each element is inserted
      * into the heap, maintaining the max-heap property.
@@ -115,7 +121,7 @@ class MaxHeap final : public Heap<Type> {
      */
     MaxHeap(const Type* array, const std::size_t size) : Heap<Type>() {
         for (std::size_t i = 0; i < size; ++i)
-            insert(array[i]);
+            this->insert(array[i]);
     }
 
     /// Copy constructor

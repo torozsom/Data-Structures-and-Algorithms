@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
+#include <initializer_list>
 
 
 namespace data_structs {
@@ -105,7 +106,19 @@ class LinkedList {
 
   public:
     /// Default constructor
-    LinkedList() : head_(nullptr), tail_(nullptr), size_(0) {}
+    LinkedList() noexcept : head_(nullptr), tail_(nullptr), size_(0) {}
+
+    /// Constructor for braced-init-lists
+    LinkedList(std::initializer_list<Type> initial_data)
+        : head_(nullptr), tail_(nullptr), size_(0) {
+        try {
+            for (const Type& element : initial_data)
+                addLast(element);
+        } catch (...) {
+            clear();
+            throw;
+        }
+    }
 
     /**
      * Constructor that initializes the linked list with an array of elements.
@@ -685,9 +698,6 @@ class LinkedList {
         size_ = 0;
     }
 
-    /// Destructor
-    ~LinkedList() noexcept { clear(); }
-
 
     /**
      * @class iterator
@@ -891,6 +901,10 @@ class LinkedList {
         --size_;
         return iterator(next);
     }
+
+
+    /// Destructor
+    ~LinkedList() noexcept { clear(); }
 };
 
 } // namespace data_structs

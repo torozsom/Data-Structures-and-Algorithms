@@ -141,7 +141,7 @@ class Heap : public BinaryTree<Type> {
 
   public:
     /// Default constructor
-    Heap() : BinaryTree<Type>() {}
+    Heap() noexcept : BinaryTree<Type>() {}
 
     /// Copy constructor
     Heap(const Heap& other) : BinaryTree<Type>(other) {}

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <initializer_list>
 #include <limits>
 #include <new>
 #include <stdexcept>
@@ -469,29 +470,48 @@ class DynamicArray {
 
     /**
      * Constructor that initializes the dynamic array with
-     * the given size. If 'size' > DEFAULT_CAPACITY then the
-     * capacity will be updated to 'size' as well.
+     * the given capacity.
      *
-     * @param size The number of elements to allocate memory for.
+     * @param capacity The number of elements to allocate memory for.
      */
-    explicit DynamicArray(const std::size_t size)
-        : data_(nullptr), size_(size),
-          capacity_(size < DEFAULT_CAPACITY ? DEFAULT_CAPACITY : size) {
-        if (size > 0) {
-            std::size_t i = 0;
-            try {
-                data_ = allocate(capacity_);
-                for (; i < capacity_; ++i)
-                    new (data_ + i) Type();
-            } catch (...) {
-                for (std::size_t j = 0; j < i; ++j)
-                    data_[j].~Type();
-                deallocate(data_);
-                data_ = nullptr;
-                size_ = 0;
-                capacity_ = 0;
-                throw;
-            }
+    explicit DynamicArray(std::size_t capacity)
+        : data_(nullptr), size_(0),
+          capacity_(capacity < DEFAULT_CAPACITY ? DEFAULT_CAPACITY : capacity) {
+        if (capacity < DEFAULT_CAPACITY)
+            capacity = DEFAULT_CAPACITY;
+
+        if (capacity > MAX_SAFE_CAPACITY)
+            capacity = MAX_CAPACITY;
+
+        data_ = allocate(capacity);
+    }
+
+    /**
+     * @brief Constructor that initializes the array from a braced-init-list.
+     *
+     * Sets capacity to max(DEFAULT_CAPACITY, list.size()), allocates storage,
+     * and copy-constructs the elements in order.
+     *
+     * @param initial_data The initializer list providing elements to copy.
+     *
+     * @throws std::bad_alloc On allocation failure.
+     */
+    DynamicArray(std::initializer_list<Type> initial_data)
+        : data_(nullptr), size_(initial_data.size()),
+          capacity_(initial_data.size() < DEFAULT_CAPACITY
+                        ? DEFAULT_CAPACITY
+                        : initial_data.size()) {
+        data_ = allocate(capacity_);
+        Type* constructed_end = data_;
+        try {
+            if (size_ > 0)
+                constructed_end = copyConstructElements(
+                    initial_data.begin(), initial_data.end(), data_);
+        } catch (...) {
+            for (Type* it = data_; it != constructed_end; ++it)
+                it->~Type();
+            deallocate(data_);
+            throw;
         }
     }
 

@@ -38,8 +38,7 @@ add_executable(algorithms_main
         src/main/data_structures/Queue.hpp
 
         src/main/algorithms/DynamicArrayAlgorithms.hpp
-        src/main/ui/array/ArrayWidget.cpp
-        src/main/ui/array/ArrayWidget.h
+        src/main/ui/array/ArrayWidget.hpp
         src/main/ui/array/LinearSearchAnimator.hpp
 )
 

@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
+#include <initializer_list>
 
 #include "Queue.hpp"
 
@@ -241,6 +242,12 @@ class BinaryTree {
     /// Default constructor
     BinaryTree() noexcept : root_() {}
 
+    /// Constructor for braced-init-lists
+    BinaryTree(std::initializer_list<Type> initial_data) : root_() {
+        for (const auto& element : initial_data)
+            this->insert(element);
+    }
+
     /**
      * Constructor that creates a binary tree from an array using level-order
      * insertion.
@@ -252,7 +259,7 @@ class BinaryTree {
             throw std::invalid_argument(
                 "Array pointer cannot be null when size is non-zero");
         for (std::size_t i = 0; i < size; i++)
-            BinaryTree::insert(array[i]);
+            this->insert(array[i]);
     }
 
     /// Copy constructor

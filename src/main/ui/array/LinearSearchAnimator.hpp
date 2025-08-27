@@ -5,7 +5,7 @@
 #ifndef ALGORITHMS_LINEARSEARCHANIMATOR_HPP
 #define ALGORITHMS_LINEARSEARCHANIMATOR_HPP
 
-#include "ArrayWidget.h"
+#include "ArrayWidget.hpp"
 #include "DynamicArrayAlgorithms.hpp"
 
 #include <QObject>
@@ -109,7 +109,8 @@ class LinearSearchAnimator final : public QObject {
     }
 
 
-    /* * @brief Performs a linear search on the given array for the target
+    /**
+     * @brief Performs a linear search on the given array for the target
      * element, invoking the provided callback at each visited index.
      *
      * @tparam Type The element type of the array.

@@ -345,9 +345,12 @@ class Queue {
 
     /// Constructor with initial capacity
     explicit Queue(std::size_t initial_capacity)
-        : array_(), front_idx_(0), size_(0) {
-        array_.reserve(initial_capacity);
-    }
+        : array_(initial_capacity), front_idx_(0), size_(0) {}
+
+    /// Constructor for braced-init-lists
+    Queue(std::initializer_list<Type> initial_data)
+        : array_(initial_data), front_idx_(0), size_(initial_data.size()) {}
+
 
     /**
      * Constructor with initial data and size.

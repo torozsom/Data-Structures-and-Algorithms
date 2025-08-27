@@ -101,6 +101,13 @@ class MinHeap final : public Heap<Type> {
     /// Default constructor
     MinHeap() : Heap<Type>() {}
 
+
+    /// Constructor for braced-init-lists
+    MinHeap(std::initializer_list<Type> initial_data) : Heap<Type>() {
+        for (const Type& element : initial_data)
+            this->insert(element);
+    }
+
     /**
      * Constructs a MinHeap from an array of elements.
      * This constructor inserts each element from the provided array into the
