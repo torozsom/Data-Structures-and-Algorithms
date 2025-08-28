@@ -42,6 +42,8 @@ add_executable(algorithms_main
         src/main/ui/array/LinearSearchAnimator.hpp
         src/main/ui/array/BinarySearchAnimator.hpp
         src/main/ui/array/SearchAnimator.hpp
+        src/main/ui/array/ArrayAnimations.cpp
+        src/main/ui/array/ArrayAnimations.h
 )
 
 target_include_directories(algorithms_main PRIVATE

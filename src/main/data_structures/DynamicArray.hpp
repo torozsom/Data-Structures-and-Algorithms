@@ -1070,8 +1070,7 @@ class DynamicArray {
      * propagate.
      */
     DynamicArray clone() const {
-        DynamicArray copy;
-        copy.reserve(size_);
+        DynamicArray copy(capacity_);
         copyConstructElements(data_, data_ + size_, copy.data_);
         copy.size_ = size_;
         return copy;

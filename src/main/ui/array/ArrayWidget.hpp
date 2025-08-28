@@ -64,9 +64,10 @@ class ArrayWidget final : public QGraphicsView {
         QPen pen;
         pen.setColor(Qt::black);
         pen.setWidth(2);
+
         for (std::size_t i = 0; i < values.size(); ++i) {
             auto rect = scene_->addRect(i * CELL_WIDTH, 0, CELL_WIDTH,
-                                        CELL_HEIGHT, pen, QBrush(Qt::white));
+                                        CELL_HEIGHT, pen, QBrush{Qt::white});
             cells_.addLast(rect);
 
             auto text = scene_->addText(QString::number(values[i]));
@@ -79,9 +80,10 @@ class ArrayWidget final : public QGraphicsView {
             labels_.addLast(text);
         }
 
-        const QPolygonF polygon(
-            {QPointF(0.0, 0.0), QPointF(-10.0, -20.0), QPointF(10.0, -20.0)});
-        arrow_ = scene_->addPolygon(polygon, pen, QBrush(Qt::white));
+        const QPolygonF polygon{ QPointF{0.0, 0.0},
+            QPointF{-10.0, -20.0}, QPointF{10.0, -20.0} };
+
+        arrow_ = scene_->addPolygon(polygon, pen, QBrush{Qt::cyan});
         setArrowPosition(0);
     }
 
@@ -95,10 +97,10 @@ class ArrayWidget final : public QGraphicsView {
      */
     void highlightIndex(const std::size_t index) const {
         for (auto* cell : cells_)
-            cell->setBrush(QBrush(Qt::white));
+            cell->setBrush(QBrush{Qt::white});
 
         if (index < cells_.size())
-            cells_[index]->setBrush(QBrush(Qt::yellow));
+            cells_[index]->setBrush(QBrush{Qt::yellow});
 
         setArrowPosition(index);
     }
@@ -128,14 +130,14 @@ class ArrayWidget final : public QGraphicsView {
      */
     void markFound(const std::size_t index) const {
         if (index < cells_.size())
-            cells_[index]->setBrush(QBrush(Qt::green));
+            cells_[index]->setBrush(QBrush{Qt::green});
     }
 
 
     /// Marks all cells as not found by resetting their color to white.
     void markNotFound() const {
         for (auto* cell : cells_)
-            cell->setBrush(QBrush(Qt::red));
+            cell->setBrush(QBrush{Qt::red});
     }
 
 

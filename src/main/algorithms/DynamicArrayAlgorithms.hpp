@@ -711,6 +711,7 @@ void RadixSortLSD(DynamicArray<Type>& array) {
         return;
 
     using U = std::make_unsigned_t<Type>;
+
     constexpr std::size_t RADIX = 256;
     constexpr std::size_t BYTE_MASK = 0xFFu;
     const std::size_t bytes = sizeof(Type);
