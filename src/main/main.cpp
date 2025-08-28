@@ -4,13 +4,14 @@
 #include "ArrayWidget.hpp"
 #include "DynamicArray.hpp"
 #include "LinearSearchAnimator.hpp"
+#include "BinarySearchAnimator.hpp"
 
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
-    const data_structs::DynamicArray values{3, 7, 2, 9, 5, 1, 8, 4, 6};
-    constexpr int target = 4; // change to a value not in the list to see "not found"
+    data_structs::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    constexpr int target = 5; // change to a value not in the list to see "not found"
 
     // Create the view widget that renders the array
     ui::ArrayWidget view(values);
@@ -19,7 +20,7 @@ int main(int argc, char* argv[]) {
     view.show();
 
     // Start the animator; it will drive the view via timer callbacks
-    const ui::LinearSearchAnimator animator(values, target, &view, &view);
+    const ui::BinarySearchAnimator animator(values, target, &view, &view);
 
     QObject::connect(
         &animator, &ui::LinearSearchAnimator::elementFound, &view,

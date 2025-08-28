@@ -1,5 +1,5 @@
-#ifndef ARRAYWIDGET_HPP
-#define ARRAYWIDGET_HPP
+#ifndef ARRAY_WIDGET_HPP
+#define ARRAY_WIDGET_HPP
 
 
 #include <QBrush>
@@ -87,9 +87,9 @@ class ArrayWidget final : public QGraphicsView {
 
 
     /**
-     * @brief Highlights the cell at the specified index by changing its color to
-     * yellow, and resets all other cells to white. Also moves the arrow above the
-     * highlighted cell.
+     * @brief Highlights the cell at the specified index by changing its color
+     * to yellow, and resets all other cells to white. Also moves the arrow
+     * above the highlighted cell.
      *
      * @param index The index of the cell to highlight.
      */
@@ -121,8 +121,8 @@ class ArrayWidget final : public QGraphicsView {
 
 
     /**
-     * @brief Marks the cell at the specified index as found by changing its color
-     * to green. Does nothing if the index is out of bounds.
+     * @brief Marks the cell at the specified index as found by changing its
+     * color to green. Does nothing if the index is out of bounds.
      *
      * @param index The index of the cell to mark as found.
      */
@@ -144,4 +144,4 @@ class ArrayWidget final : public QGraphicsView {
 
 } // namespace ui
 
-#endif // ARRAYWIDGET_HPP
+#endif // ARRAY_WIDGET_HPP

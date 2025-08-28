@@ -1,5 +1,5 @@
-#ifndef LINEAR_SEARCH_ANIMATOR_HPP
-#define LINEAR_SEARCH_ANIMATOR_HPP
+#ifndef BINARY_SEARCH_ANIMATOR_HPP
+#define BINARY_SEARCH_ANIMATOR_HPP
 
 #include "DynamicArrayAlgorithms.hpp"
 #include "SearchAnimator.hpp"
@@ -8,29 +8,28 @@
 namespace ui {
 
 
-class LinearSearchAnimator final : public SearchAnimator {
+class BinarySearchAnimator final : public SearchAnimator {
 
     Q_OBJECT
 
-    /// Functor to perform linear search
-    struct LinearSearchFn {
+    /// Functor to perform binary search
+    struct BinarySearchFn {
         template <typename Type, typename Callback>
         std::size_t operator()(const data_structs::DynamicArray<Type>& array,
                                const Type& target, Callback&& callback) const {
-            return array_algorithms::LinearSearch(
+            return array_algorithms::BinarySearch(
                 array, target, static_cast<Callback&&>(callback));
         }
     };
 
-
   public:
     /// Default constructor
-    explicit LinearSearchAnimator(QObject* parent = nullptr)
+    explicit BinarySearchAnimator(QObject* parent = nullptr)
         : SearchAnimator(parent) {}
 
 
     /**
-     * Constructs a LinearSearchAnimator that animates the linear search process
+     * Constructs a BinarySearchAnimator that animates the binary search process
      * on the provided dynamic array for the specified target value.
      *
      * @tparam Type The type of elements in the array.
@@ -41,16 +40,17 @@ class LinearSearchAnimator final : public SearchAnimator {
      * @param parent The parent QObject (default is nullptr).
      */
     template <typename Type>
-    LinearSearchAnimator(data_structs::DynamicArray<Type>& array,
+    BinarySearchAnimator(data_structs::DynamicArray<Type>& array,
                          const Type& target, ArrayWidget* widget,
                          QObject* parent = nullptr)
-        : SearchAnimator(array, target, widget, LinearSearchFn{}, 500, parent) {
+        : SearchAnimator(array, target, widget, BinarySearchFn{}, 1000, parent) {
     }
 
 
-    ~LinearSearchAnimator() override = default;
+    /// Destructor
+    ~BinarySearchAnimator() override = default;
 };
 
 } // namespace ui
 
-#endif // LINEAR_SEARCH_ANIMATOR_HPP
+#endif // BINARY_SEARCH_ANIMATOR_HPP
