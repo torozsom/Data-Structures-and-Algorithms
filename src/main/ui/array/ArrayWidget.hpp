@@ -80,8 +80,8 @@ class ArrayWidget final : public QGraphicsView {
             labels_.addLast(text);
         }
 
-        const QPolygonF polygon{ QPointF{0.0, 0.0},
-            QPointF{-10.0, -20.0}, QPointF{10.0, -20.0} };
+        const QPolygonF polygon{QPointF{0.0, 0.0}, QPointF{-10.0, -20.0},
+                                QPointF{10.0, -20.0}};
 
         arrow_ = scene_->addPolygon(polygon, pen, QBrush{Qt::cyan});
         setArrowPosition(0);

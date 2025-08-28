@@ -8,6 +8,13 @@
 namespace ui {
 
 
+/**
+ * @brief Class to animate the linear search algorithm on a dynamic array.
+ *
+ * This class extends SearchAnimator to specifically visualize the linear
+ * search process. It uses a functor to perform the linear search and collects
+ * the steps for animation.
+ */
 class LinearSearchAnimator final : public SearchAnimator {
 
     Q_OBJECT

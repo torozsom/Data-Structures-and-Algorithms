@@ -44,11 +44,13 @@ add_executable(algorithms_main
         src/main/ui/array/SearchAnimator.hpp
         src/main/ui/array/ArrayAnimations.cpp
         src/main/ui/array/ArrayAnimations.h
+        src/main/ui/MainWindow.hpp
 )
 
 target_include_directories(algorithms_main PRIVATE
         src/main/data_structures
         src/main/algorithms
+        src/main/ui
         src/main/ui/array
 )
 

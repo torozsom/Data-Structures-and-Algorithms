@@ -1,40 +1,34 @@
 #include <QApplication>
-#include <QString>
+#include <QColor>
+#include <QPalette>
+#include <QStyleFactory>
 
-#include "ArrayWidget.hpp"
-#include "DynamicArray.hpp"
-#include "LinearSearchAnimator.hpp"
-#include "BinarySearchAnimator.hpp"
-#include "ArrayAnimations.h"
+#include "MainWindow.hpp"
 
 
 int main(int argc, char* argv[]) {
     QApplication app{argc, argv};
 
-    data_structs::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    constexpr int target = 9; // change to a value not in the list to see "not found"
+    QApplication::setStyle(QStyleFactory::create("Fusion"));
 
-    // Create the view widget that renders the array
-    ui::ArrayWidget view{values};
+    QPalette darkPalette;
+    darkPalette.setColor(QPalette::Window, QColor{53, 53, 53});
+    darkPalette.setColor(QPalette::WindowText, Qt::white);
+    darkPalette.setColor(QPalette::Base, QColor{42, 42, 42});
+    darkPalette.setColor(QPalette::AlternateBase, QColor{66, 66, 66});
+    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
+    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+    darkPalette.setColor(QPalette::Text, Qt::white);
+    darkPalette.setColor(QPalette::Button, QColor{53, 53, 53});
+    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    darkPalette.setColor(QPalette::Highlight, QColor{142, 45, 197}.lighter());
+    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+    app.setPalette(darkPalette);
 
-    view.setWindowTitle("Algorithms Visualizer - Linear Search");
-    view.resize(600, 120);
-    view.show();
-
-    // Start the animator; it will drive the view via timer callbacks
-    const ui::BinarySearchAnimator animator{values, target, &view, &view};
-
-    QObject::connect(
-        &animator, &ui::LinearSearchAnimator::elementFound, &view,
-        [&](const std::size_t index) {
-            view.setWindowTitle(
-                QString("Found %1 at index %2").arg(target).arg(index));
-        });
-
-    QObject::connect(
-        &animator, &ui::LinearSearchAnimator::elementNotFound, &view, [&] {
-            view.setWindowTitle(QString("Element %1 not found").arg(target));
-        });
+    ui::MainWindow window;
+    window.resize(600, 150);
+    window.show();
 
     return QApplication::exec();
 }

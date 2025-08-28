@@ -8,6 +8,13 @@
 namespace ui {
 
 
+/**
+ * @brief Class to animate the linear search algorithm on a dynamic array.
+ *
+ * This class extends SearchAnimator to specifically visualize the linear
+ * search process. It uses a functor to perform the linear search and collects
+ * the steps for animation.
+ */
 class BinarySearchAnimator final : public SearchAnimator {
 
     Q_OBJECT
@@ -43,8 +50,8 @@ class BinarySearchAnimator final : public SearchAnimator {
     BinarySearchAnimator(data_structs::DynamicArray<Type>& array,
                          const Type& target, ArrayWidget* widget,
                          QObject* parent = nullptr)
-        : SearchAnimator(array, target, widget, BinarySearchFn{}, 1000, parent) {
-    }
+        : SearchAnimator(array, target, widget, BinarySearchFn{}, 1000,
+                         parent) {}
 
 
     /// Destructor

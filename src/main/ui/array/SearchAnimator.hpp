@@ -12,6 +12,13 @@
 namespace ui {
 
 
+/**
+ * @brief Class to animate search algorithms on a dynamic array.
+ *
+ * This class provides functionality to visualize the steps of a search
+ * algorithm on a dynamic array using an ArrayWidget. It collects the steps of
+ * the search process and animates them using a timer.
+ */
 class SearchAnimator : public QObject {
 
     Q_OBJECT
@@ -48,27 +55,27 @@ class SearchAnimator : public QObject {
         }
 
         switch (const auto& [type, index] = steps_[current_++]; type) {
-            case StepType::Visit:
-                if (widget_)
-                    widget_->highlightIndex(index);
-                break;
+        case StepType::Visit:
+            if (widget_)
+                widget_->highlightIndex(index);
+            break;
 
-            case StepType::Found:
-                if (widget_)
-                    widget_->markFound(index);
-                timer_.stop();
-                emit elementFound(index);
-                break;
+        case StepType::Found:
+            if (widget_)
+                widget_->markFound(index);
+            timer_.stop();
+            emit elementFound(index);
+            break;
 
-            case StepType::NotFound:
-                if (widget_)
-                    widget_->markNotFound();
-                timer_.stop();
-                emit elementNotFound();
-                break;
+        case StepType::NotFound:
+            if (widget_)
+                widget_->markNotFound();
+            timer_.stop();
+            emit elementNotFound();
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
     }
 
@@ -100,7 +107,8 @@ class SearchAnimator : public QObject {
                    ArrayWidget* widget, SearchFunc&& searchFunc,
                    int intervalMs = 500, QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
-        collectSteps(array, target, static_cast<SearchFunc&&>(searchFunc), intervalMs);
+        collectSteps(array, target, static_cast<SearchFunc&&>(searchFunc),
+                     intervalMs);
         connect(&timer_, &QTimer::timeout, this, &SearchAnimator::nextStep);
         timer_.start();
     }
