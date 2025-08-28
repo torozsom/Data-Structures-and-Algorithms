@@ -3,7 +3,6 @@ project(Algorithms)
 
 set(CMAKE_CXX_STANDARD 23)
 
-# Enable testing
 enable_testing()
 
 # Find or fetch Google Test
@@ -24,7 +23,8 @@ endif ()
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
-# Main executable (your application)
+
+# Main executable
 add_executable(algorithms_main
         src/main/main.cpp
         src/main/data_structures/DynamicArray.hpp
@@ -56,17 +56,18 @@ set_target_properties(algorithms_main PROPERTIES
 
 target_link_libraries(algorithms_main PRIVATE Qt6::Widgets)
 
-# Unit test executable (Google Test based)
-add_executable(unit_tests
+
+# Data structures' unit tests executable (Google Test based)
+add_executable(data_struct_unit_tests
         # Unit test files
-        src/test/unit/DynamicArrayUnitTest.cpp
-        src/test/unit/LinkedListUnitTest.cpp
-        src/test/unit/QueueUnitTest.cpp
-        src/test/unit/StackUnitTest.cpp
-        src/test/unit/BinaryTreeUnitTest.cpp
-        src/test/unit/BinarySearchTreeUnitTest.cpp
-        src/test/unit/MinHeapUnitTest.cpp
-        src/test/unit/MaxHeapUnitTest.cpp
+        src/test/data_structures/unit/DynamicArrayUnitTest.cpp
+        src/test/data_structures/unit/LinkedListUnitTest.cpp
+        src/test/data_structures/unit/QueueUnitTest.cpp
+        src/test/data_structures/unit/StackUnitTest.cpp
+        src/test/data_structures/unit/BinaryTreeUnitTest.cpp
+        src/test/data_structures/unit/BinarySearchTreeUnitTest.cpp
+        src/test/data_structures/unit/MinHeapUnitTest.cpp
+        src/test/data_structures/unit/MaxHeapUnitTest.cpp
         # Header files (for IDE support)
         src/main/data_structures/DynamicArray.hpp
         src/main/data_structures/LinkedList.hpp
@@ -78,30 +79,67 @@ add_executable(unit_tests
         src/main/data_structures/MaxHeap.hpp
         src/main/data_structures/Queue.hpp
         # Test utilities
-        src/test/utilities/ThrowingType.hpp
-        src/test/utilities/Record.hpp
+        src/test/data_structures/utilities/ThrowingType.hpp
+        src/test/data_structures/utilities/Record.hpp
 )
 
-target_include_directories(unit_tests PRIVATE
+target_include_directories(data_struct_unit_tests PRIVATE
         src/main/data_structures
-        src/test/unit
-        src/test/utilities
+        src/test/data_structures/unit
+        src/test/data_structures/utilities
 )
 
-target_link_libraries(unit_tests
+target_link_libraries(data_struct_unit_tests
         GTest::gtest
         GTest::gtest_main
 )
 
+add_custom_target(run_data_struct_unit_tests
+        COMMAND data_struct_unit_tests
+        DEPENDS data_struct_unit_tests
+        COMMENT "Running unit tests"
+)
+
+
+# Algorithms' unit tests executable (Google Test based)
+add_executable(algorithms_unit_tests
+        # Unit test files
+        src/test/algorithms/unit/DynamicArrayAlgorithmsUnitTest.cpp
+        # Header files (for IDE support)
+        src/main/data_structures/DynamicArray.hpp
+        src/main/data_structures/LinkedList.hpp
+        src/main/data_structures/Stack.hpp
+        src/main/data_structures/BinaryTree.hpp
+        src/main/data_structures/BinarySearchTree.hpp
+        src/main/data_structures/MinHeap.hpp
+        src/main/data_structures/Heap.hpp
+        src/main/data_structures/MaxHeap.hpp
+        src/main/data_structures/Queue.hpp
+)
+
+target_include_directories(algorithms_unit_tests PRIVATE
+        src/main/data_structures
+        src/main/algorithms
+        src/test/algorithms/unit
+)
+
+target_link_libraries(algorithms_unit_tests
+        GTest::gtest
+        GTest::gtest_main
+)
+
+add_custom_target(run_algorithms_unit_tests
+        COMMAND algorithms_unit_tests
+        DEPENDS algorithms_unit_tests
+        COMMENT "Running unit tests"
+)
+
+
 # Register tests with CTest (moved after target creation)
 include(GoogleTest)
-gtest_discover_tests(unit_tests)
-
-# Optional: Add custom test target for convenience
-add_custom_target(run_unit_tests
-        COMMAND unit_tests
-        DEPENDS unit_tests
-        COMMENT "Running unit tests"
+gtest_discover_tests(
+        data_struct_unit_tests
+        algorithms_unit_tests
 )
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -113,10 +151,12 @@ message(STATUS "Current build type: ${CMAKE_BUILD_TYPE}")
 
 # Compiler-specific options for better testing
 if (MSVC)
-    target_compile_options(unit_tests PRIVATE /W4)
+    target_compile_options(data_struct_unit_tests PRIVATE /W4)
+    target_compile_options(algorithms_unit_tests PRIVATE /W4)
     target_compile_options(algorithms_main PRIVATE /W4)
 else ()
-    target_compile_options(unit_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(data_struct_unit_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(algorithms_unit_tests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(algorithms_main PRIVATE -Wall -Wextra -Wpedantic)
 endif ()
 
@@ -124,7 +164,7 @@ endif ()
 if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT MSVC)
     option(ENABLE_COVERAGE "Enable coverage reporting" ON)
     if (ENABLE_COVERAGE)
-        target_compile_options(unit_tests PRIVATE --coverage)
-        target_link_libraries(unit_tests --coverage)
+        target_compile_options(data_struct_unit_tests PRIVATE --coverage)
+        target_link_libraries(data_struct_unit_tests --coverage)
     endif ()
 endif ()

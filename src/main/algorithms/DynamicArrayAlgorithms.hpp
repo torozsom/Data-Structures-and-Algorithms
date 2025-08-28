@@ -66,22 +66,21 @@ void merge(DynamicArray<Type>& array, const std::size_t left,
 
     std::size_t i = left;
     std::size_t j = mid + 1;
-    std::size_t k = 0;
 
     DynamicArray<Type> temp(n);
 
     // Merge into temp
     while (i <= mid && j <= right) {
         if (array[i] <= array[j])
-            temp[k++] = array[i++];
+            temp.addLast(array[i++]);
         else
-            temp[k++] = array[j++];
+            temp.addLast(array[j++]);
     }
 
     while (i <= mid)
-        temp[k++] = array[i++];
+        temp.addLast(array[i++]);
     while (j <= right)
-        temp[k++] = array[j++];
+        temp.addLast(array[j++]);
 
     // Copy back
     for (std::size_t t = 0; t < n; ++t)
@@ -542,6 +541,11 @@ void BinSort(DynamicArray<Type>& array, const std::size_t universe_size) {
     DynamicArray<Node*> heads(universe_size);
     DynamicArray<Node*> tails(universe_size);
 
+    for (std::size_t b = 0; b < universe_size; ++b) {
+        heads.addLast(nullptr);
+        tails.addLast(nullptr);
+    }
+
     // Phase 1: distribute elements into bins
     try {
         for (std::size_t i = 0; i < array.size(); ++i) {
@@ -634,6 +638,11 @@ void BinSort(DynamicArray<Type>& array, const Type min_value,
     DynamicArray<Node*> heads(m);
     DynamicArray<Node*> tails(m);
 
+    for (std::size_t b = 0; b < m; ++b) {
+        heads.addLast(nullptr);
+        tails.addLast(nullptr);
+    }
+
     // Phase 1: distribute elements into bins
     try {
         for (std::size_t i = 0; i < array.size(); ++i) {
@@ -708,6 +717,8 @@ void RadixSortLSD(DynamicArray<Type>& array) {
 
     // Temporary buffer for stable distribution
     DynamicArray<Type> temp(n);
+    for (std::size_t i = 0; i < n; ++i)
+        temp.addLast(Type());
 
     for (std::size_t pass = 0; pass < bytes; ++pass) {
         std::size_t count[RADIX] = {};
@@ -808,6 +819,8 @@ void RadixSortMSD(DynamicArray<Type>& array) {
 
     // Reusable temporary buffer for stable distribution
     DynamicArray<Type> temp(n);
+    for (std::size_t i = 0; i < n; ++i)
+        temp.addLast(Type());
 
     // Self-recursive lambda via fixpoint pattern: pass 'self' explicitly
     auto msd_rec = [&](auto&& self, const std::size_t lo, const std::size_t hi,
@@ -912,9 +925,9 @@ void HeapSort(DynamicArray<Type>& array) {
  * - O(n) time.
  * - O(1) space.
  */
-template <typename Type, typename Callback>
+template <typename Type, typename Callback = void(*)(std::size_t)>
 std::size_t LinearSearch(const DynamicArray<Type>& array, const Type& element,
-                         Callback&& callback) {
+                         Callback&& callback = +[](std::size_t){}) {
     for (std::size_t i = 0; i < array.size(); ++i) {
         callback(i);
         if (array[i] == element)
