@@ -1,6 +1,7 @@
 #ifndef BINARY_SEARCH_ANIMATOR_HPP
 #define BINARY_SEARCH_ANIMATOR_HPP
 
+
 #include "DynamicArrayAlgorithms.hpp"
 #include "SearchAnimator.hpp"
 
@@ -9,10 +10,10 @@ namespace ui {
 
 
 /**
- * @brief Class to animate the linear search algorithm on a dynamic array.
+ * @brief Class to animate the binary search algorithm on a dynamic array.
  *
- * This class extends SearchAnimator to specifically visualize the linear
- * search process. It uses a functor to perform the linear search and collects
+ * This class extends SearchAnimator to specifically visualize the binary
+ * search process. It uses a functor to perform the binary search and collects
  * the steps for animation.
  */
 class BinarySearchAnimator final : public SearchAnimator {
@@ -25,7 +26,7 @@ class BinarySearchAnimator final : public SearchAnimator {
         std::size_t operator()(const data_structs::DynamicArray<Type>& array,
                                const Type& target, Callback&& callback) const {
             return array_algorithms::BinarySearch(
-                array, target, static_cast<Callback&&>(callback));
+                array, target, std::forward<Callback>(callback));
         }
     };
 

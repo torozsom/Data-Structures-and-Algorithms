@@ -16,6 +16,7 @@ struct ArrayAnimation {
 };
 
 ArrayAnimation createLinearSearchAnimation();
+
 ArrayAnimation createBinarySearchAnimation();
 
 

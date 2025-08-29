@@ -5,6 +5,8 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QMenuBar>
+#include <QPointer>
+
 
 #include "ArrayAnimations.h"
 
@@ -16,7 +18,7 @@ namespace ui {
 class MainWindow final : public QMainWindow {
 
     Q_OBJECT
-    SearchAnimator* animator_{};
+    QPointer<SearchAnimator> animator_{};
 
 
 private slots:
@@ -27,7 +29,7 @@ private slots:
         old->deleteLater();
     animator_ = nullptr;
     setCentralWidget(view);
-    animator_ = std::move(animator);
+    animator_ = animator;
     setWindowTitle("Algorithms Visualizer - Linear Search");
 }
 
@@ -38,7 +40,7 @@ private slots:
         old->deleteLater();
     animator_ = nullptr;
     setCentralWidget(view);
-    animator_ = std::move(animator);
+    animator_ = animator;
     setWindowTitle("Algorithms Visualizer - Binary Search");
 }
 
@@ -65,7 +67,7 @@ public:
     }
 
     /// Destructor
-    ~MainWindow() override { delete animator_; };
+    ~MainWindow() override = default;
 };
 
 

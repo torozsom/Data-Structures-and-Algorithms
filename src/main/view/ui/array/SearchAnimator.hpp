@@ -107,7 +107,7 @@ class SearchAnimator : public QObject {
                    ArrayWidget* widget, SearchFunc&& searchFunc,
                    int intervalMs = 500, QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
-        collectSteps(array, target, static_cast<SearchFunc&&>(searchFunc),
+        collectSteps(array, target, std::forward<SearchFunc>(searchFunc),
                      intervalMs);
         connect(&timer_, &QTimer::timeout, this, &SearchAnimator::nextStep);
         timer_.start();

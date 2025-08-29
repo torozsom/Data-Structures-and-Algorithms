@@ -26,32 +26,35 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 # Main executable
 add_executable(algorithms_main
-        src/main/main.cpp
-        src/main/data_structures/DynamicArray.hpp
-        src/main/data_structures/LinkedList.hpp
-        src/main/data_structures/Stack.hpp
-        src/main/data_structures/BinaryTree.hpp
-        src/main/data_structures/BinarySearchTree.hpp
-        src/main/data_structures/MinHeap.hpp
-        src/main/data_structures/Heap.hpp
-        src/main/data_structures/MaxHeap.hpp
-        src/main/data_structures/Queue.hpp
+        src/main/app/main.cpp
+        src/main/model/data_structures/DynamicArray.hpp
+        src/main/model/data_structures/LinkedList.hpp
+        src/main/model/data_structures/Stack.hpp
+        src/main/model/data_structures/BinaryTree.hpp
+        src/main/model/data_structures/BinarySearchTree.hpp
+        src/main/model/data_structures/MinHeap.hpp
+        src/main/model/data_structures/Heap.hpp
+        src/main/model/data_structures/MaxHeap.hpp
+        src/main/model/data_structures/Queue.hpp
 
-        src/main/algorithms/DynamicArrayAlgorithms.hpp
-        src/main/ui/array/ArrayWidget.hpp
-        src/main/ui/array/LinearSearchAnimator.hpp
-        src/main/ui/array/BinarySearchAnimator.hpp
-        src/main/ui/array/SearchAnimator.hpp
-        src/main/ui/array/ArrayAnimations.cpp
-        src/main/ui/array/ArrayAnimations.h
-        src/main/ui/MainWindow.hpp
+        src/main/model/algorithms/DynamicArrayAlgorithms.hpp
+        src/main/view/ui/array/ArrayWidget.hpp
+        src/main/view/ui/array/LinearSearchAnimator.hpp
+        src/main/view/ui/array/BinarySearchAnimator.hpp
+        src/main/view/ui/array/SearchAnimator.hpp
+        src/main/view/ui/array/ArrayAnimations.cpp
+        src/main/view/ui/array/ArrayAnimations.h
+        src/main/view/ui/MainWindow.hpp
+        src/main/controller/controls.cpp
+        src/main/controller/controls.h
 )
 
 target_include_directories(algorithms_main PRIVATE
-        src/main/data_structures
-        src/main/algorithms
-        src/main/ui
-        src/main/ui/array
+        src/main/model/data_structures
+        src/main/model/algorithms
+        src/main/view/ui
+        src/main/view/ui/array
+        src/main/controller
 )
 
 set_target_properties(algorithms_main PROPERTIES
@@ -75,22 +78,22 @@ add_executable(data_struct_unit_tests
         src/test/data_structures/unit/MinHeapUnitTest.cpp
         src/test/data_structures/unit/MaxHeapUnitTest.cpp
         # Header files (for IDE support)
-        src/main/data_structures/DynamicArray.hpp
-        src/main/data_structures/LinkedList.hpp
-        src/main/data_structures/Stack.hpp
-        src/main/data_structures/BinaryTree.hpp
-        src/main/data_structures/BinarySearchTree.hpp
-        src/main/data_structures/MinHeap.hpp
-        src/main/data_structures/Heap.hpp
-        src/main/data_structures/MaxHeap.hpp
-        src/main/data_structures/Queue.hpp
+        src/main/model/data_structures/DynamicArray.hpp
+        src/main/model/data_structures/LinkedList.hpp
+        src/main/model/data_structures/Stack.hpp
+        src/main/model/data_structures/BinaryTree.hpp
+        src/main/model/data_structures/BinarySearchTree.hpp
+        src/main/model/data_structures/MinHeap.hpp
+        src/main/model/data_structures/Heap.hpp
+        src/main/model/data_structures/MaxHeap.hpp
+        src/main/model/data_structures/Queue.hpp
         # Test utilities
         src/test/data_structures/utilities/ThrowingType.hpp
         src/test/data_structures/utilities/Record.hpp
 )
 
 target_include_directories(data_struct_unit_tests PRIVATE
-        src/main/data_structures
+        src/main/model/data_structures
         src/test/data_structures/unit
         src/test/data_structures/utilities
 )
@@ -112,20 +115,20 @@ add_executable(algorithms_unit_tests
         # Unit test files
         src/test/algorithms/unit/DynamicArrayAlgorithmsUnitTest.cpp
         # Header files (for IDE support)
-        src/main/data_structures/DynamicArray.hpp
-        src/main/data_structures/LinkedList.hpp
-        src/main/data_structures/Stack.hpp
-        src/main/data_structures/BinaryTree.hpp
-        src/main/data_structures/BinarySearchTree.hpp
-        src/main/data_structures/MinHeap.hpp
-        src/main/data_structures/Heap.hpp
-        src/main/data_structures/MaxHeap.hpp
-        src/main/data_structures/Queue.hpp
+        src/main/model/data_structures/DynamicArray.hpp
+        src/main/model/data_structures/LinkedList.hpp
+        src/main/model/data_structures/Stack.hpp
+        src/main/model/data_structures/BinaryTree.hpp
+        src/main/model/data_structures/BinarySearchTree.hpp
+        src/main/model/data_structures/MinHeap.hpp
+        src/main/model/data_structures/Heap.hpp
+        src/main/model/data_structures/MaxHeap.hpp
+        src/main/model/data_structures/Queue.hpp
 )
 
 target_include_directories(algorithms_unit_tests PRIVATE
-        src/main/data_structures
-        src/main/algorithms
+        src/main/model/data_structures
+        src/main/model/algorithms
         src/test/algorithms/unit
 )
 

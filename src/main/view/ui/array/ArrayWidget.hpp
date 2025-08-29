@@ -134,7 +134,7 @@ class ArrayWidget final : public QGraphicsView {
     }
 
 
-    /// Marks all cells as not found by resetting their color to white.
+    /// Marks all cells as not found by setting their color to red.
     void markNotFound() const {
         for (auto* cell : cells_)
             cell->setBrush(QBrush{Qt::red});
