@@ -5,9 +5,9 @@
 #include "BinarySearchTree.hpp"
 
 
-using data_structs::BinarySearchTree;
-using data_structs::BinaryTree;
-using data_structs::Node;
+using ds::BinarySearchTree;
+using ds::BinaryTree;
+using ds::Node;
 
 
 class BinarySearchTreeUnitTest : public testing::Test {

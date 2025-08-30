@@ -11,7 +11,7 @@
 #include "DynamicArray.hpp"
 
 
-namespace data_structs {
+namespace ds {
 
 
 /**

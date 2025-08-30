@@ -37,8 +37,8 @@ class ArrayWidget final : public QGraphicsView {
 
     QGraphicsScene* scene_;
     QGraphicsPolygonItem* arrow_;
-    data_structs::DynamicArray<QGraphicsRectItem*> cells_;
-    data_structs::DynamicArray<QGraphicsTextItem*> labels_;
+    ds::DynamicArray<QGraphicsRectItem*> cells_;
+    ds::DynamicArray<QGraphicsTextItem*> labels_;
 
     static constexpr int CELL_WIDTH = 40;
     static constexpr int CELL_HEIGHT = 40;
@@ -55,7 +55,7 @@ class ArrayWidget final : public QGraphicsView {
      * @param parent The parent QWidget, defaulting to nullptr.
      */
     template <typename Type>
-    explicit ArrayWidget(const data_structs::DynamicArray<Type>& values,
+    explicit ArrayWidget(const ds::DynamicArray<Type>& values,
                          QWidget* parent = nullptr)
         : QGraphicsView(parent), scene_(new QGraphicsScene(this)),
           arrow_(nullptr) {

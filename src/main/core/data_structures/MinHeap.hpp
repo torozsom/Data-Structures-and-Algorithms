@@ -9,7 +9,7 @@
 #include "Heap.hpp"
 
 
-namespace data_structs {
+namespace ds {
 
 
 /**

@@ -9,7 +9,7 @@
 #include <initializer_list>
 
 
-namespace data_structs {
+namespace ds {
 
 
 /**

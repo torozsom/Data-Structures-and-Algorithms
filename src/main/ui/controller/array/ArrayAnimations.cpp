@@ -24,8 +24,8 @@ namespace ui {
  * LinearSearchAnimator.
  */
 ArrayAnimation createLinearSearchAnimation() {
-    data_structs::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-    constexpr int target = 10;
+    ds::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+    constexpr int target = 0;
 
     auto* view = new ArrayWidget(values);
     view->resize(600, 120);
@@ -65,9 +65,9 @@ ArrayAnimation createLinearSearchAnimation() {
  * BinarySearchAnimator.
  */
 ArrayAnimation createBinarySearchAnimation() {
-    data_structs::DynamicArray values{1.6, 2.5, 3.4, 4.8, 5.9,
+    ds::DynamicArray values{1.6, 2.5, 3.4, 4.8, 5.9,
                                       6.2, 7.7, 8.1, 9.0, 10.9, 11.2, 12.3, 13.4};
-    constexpr double target = 12.3;
+    constexpr double target = 0.0;
 
     auto* view = new ArrayWidget(values);
     view->resize(600, 120);

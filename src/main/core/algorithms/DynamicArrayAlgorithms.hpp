@@ -28,7 +28,7 @@
 
 namespace array_algorithms {
 
-using data_structs::DynamicArray;
+using ds::DynamicArray;
 
 
 //*** Utility Functions ***//
@@ -918,7 +918,7 @@ void HeapSort(DynamicArray<Type>& array) {
  * if not found.
  *
  * @param array The array to search in.
- * @param element The element to search for.
+ * @param target The element to search for.
  * @param callback The callback function to invoke on each index visited.
  * @return The index of the found element, or array.size() if not found.
  *
@@ -927,11 +927,11 @@ void HeapSort(DynamicArray<Type>& array) {
  * - O(1) space.
  */
 template <typename Type, typename Callback = void (*)(std::size_t)>
-std::size_t LinearSearch(const DynamicArray<Type>& array, const Type& element,
+std::size_t LinearSearch(const DynamicArray<Type>& array, const Type& target,
                          Callback&& callback = +[](std::size_t) {}) {
     for (std::size_t i = 0; i < array.size(); ++i) {
         callback(i);
-        if (array[i] == element)
+        if (array[i] == target)
             return i;
     }
     return array.size();
@@ -949,7 +949,7 @@ std::size_t LinearSearch(const DynamicArray<Type>& array, const Type& element,
  * results are unspecified.
  *
  * @param array The array to search in.
- * @param element The element to search for.
+ * @param target The element to search for.
  * @param callback The callback function to invoke on each index visited.
  * @return The index of the found element, or array.size() if not found.
  *
@@ -958,7 +958,7 @@ std::size_t LinearSearch(const DynamicArray<Type>& array, const Type& element,
  * - O(1) space.
  */
 template <typename Type, typename Callback>
-std::size_t BinarySearch(const DynamicArray<Type>& array, const Type& element,
+std::size_t BinarySearch(const DynamicArray<Type>& array, const Type& target,
                          Callback&& callback = +[](std::size_t) -> void {}) {
     // left: inclusive lower bound, right: exclusive upper bound
     std::size_t left = 0;
@@ -967,9 +967,9 @@ std::size_t BinarySearch(const DynamicArray<Type>& array, const Type& element,
     while (left < right) {
         std::size_t middle = left + (right - left) / 2;
         callback(middle);
-        if (array[middle] == element)
+        if (array[middle] == target)
             return middle;
-        if (array[middle] < element)
+        if (array[middle] < target)
             left = middle + 1;
         else
             right = middle - 1;
@@ -979,12 +979,14 @@ std::size_t BinarySearch(const DynamicArray<Type>& array, const Type& element,
         callback(left);
 
     // left is the first index not less than element
-    if (left < array.size() && array[left] == element)
+    if (left < array.size() && array[left] == target)
         return left;
 
     return array.size();
 }
 
+
 } // namespace array_algorithms
+
 
 #endif // DYNAMIC_ARRAY_ALGORITHMS_HPP

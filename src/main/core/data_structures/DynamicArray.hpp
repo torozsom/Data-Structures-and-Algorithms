@@ -11,7 +11,7 @@
 #include <utility>
 
 
-namespace data_structs {
+namespace ds {
 
 
 /**

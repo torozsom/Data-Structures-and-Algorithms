@@ -9,7 +9,7 @@
 #include "BinaryTree.hpp"
 
 
-namespace data_structs {
+namespace ds {
 
 
 /**
