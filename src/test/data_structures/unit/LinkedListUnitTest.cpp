@@ -8,7 +8,7 @@
 #include "ThrowingType.hpp"
 
 
-using data_structs::LinkedList;
+using containers::LinkedList;
 
 
 class LinkedListUnitTest : public testing::Test {

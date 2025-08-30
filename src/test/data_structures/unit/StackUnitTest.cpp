@@ -7,7 +7,7 @@
 #include "ThrowingType.hpp"
 
 
-using data_structs::Stack;
+using containers::Stack;
 
 
 class StackUnitTest : public testing::Test {

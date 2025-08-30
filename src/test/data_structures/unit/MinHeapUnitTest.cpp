@@ -8,7 +8,7 @@
 #include "MinHeap.hpp"
 
 
-using data_structs::MinHeap;
+using containers::MinHeap;
 
 class MinHeapUnitTest : public testing::Test {
   protected:

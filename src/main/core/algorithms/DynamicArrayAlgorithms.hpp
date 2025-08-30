@@ -28,7 +28,7 @@
 
 namespace array_algorithms {
 
-using ds::DynamicArray;
+using containers::DynamicArray;
 
 
 //*** Utility Functions ***//
@@ -972,7 +972,7 @@ std::size_t BinarySearch(const DynamicArray<Type>& array, const Type& target,
         if (array[middle] < target)
             left = middle + 1;
         else
-            right = middle - 1;
+            right = middle;
     }
 
     if (left < array.size())

@@ -22,7 +22,7 @@ class LinearSearchAnimator final : public SearchAnimator {
     /// Functor to perform linear search
     struct LinearSearchFn {
         template <typename Type, typename Callback>
-        std::size_t operator()(const ds::DynamicArray<Type>& array,
+        std::size_t operator()(const containers::DynamicArray<Type>& array,
                                const Type& target, Callback&& callback) const {
             return array_algorithms::LinearSearch(
                 array, target, static_cast<Callback&&>(callback));
@@ -48,7 +48,7 @@ class LinearSearchAnimator final : public SearchAnimator {
      * @param parent The parent QObject (default is nullptr).
      */
     template <typename Type>
-    LinearSearchAnimator(ds::DynamicArray<Type>& array,
+    LinearSearchAnimator(containers::DynamicArray<Type>& array,
                          const Type& target, ArrayWidget* widget,
                          QObject* parent = nullptr)
         : SearchAnimator(array, target, widget, LinearSearchFn{}, 500, parent) {

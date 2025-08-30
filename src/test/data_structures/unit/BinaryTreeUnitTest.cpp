@@ -7,8 +7,8 @@
 #include "Record.hpp"
 
 
-using data_structs::BinaryTree;
-using data_structs::Node;
+using containers::BinaryTree;
+using containers::Node;
 
 
 class BinaryTreeUnitTest : public testing::Test {

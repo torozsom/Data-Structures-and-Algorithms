@@ -9,7 +9,7 @@
 #include "BinaryTree.hpp"
 
 
-namespace ds {
+namespace containers {
 
 
 /**

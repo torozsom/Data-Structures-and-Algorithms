@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 
-using data_structs::DynamicArray;
+using containers::DynamicArray;
 using namespace array_algorithms;
 
 

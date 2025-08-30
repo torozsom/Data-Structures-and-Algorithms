@@ -8,7 +8,7 @@
 #include "MaxHeap.hpp"
 
 
-using data_structs::MaxHeap;
+using containers::MaxHeap;
 
 
 class MaxHeapUnitTest : public testing::Test {

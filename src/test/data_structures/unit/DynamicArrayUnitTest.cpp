@@ -10,7 +10,7 @@
 #include "ThrowingType.hpp"
 
 
-using data_structs::DynamicArray;
+using containers::DynamicArray;
 
 
 class DynamicArrayUnitTest : public testing::Test {

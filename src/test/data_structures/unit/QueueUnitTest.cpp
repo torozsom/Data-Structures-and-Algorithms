@@ -7,7 +7,7 @@
 #include "ThrowingType.hpp"
 
 
-using data_structs::Queue;
+using containers::Queue;
 
 
 class QueueUnitTest : public testing::Test {

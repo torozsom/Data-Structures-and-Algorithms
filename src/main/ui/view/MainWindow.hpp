@@ -1,14 +1,24 @@
 #ifndef MAIN_WINDOW_HPP
 #define MAIN_WINDOW_HPP
 
+
 #include <QAction>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMenuBar>
 #include <QPointer>
+#include <QPushButton>
 
-
+#include "./ui_MainWindow.h"
 #include "ArrayAnimations.h"
+#include "ArrayWindow.hpp"
+
+
+QT_BEGIN_NAMESPACE
+namespace Ui {
+class MainWindow;
+}
+QT_END_NAMESPACE
 
 
 namespace ui {
@@ -18,56 +28,44 @@ namespace ui {
 class MainWindow final : public QMainWindow {
 
     Q_OBJECT
-    QPointer<SearchAnimator> animator_{};
+
+    Ui::MainWindow* uiForm_;
+    QPointer<QMainWindow> window_{};
 
 
-private slots:
-  /// Show linear search animation
-  void showLinearSearch() {
-    auto [view, animator] = createLinearSearchAnimation();
-    if (auto* old = takeCentralWidget())
-        old->deleteLater();
-    animator_ = nullptr;
-    setCentralWidget(view);
-    animator_ = animator;
-    setWindowTitle("Algorithms Visualizer - Linear Search");
-}
-
-    /// Show binary search animation
-    void showBinarySearch() {
-    auto [view, animator] = createBinarySearchAnimation();
-    if (auto* old = takeCentralWidget())
-        old->deleteLater();
-    animator_ = nullptr;
-    setCentralWidget(view);
-    animator_ = animator;
-    setWindowTitle("Algorithms Visualizer - Binary Search");
-}
-
-
-private:
-    /// Create the menu bar
-    void createMenu() {
-        auto* animations = menuBar()->addMenu("&Animations");
-        const auto* linear = animations->addAction("Linear Search");
-        const auto* binary = animations->addAction("Binary Search");
-
-        connect(linear, &QAction::triggered, this,
-                &MainWindow::showLinearSearch);
-        connect(binary, &QAction::triggered, this,
-                &MainWindow::showBinarySearch);
+  private slots:
+    void on_btnDynamicArray_clicked() {
+        if (!window_) {
+            window_ = new ArrayWindow(this);
+            window_->setAttribute(Qt::WA_DeleteOnClose);
+            connect(window_, &QObject::destroyed, this, [this] {
+                this->show();
+                window_ = nullptr;
+            });
+        }
+        window_->show();
+        window_->raise();
+        window_->activateWindow();
+        this->hide();
     }
 
 
-public:
+  private:
+    void connectButtonActions() {
+        connect(uiForm_->btnDynamicArray, &QPushButton::clicked, this,
+                &MainWindow::on_btnDynamicArray_clicked);
+    }
+
+  public:
     /// Constructor
-    explicit MainWindow(QWidget* parent = nullptr) : QMainWindow(parent) {
-        createMenu();
-        setWindowTitle("Algorithms Visualizer");
+    explicit MainWindow(QWidget* parent = nullptr)
+        : QMainWindow(parent), uiForm_(new Ui::MainWindow) {
+        uiForm_->setupUi(this);
+        connectButtonActions();
     }
 
     /// Destructor
-    ~MainWindow() override = default;
+    ~MainWindow() override { delete uiForm_; }
 };
 
 

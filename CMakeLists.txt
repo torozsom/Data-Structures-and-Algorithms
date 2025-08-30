@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(Algorithms)
+project(Algorithms LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -46,8 +46,11 @@ add_executable(algorithms_main
         src/main/ui/controller/array/ArrayAnimations.cpp
         src/main/ui/controller/array/ArrayAnimations.h
         src/main/ui/view/MainWindow.hpp
+        src/main/ui/view/MainWindow.ui
         src/main/app/controls.cpp
         src/main/app/controls.h
+        src/main/ui/view/array/ArrayWindow.hpp
+        src/main/ui/view/array/ArrayWindow.ui
 )
 
 target_include_directories(algorithms_main PRIVATE

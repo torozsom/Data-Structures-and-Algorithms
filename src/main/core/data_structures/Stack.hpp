@@ -10,7 +10,7 @@
 #include "DynamicArray.hpp"
 
 
-namespace ds {
+namespace containers {
 
 
 /**
