@@ -28,7 +28,6 @@ class ArrayPage final : public QWidget {
     Ui::ArrayPage* uiForm_;
 
     QPointer<SearchAnimator> animator_{};
-    QPointer<QMenuBar> menuBar_{};
     QPointer<QWidget> content_{};
 
 
@@ -36,9 +35,8 @@ class ArrayPage final : public QWidget {
     void showLinearSearch();
     void showBinarySearch();
 
-
   private:
-    void createMenu();
+    void connectButtonActions();
 
 
   public:

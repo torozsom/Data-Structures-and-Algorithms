@@ -36,6 +36,7 @@ class SearchAnimator : public QObject {
     containers::DynamicArray<Step> steps_{};
     std::size_t current_ = 0;
 
+
   signals:
     void elementFound(std::size_t index);
     void elementNotFound();
@@ -78,6 +79,7 @@ class SearchAnimator : public QObject {
             break;
         }
     }
+
 
   protected:
     /// Default constructor for derived classes that will set up the animation

@@ -2,6 +2,508 @@
 <ui version="4.0">
     <class>ArrayPage</class>
     <widget class="QWidget" name="ArrayPage">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>800</width>
+                <height>500</height>
+            </rect>
+        </property>
+        <property name="minimumSize">
+            <size>
+                <width>800</width>
+                <height>500</height>
+            </size>
+        </property>
+        <property name="maximumSize">
+            <size>
+                <width>800</width>
+                <height>500</height>
+            </size>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+                <widget class="QLabel" name="label">
+                    <property name="font">
+                        <font>
+                            <family>Times New Roman</family>
+                            <pointsize>13</pointsize>
+                            <italic>false</italic>
+                            <bold>true</bold>
+                        </font>
+                    </property>
+                    <property name="text">
+                        <string>Choose the algorithm to animate over the Dynamic Array:</string>
+                    </property>
+                    <property name="styleSheet">
+                        <string notr="true">
+                            color: yellow;
+                        </string>
+                    </property>
+                    <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                    </property>
+                </widget>
+            </item>
+            <item>
+                <layout class="QGridLayout" name="gridLayout">
+                    <property name="leftMargin">
+                        <number>16</number>
+                    </property>
+                    <property name="topMargin">
+                        <number>16</number>
+                    </property>
+                    <property name="rightMargin">
+                        <number>16</number>
+                    </property>
+                    <property name="bottomMargin">
+                        <number>16</number>
+                    </property>
+                    <property name="horizontalSpacing">
+                        <number>24</number>
+                    </property>
+                    <property name="verticalSpacing">
+                        <number>16</number>
+                    </property>
+
+                    <item row="0" column="0">
+                        <widget class="QPushButton" name="btnBubbleSort">
+                            <property name="text">
+                                <string>Bubble Sort</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="1" column="0">
+                        <widget class="QPushButton" name="btnImpBubbleSort">
+                            <property name="text">
+                                <string>Improved Bubble Sort</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="2" column="0">
+                        <widget class="QPushButton" name="btnInsertSort1">
+                            <property name="text">
+                                <string>Insertion Sort #1</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="3" column="0">
+                        <widget class="QPushButton" name="btnInsertSort2">
+                            <property name="text">
+                                <string>Insertion Sort #2</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="4" column="0">
+                        <widget class="QPushButton" name="btnQuickSort">
+                            <property name="text">
+                                <string>Quick Sort</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="5" column="0">
+                        <widget class="QPushButton" name="btnMergeSort">
+                            <property name="text">
+                                <string>Merge Sort</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="6" column="0">
+                        <widget class="QPushButton" name="btnHeapSort">
+                            <property name="text">
+                                <string>HeapSort</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="0" column="1">
+                        <widget class="QPushButton" name="btnBinSort1">
+                            <property name="text">
+                                <string>Bin Sort #1</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="1" column="1">
+                        <widget class="QPushButton" name="btnBinSort2">
+                            <property name="text">
+                                <string>Bin Sort #2</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="2" column="1">
+                        <widget class="QPushButton" name="btnRadixSortLSD">
+                            <property name="text">
+                                <string>Radix Sort #LSD</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="3" column="1">
+                        <widget class="QPushButton" name="btnRadixSortMSD">
+                            <property name="text">
+                                <string>Radix Sort #MSD</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="4" column="1">
+                        <widget class="QPushButton" name="btnLinearSearch">
+                            <property name="text">
+                                <string>Linear Search</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="5" column="1">
+                        <widget class="QPushButton" name="btnBinarySearch">
+                            <property name="text">
+                                <string>Binary Search</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: black;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                    <item row="6" column="1">
+                        <widget class="QPushButton" name="btnTODO">
+                            <property name="text">
+                                <string>TODO</string>
+                            </property>
+                            <property name="styleSheet">
+                                <string notr="true">
+                                    QPushButton {
+                                    padding: 8px 12px;
+                                    color: red;
+                                    background: gray;
+                                    font-size: 16px;
+                                    border: 1px solid white;
+                                    border-radius: 6px;
+                                    }
+
+                                    QPushButton:hover {
+                                    background: #c4c4c4;
+                                    }
+
+                                    QPushButton:pressed {
+                                    background: #d5e9fd;
+                                    font-weight: bold;
+                                    }
+                                </string>
+                            </property>
+                            <property name="cursor">
+                                <cursorShape>PointingHandCursor</cursorShape>
+                            </property>
+                        </widget>
+                    </item>
+                </layout>
+            </item>
+        </layout>
     </widget>
     <resources/>
     <connections/>

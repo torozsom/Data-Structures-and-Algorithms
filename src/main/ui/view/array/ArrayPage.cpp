@@ -11,7 +11,7 @@ void ArrayPage::replaceContent(QWidget* container, QWidget* newChild) {
         boxLayout = new QVBoxLayout(container);
         boxLayout->setContentsMargins(0, 0, 0, 0);
     }
-    if (boxLayout->count() > 0) {
+    while (boxLayout->count() > 0) {
         const auto* item = boxLayout->takeAt(0);
         if (auto* old = item->widget())
             old->deleteLater();
@@ -24,6 +24,7 @@ void ArrayPage::replaceContent(QWidget* container, QWidget* newChild) {
 /// Show linear search animation
 void ArrayPage::showLinearSearch() {
     auto [view, animator] = createLinearSearchAnimation();
+    if (!content_) content_ = this;
     replaceContent(content_, view);
     animator_ = nullptr;
     animator_ = animator;
@@ -35,6 +36,7 @@ void ArrayPage::showLinearSearch() {
 /// Show binary search animation
 void ArrayPage::showBinarySearch() {
     auto [view, animator] = createBinarySearchAnimation();
+    if (!content_) content_ = this;
     replaceContent(content_, view);
     animator_ = nullptr;
     animator_ = animator;
@@ -43,14 +45,10 @@ void ArrayPage::showBinarySearch() {
 }
 
 
-/// Create the menu bar
-void ArrayPage::createMenu() {
-    auto* animations = menuBar_->addMenu("Animations");
-    const auto* linear = animations->addAction("Linear Search");
-    const auto* binary = animations->addAction("Binary Search");
-
-    connect(linear, &QAction::triggered, this, &ArrayPage::showLinearSearch);
-    connect(binary, &QAction::triggered, this, &ArrayPage::showBinarySearch);
+void ArrayPage::connectButtonActions() {
+    //connect(uiForm_->btnLinearSearch, &QPushButton::clicked, this, &ArrayPage::hide);
+    connect(uiForm_->btnLinearSearch, &QPushButton::clicked, this, &ArrayPage::showLinearSearch);
+    connect(uiForm_->btnBinarySearch, &QPushButton::clicked, this, &ArrayPage::showBinarySearch);
 }
 
 
@@ -58,19 +56,7 @@ void ArrayPage::createMenu() {
 ArrayPage::ArrayPage(QWidget* parent)
     : QWidget(parent), uiForm_(new Ui::ArrayPage) {
     uiForm_->setupUi(this);
-    resize(800, 200);
-    const QPointer root = new QVBoxLayout(this);
-    root->setContentsMargins(0, 0, 0, 0);
-
-    menuBar_ = new QMenuBar(this);
-    root->setMenuBar(menuBar_);
-
-    content_ = new QWidget(this);
-    content_->setLayout(new QVBoxLayout(content_));
-    content_->layout()->setContentsMargins(0, 0, 0, 0);
-    root->addWidget(content_);
-
-    createMenu();
+    connectButtonActions();
 }
 
 
