@@ -34,6 +34,8 @@ class ArrayPage final : public QWidget {
   private slots:
     void showLinearSearch();
     void showBinarySearch();
+    void restoreUI();
+
 
   private:
     void connectButtonActions();
