@@ -1,5 +1,7 @@
 #include "MainWindow.h"
 
+#include "./array/ui_ArrayPage.h"
+
 
 namespace ui {
 
@@ -14,18 +16,12 @@ namespace ui {
  * raises it to the front, activates it, and hides the main window.
  */
 void MainWindow::on_btnDynamicArray_clicked() {
-    if (!window_) {
-        window_ = new ArrayWindow(this);
-        window_->setAttribute(Qt::WA_DeleteOnClose);
-        connect(window_, &QObject::destroyed, this, [this] {
-            this->show();
-            window_ = nullptr;
-        });
-    }
-    window_->show();
-    window_->raise();
-    window_->activateWindow();
-    this->hide();
+    if (!page_)
+        page_ = new ArrayPage(this);
+
+    if (!centralContent_)
+        centralContent_ = takeCentralWidget();
+    setCentralWidget(page_);
 }
 
 

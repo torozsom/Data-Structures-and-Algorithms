@@ -46,9 +46,9 @@ add_executable(algorithms_main
         src/main/ui/view/MainWindow.cpp
         src/main/ui/view/MainWindow.ui
 
-        src/main/ui/view/array/ArrayWindow.h
-        src/main/ui/view/array/ArrayWindow.cpp
-        src/main/ui/view/array/ArrayWindow.ui
+        src/main/ui/view/array/ArrayPage.h
+        src/main/ui/view/array/ArrayPage.cpp
+        src/main/ui/view/array/ArrayPage.ui
         src/main/ui/view/array/ArrayWidget.hpp
 
         src/main/ui/viewmodel/array/LinearSearchAnimator.hpp

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-    <class>ArrayWindow</class>
-    <widget class="QMainWindow" name="MainWindow">
+    <class>ArrayPage</class>
+    <widget class="QWidget" name="ArrayPage">
     </widget>
     <resources/>
     <connections/>

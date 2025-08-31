@@ -10,7 +10,7 @@
 
 #include "./ui_MainWindow.h"
 #include "ArrayAnimations.h"
-#include "ArrayWindow.h"
+#include "ArrayPage.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -28,7 +28,9 @@ class MainWindow final : public QMainWindow {
     Q_OBJECT
 
     Ui::MainWindow* uiForm_;
-    QPointer<QMainWindow> window_{};
+
+    QPointer<QWidget> page_{};
+    QPointer<QWidget> centralContent_{};
 
 
   private slots:
