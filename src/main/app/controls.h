@@ -3,13 +3,11 @@
 
 
 #include <QApplication>
-#include <QStyleFactory>
 
-#include "MainWindow.hpp"
+#include "MainWindow.h"
 
 
 int runApp(int& argc, char** argv);
-
 
 
 #endif //CONTROLS_H

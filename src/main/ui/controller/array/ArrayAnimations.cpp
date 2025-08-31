@@ -1,7 +1,3 @@
-#include <QObject>
-#include <QString>
-#include <memory>
-
 #include "ArrayAnimations.h"
 #include "BinarySearchAnimator.hpp"
 #include "DynamicArray.hpp"
@@ -25,7 +21,7 @@ namespace ui {
  */
 ArrayAnimation createLinearSearchAnimation() {
     containers::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-    constexpr int target = 0;
+    constexpr int target = 10;
 
     auto* view = new ArrayWidget(values);
     view->resize(600, 120);
@@ -67,7 +63,7 @@ ArrayAnimation createLinearSearchAnimation() {
 ArrayAnimation createBinarySearchAnimation() {
     containers::DynamicArray values{1.6, 2.5, 3.4,  4.8,  5.9,  6.2, 7.7,
                                     8.1, 9.0, 10.9, 11.2, 12.3, 13.4};
-    constexpr double target = 1.5;
+    constexpr double target = 12.3;
 
     auto* view = new ArrayWidget(values);
     view->resize(600, 120);

@@ -24,10 +24,10 @@ namespace ui {
 /**
  * @class ArrayWidget
  *
- * @brief A widget that visualizes an array of integers as a series of cells
+ * @brief A widget that visualizes an array of elements as a series of cells
  * with an arrow indicating the current index being examined.
  *
- * The ArrayWidget displays each integer in a rectangular cell arranged
+ * The ArrayWidget displays each element in a rectangular cell arranged
  * horizontally. An arrow above the cells points to the current index being
  * examined. Cells can be highlighted to indicate the current focus of an
  * algorithm, and can be marked to show whether the target element was found or

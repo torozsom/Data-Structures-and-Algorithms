@@ -20,13 +20,15 @@ if (NOT GTest_FOUND)
     FetchContent_MakeAvailable(googletest)
 endif ()
 
-
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
 
 
 # Main executable
 add_executable(algorithms_main
         src/main/app/main.cpp
+        src/main/app/controls.cpp
+        src/main/app/controls.h
 
         src/main/core/data_structures/DynamicArray.hpp
         src/main/core/data_structures/LinkedList.hpp
@@ -39,19 +41,24 @@ add_executable(algorithms_main
         src/main/core/data_structures/Queue.hpp
 
         src/main/core/algorithms/DynamicArrayAlgorithms.hpp
+
+        src/main/ui/view/MainWindow.h
+        src/main/ui/view/MainWindow.cpp
+        src/main/ui/view/MainWindow.ui
+
+        src/main/ui/view/array/ArrayWindow.h
+        src/main/ui/view/array/ArrayWindow.cpp
+        src/main/ui/view/array/ArrayWindow.ui
         src/main/ui/view/array/ArrayWidget.hpp
+
         src/main/ui/viewmodel/array/LinearSearchAnimator.hpp
         src/main/ui/viewmodel/array/BinarySearchAnimator.hpp
         src/main/ui/viewmodel/array/SearchAnimator.hpp
+
         src/main/ui/controller/array/ArrayAnimations.cpp
         src/main/ui/controller/array/ArrayAnimations.h
-        src/main/ui/view/MainWindow.hpp
-        src/main/ui/view/MainWindow.ui
-        src/main/app/controls.cpp
-        src/main/app/controls.h
-        src/main/ui/view/array/ArrayWindow.hpp
-        src/main/ui/view/array/ArrayWindow.ui
 )
+
 
 target_include_directories(algorithms_main PRIVATE
         src/main/core
@@ -67,13 +74,16 @@ target_include_directories(algorithms_main PRIVATE
             src/main/ui/viewmodel/array
 )
 
+
 set_target_properties(algorithms_main PROPERTIES
         AUTOMOC ON
         AUTOUIC ON
         AUTORRC ON
 )
 
+
 target_link_libraries(algorithms_main PRIVATE Qt6::Widgets)
+
 
 
 # Data structures' unit tests executable (Google Test based)
@@ -102,22 +112,26 @@ add_executable(data_struct_unit_tests
         src/test/data_structures/utilities/Record.hpp
 )
 
+
 target_include_directories(data_struct_unit_tests PRIVATE
         src/main/core/data_structures
         src/test/data_structures/unit
         src/test/data_structures/utilities
 )
 
+
 target_link_libraries(data_struct_unit_tests
         GTest::gtest
         GTest::gtest_main
 )
+
 
 add_custom_target(run_data_struct_unit_tests
         COMMAND data_struct_unit_tests
         DEPENDS data_struct_unit_tests
         COMMENT "Running unit tests"
 )
+
 
 
 # Algorithms' unit tests executable (Google Test based)
@@ -136,16 +150,19 @@ add_executable(algorithms_unit_tests
         src/main/core/data_structures/Queue.hpp
 )
 
+
 target_include_directories(algorithms_unit_tests PRIVATE
         src/main/core/data_structures
         src/main/core/algorithms
         src/test/algorithms/unit
 )
 
+
 target_link_libraries(algorithms_unit_tests
         GTest::gtest
         GTest::gtest_main
 )
+
 
 add_custom_target(run_algorithms_unit_tests
         COMMAND algorithms_unit_tests
@@ -154,12 +171,14 @@ add_custom_target(run_algorithms_unit_tests
 )
 
 
+
 # Register tests with CTest (moved after target creation)
 include(GoogleTest)
 gtest_discover_tests(
         data_struct_unit_tests
         algorithms_unit_tests
 )
+
 
 set(CMAKE_BUILD_TYPE Debug)
 

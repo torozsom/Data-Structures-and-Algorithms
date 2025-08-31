@@ -1,0 +1,51 @@
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
+
+#include <QAction>
+#include <QMainWindow>
+#include <QMenu>
+#include <QMenuBar>
+#include <QPointer>
+#include <QPushButton>
+
+#include "./ui_MainWindow.h"
+#include "ArrayAnimations.h"
+#include "ArrayWindow.h"
+
+
+QT_BEGIN_NAMESPACE
+namespace Ui {
+class MainWindow;
+}
+QT_END_NAMESPACE
+
+
+namespace ui {
+
+
+/// Main window of the application
+class MainWindow final : public QMainWindow {
+    Q_OBJECT
+
+    Ui::MainWindow* uiForm_;
+    QPointer<QMainWindow> window_{};
+
+
+  private slots:
+    void on_btnDynamicArray_clicked();
+
+
+  private:
+    void connectButtonActions();
+
+
+  public:
+    explicit MainWindow(QWidget* parent = nullptr);
+    ~MainWindow() override;
+};
+
+
+} // namespace ui
+
+
+#endif // MAIN_WINDOW_H

@@ -1,9 +1,3 @@
-#include <QApplication>
-#include <QColor>
-#include <QPalette>
-#include <QStyleFactory>
-
-#include "MainWindow.hpp"
 #include "controls.h"
 
 
