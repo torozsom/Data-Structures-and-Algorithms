@@ -29,7 +29,7 @@ class BubbleSortAnimator final : public SortAnimator {
         void operator()(containers::DynamicArray<Type>& array,
                         Callback&& callback) const {
             array_algorithms::BubbleSort(array,
-            std::forward<Callback>(callback));
+                                         std::forward<Callback>(callback));
         }
     };
 

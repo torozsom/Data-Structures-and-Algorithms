@@ -40,7 +40,8 @@ class ArrayPage final : public QWidget {
 
   private:
     void connectButtonActions();
-    void setupAndShowAnimation(QWidget* view, QObject* animator, const QString& windowTitle);
+    void setupAndShowAnimation(QWidget* view, QObject* animator,
+                               const QString& windowTitle);
 
 
   private slots:

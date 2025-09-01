@@ -20,7 +20,7 @@ using std::size_t;
 /// Holds the view and animator used to display an array algorithm.
 struct ArrayAnimation {
     /// Widget that renders the array and its animation.
-    ArrayWidget* view;
+    QWidget* view;
     /// Animator object controlling the visualized algorithm steps.
     QObject* animator;
 };

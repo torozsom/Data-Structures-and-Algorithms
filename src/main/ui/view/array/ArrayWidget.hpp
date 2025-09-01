@@ -42,8 +42,8 @@ class ArrayWidget final : public QGraphicsView {
     containers::DynamicArray<QGraphicsRectItem*> cells_;
     containers::DynamicArray<QGraphicsTextItem*> labels_;
 
-    static constexpr int CELL_WIDTH = 40;
-    static constexpr int CELL_HEIGHT = 40;
+    static constexpr size_t CELL_WIDTH = 55;
+    static constexpr size_t CELL_HEIGHT = 55;
 
 
   public:
@@ -76,6 +76,12 @@ class ArrayWidget final : public QGraphicsView {
 
             auto text = scene_->addText(QString::number(values[i]));
             text->setDefaultTextColor(Qt::black);
+
+            QFont font = text->font();
+            font.setPointSizeF(static_cast<qreal>(CELL_HEIGHT) *
+                               0.3); // scale with cell size
+            text->setFont(font);
+
             QRectF textRect = text->boundingRect();
             const qreal textX =
                 (CELL_WIDTH - textRect.width()) / 2 + i * CELL_WIDTH;
@@ -229,7 +235,7 @@ class ArrayWidget final : public QGraphicsView {
                     -dy + (CELL_HEIGHT - label2->boundingRect().height()) / 2);
             });
 
-        connect(anim, &QVariantAnimation::finished, this, [=] {
+        connect(anim, &QVariantAnimation::finished, this, [=, this] {
             rect1->setPos(x2, 0);
             rect2->setPos(x1, 0);
             label1->setPos(x2 + (CELL_WIDTH - label1->boundingRect().width()) /

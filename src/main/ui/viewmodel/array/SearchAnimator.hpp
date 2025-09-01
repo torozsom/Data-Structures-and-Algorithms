@@ -56,26 +56,26 @@ class SearchAnimator : public QObject {
         }
 
         switch (const auto& [type, index] = steps_[current_++]; type) {
-            case StepType::Visit:
-                if (widget_) {
-                    widget_->highlightIndex(index);
-                    widget_->setArrowPosition(index);
-                }
-                break;
+        case StepType::Visit:
+            if (widget_) {
+                widget_->highlightIndex(index);
+                widget_->setArrowPosition(index);
+            }
+            break;
 
-            case StepType::Found:
-                if (widget_)
-                    widget_->markFound(index);
-                timer_.stop();
-                emit elementFound(index);
-                break;
+        case StepType::Found:
+            if (widget_)
+                widget_->markFound(index);
+            timer_.stop();
+            emit elementFound(index);
+            break;
 
-            case StepType::NotFound:
-                if (widget_)
-                    widget_->markNotFound();
-                timer_.stop();
-                emit elementNotFound();
-                break;
+        case StepType::NotFound:
+            if (widget_)
+                widget_->markNotFound();
+            timer_.stop();
+            emit elementNotFound();
+            break;
         }
     }
 

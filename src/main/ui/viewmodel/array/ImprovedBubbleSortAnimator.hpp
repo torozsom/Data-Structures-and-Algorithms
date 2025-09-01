@@ -3,9 +3,9 @@
 
 
 #include "ArrayWidget.hpp"
-#include "SortAnimator.hpp"
 #include "DynamicArray.hpp"
 #include "DynamicArrayAlgorithms.hpp"
+#include "SortAnimator.hpp"
 
 
 namespace ui {
@@ -18,8 +18,8 @@ class ImprovedBubbleSortAnimator final : public SortAnimator {
         template <typename Type, typename Callback>
         void operator()(containers::DynamicArray<Type>& array,
                         Callback&& callback) const {
-            array_algorithms::ImprovedBubbleSort(array,
-            std::forward<Callback>(callback));
+            array_algorithms::ImprovedBubbleSort(
+                array, std::forward<Callback>(callback));
         }
     };
 
@@ -48,4 +48,4 @@ class ImprovedBubbleSortAnimator final : public SortAnimator {
 
 } // namespace ui
 
-#endif //IMPROVED_BUBBLE_SORT_ANIMATOR_HPP
+#endif // IMPROVED_BUBBLE_SORT_ANIMATOR_HPP

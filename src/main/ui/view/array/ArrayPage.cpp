@@ -31,7 +31,8 @@ void ArrayPage::connectButtonActions() {
  * @param windowTitle The title to set for the window when displaying the
  * animation.
  */
-void ArrayPage::setupAndShowAnimation(QWidget* view, QObject* animator, const QString& windowTitle) {
+void ArrayPage::setupAndShowAnimation(QWidget* view, QObject* animator,
+                                      const QString& windowTitle) {
     if (!content_)
         content_ = this;
 
@@ -112,7 +113,8 @@ void ArrayPage::showBubbleSort() {
 
 void ArrayPage::showImprovedBubbleSort() {
     auto [view, animator] = createImprovedBubbleSortAnimation();
-    setupAndShowAnimation(view, animator, "Dynamic Array - Improved Bubble Sort");
+    setupAndShowAnimation(view, animator,
+                          "Dynamic Array - Improved Bubble Sort");
 }
 
 
