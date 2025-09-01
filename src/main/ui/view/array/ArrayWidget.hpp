@@ -89,6 +89,11 @@ class ArrayWidget final : public QGraphicsView {
 
         arrow_ = scene_->addPolygon(polygon, pen, QBrush{Qt::cyan});
         setArrowPosition(0);
+
+        // Reserve space above the cells for swap animations so that
+        // the view's origin doesn't shift when items move upward.
+        const qreal width = values.size() * CELL_WIDTH;
+        scene_->setSceneRect(0, -20, width, CELL_HEIGHT + 20);
     }
 
 
@@ -103,9 +108,11 @@ class ArrayWidget final : public QGraphicsView {
     void highlightIndex(const size_t index,
                         const Qt::GlobalColor color = Qt::yellow) const {
         for (auto* cell : cells_)
-            cell->setBrush(QBrush{Qt::white});
+            if (cell->brush().color() != Qt::green)
+                cell->setBrush(QBrush{Qt::white});
 
-        if (index < cells_.size())
+        if (index < cells_.size() &&
+            cells_[index]->brush().color() != Qt::green)
             cells_[index]->setBrush(QBrush{color});
     }
 
@@ -119,11 +126,14 @@ class ArrayWidget final : public QGraphicsView {
     void highlightIndices(const size_t first, const size_t second,
                           const Qt::GlobalColor color = Qt::yellow) const {
         for (auto* cell : cells_)
-            cell->setBrush(QBrush{Qt::white});
+            if (cell->brush().color() != Qt::green)
+                cell->setBrush(QBrush{Qt::white});
 
-        if (first < cells_.size())
+        if (first < cells_.size() &&
+            cells_[first]->brush().color() != Qt::green)
             cells_[first]->setBrush(QBrush{color});
-        if (second < cells_.size())
+        if (second < cells_.size() &&
+            cells_[second]->brush().color() != Qt::green)
             cells_[second]->setBrush(QBrush{color});
     }
 

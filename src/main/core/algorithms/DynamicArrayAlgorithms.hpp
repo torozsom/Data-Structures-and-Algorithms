@@ -340,6 +340,8 @@ void BubbleSort(DynamicArray<Type>& array,
         // Mark the last element of this pass as sorted
         callback(2, n - i - 1, 0);
     }
+    // First element is also in its correct place after the final pass
+    callback(2, 0, 0);
 }
 
 
