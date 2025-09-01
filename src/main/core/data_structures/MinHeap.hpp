@@ -49,8 +49,15 @@ template <typename Type>
 class MinHeap final : public Heap<Type> {
 
     /**
-     * Restores the min-heap property by moving the given node upwards.
-     * Iteratively swaps with the parent while node->data < parent->data.
+     * @brief Bubble a node toward the root until the min-heap invariant holds.
+     *
+     * Starting at `node`, repeatedly swap its payload with the parent while the
+     * parent contains a larger value. Stops when `node` becomes the root or the
+     * parent value is already <= `node->data`.
+     *
+     * @param node Newly inserted node to sift upward.
+     *
+     * @complexity Time: O(log n); Space: O(1).
      */
     void heapifyUp(Node<Type>* node) override {
         while (node && node->parent && node->data < node->parent->data) {
@@ -61,9 +68,16 @@ class MinHeap final : public Heap<Type> {
 
 
     /**
-     * Restores the min-heap property by moving the given node downwards.
-     * Iteratively swaps with the smaller child while that child’s value <
-     * node->data.
+     * @brief Push a node downward to restore the min-heap property after a
+     * removal or swap.
+     *
+     * At each step selects the smaller child and swaps values while that child
+     * is strictly less than the current node. Terminates when both children are
+     * greater or equal, or when a leaf is reached.
+     *
+     * @param node Subtree root to sift downward.
+     *
+     * @complexity Time: O(log n); Space: O(1).
      */
     void heapifyDown(Node<Type>* node) override {
         while (node) {

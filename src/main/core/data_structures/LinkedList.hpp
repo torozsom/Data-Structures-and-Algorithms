@@ -14,10 +14,26 @@ namespace containers {
 
 /**
  * @class LinkedList
+ * @brief Doubly linked list offering constant-time insert/erase at the ends
+ *        and bidirectional traversal.
  *
- * A generic doubly linked list class that provides functionalities for adding,
- * removing, and accessing elements. The internal storage is implemented using
- * a doubly linked list structure.
+ * Stores elements in individual nodes linked through `next`/`prev` pointers and
+ * keeps `head_`/`tail_` pointers for quick access to both ends. Index-based
+ * operations walk from the nearer end for efficiency and iterators satisfy the
+ * bidirectional iterator requirements.
+ *
+ * @tparam Type Element type held by the list.
+ *
+ * @par Complexity highlights
+ * - `addFirst`/`addLast`/`removeFirst`/`removeLast`: O(1)
+ * - `insert`/`removeAt`/`get`: O(min(idx, size-idx))
+ *
+ * @par Exception safety
+ * - Insertion and removal operations provide the strong guarantee: if an
+ *   allocation or element construction throws, the list remains unchanged.
+ *
+ * @par Iterator invalidation
+ * - Only iterators to erased nodes are invalidated; others remain valid.
  */
 template <typename Type>
 class LinkedList {

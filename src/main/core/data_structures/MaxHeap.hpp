@@ -53,8 +53,16 @@ template <typename Type>
 class MaxHeap final : public Heap<Type> {
 
     /**
-     * Restores the max-heap property by moving the given node upwards.
-     * Iteratively swaps with the parent while node->data > parent->data.
+     * @brief Bubble a node toward the root while it violates the max-heap
+     *        ordering.
+     *
+     * Starting at `node`, repeatedly swap its value with the parent while the
+     * parent holds a smaller element. Stops when the root is reached or the
+     * parent is already >= `node->data`.
+     *
+     * @param node Newly inserted node to sift upward.
+     *
+     * @complexity Time: O(log n); Space: O(1).
      */
     void heapifyUp(Node<Type>* node) override {
         while (node && node->parent && node->data > node->parent->data) {
@@ -65,9 +73,16 @@ class MaxHeap final : public Heap<Type> {
 
 
     /**
-     * Restores the max-heap property by moving the given node downwards.
-     * Iteratively swaps with the larger child while that child’s value >
-     * node->data.
+     * @brief Push a node downward to re-establish the max-heap property after
+     *        a removal or swap.
+     *
+     * At each step selects the larger child and swaps values while that child is
+     * greater than the current node. Terminates when both children are <=
+     * `node->data` or when a leaf is reached.
+     *
+     * @param node Subtree root to sift downward.
+     *
+     * @complexity Time: O(log n); Space: O(1).
      */
     void heapifyDown(Node<Type>* node) override {
         while (node) {

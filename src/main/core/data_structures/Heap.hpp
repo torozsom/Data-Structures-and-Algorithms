@@ -108,14 +108,15 @@ class Heap : public BinaryTree<Type> {
 
 
     /**
-     * Finds the last node in the heap based on the current size.
+     * @brief Locate the node representing the last element in level-order.
      *
-     * This method calculates the path to the last node using the size of the
-     * heap. It uses a binary representation of the size to determine the
-     * correct path in the complete binary tree structure of the heap.
+     * Computes the 1-based index equal to `size()` and delegates to
+     * `findNodeByPath` to follow the corresponding left/right edges. Used by
+     * `extractRoot()` when splicing out the final node.
      *
-     * @return Pointer to the last node in the heap, or nullptr if the heap is
-     * empty.
+     * @return Pointer to the last node, or nullptr if the heap is empty.
+     *
+     * @complexity Time: O(log n); Space: O(1).
      */
     Node<Type>* findLastNode() const noexcept {
         return findNodeByPath(this->size());

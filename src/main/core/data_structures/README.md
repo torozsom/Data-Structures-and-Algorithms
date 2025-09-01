@@ -92,12 +92,15 @@ A Last-In-First-Out (LIFO) container with straightforward semantics.
 
 ### Queue
 
-A First-In-First-Out (FIFO) container with optimal enqueue/dequeue semantics.
+A First-In-First-Out (FIFO) container backed by a circular buffer built on
+top of `DynamicArray`
 
 **Key Features:**
 
-- ✅ O(1) `enqueue` and `dequeue`
+- ✅ Amortized O(1) `enqueue` and `dequeue`
 - ✅ Constant-time `front()` and `back()`
+- ✅ Automatic capacity management (geometric growth and periodic shrink)
+- ✅ Bidirectional iterators for traversal
 
 ### Binary Tree
 
