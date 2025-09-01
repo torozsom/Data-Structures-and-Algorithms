@@ -4,30 +4,67 @@
 namespace ui {
 
 
+/// Connects button click signals to their respective slot functions
+void ArrayPage::connectButtonActions() {
+    connect(uiForm_->btnLinearSearch, &QPushButton::clicked, this,
+            &ArrayPage::showLinearSearch);
+    connect(uiForm_->btnBinarySearch, &QPushButton::clicked, this,
+            &ArrayPage::showBinarySearch);
+    connect(uiForm_->btnBubbleSort, &QPushButton::clicked, this,
+            &ArrayPage::showBubbleSort);
+    connect(uiForm_->btnImpBubbleSort, &QPushButton::clicked, this,
+            &ArrayPage::showImprovedBubbleSort);
+}
+
+
 /**
- * @brief Replaces the content of a given container widget with a new child
- * widget.
+ * @brief Sets up and displays an animation view with a bottom bar.
  *
- * This function clears any existing layout and widgets within the container,
- * then adds the new child widget to it. If the container does not have a
- * layout, a new QVBoxLayout is created for it.
+ * This function creates a container widget that holds the provided animation
+ * view and a bottom bar with a "Back" button. The animation view expands to
+ * fill the available space, and clicking the "Back" button restores the
+ * original UI. The window title is also updated to reflect the current
+ * animation.
  *
- * @param container The QWidget container whose content is to be replaced.
- * @param newChild The new QWidget to be added to the container.
+ * @param view The QWidget representing the animation view to be displayed.
+ * @param animator The QObject responsible for controlling the animation.
+ * @param windowTitle The title to set for the window when displaying the
+ * animation.
  */
-void ArrayPage::replaceContent(QWidget* container, QWidget* newChild) {
-    QPointer boxLayout{container->layout()};
-    if (!boxLayout) {
-        boxLayout = new QVBoxLayout(container);
-        boxLayout->setContentsMargins(0, 0, 0, 0);
-    }
-    while (boxLayout->count() > 0) {
-        const auto* item = boxLayout->takeAt(0);
-        if (auto* old = item->widget())
-            old->deleteLater();
-        delete item;
-    }
-    boxLayout->addWidget(newChild);
+void ArrayPage::setupAndShowAnimation(QWidget* view, QObject* animator, const QString& windowTitle) {
+    if (!content_)
+        content_ = this;
+
+    const QPointer container = new QWidget(content_);
+    container->setAutoFillBackground(true);
+
+    const QPointer vbox = new QVBoxLayout(container);
+    vbox->setContentsMargins(0, 0, 0, 0);
+    vbox->setSpacing(0);
+
+    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    vbox->addWidget(view, 1);
+
+    const QPointer bottomBar = new QWidget(container);
+    bottomBar->setAutoFillBackground(true);
+    const QPointer hbox = new QHBoxLayout(bottomBar);
+    hbox->setContentsMargins(8, 8, 8, 8);
+    hbox->setSpacing(8);
+
+    const QPointer btn = new QPushButton("Back", bottomBar);
+    connect(btn, &QPushButton::clicked, this, &ArrayPage::restoreUI);
+    btn->setCursor(Qt::PointingHandCursor);
+    hbox->addWidget(btn);
+    hbox->addStretch();
+
+    vbox->addWidget(bottomBar, 0);
+
+    replaceContent(content_, container);
+
+    animator_ = nullptr;
+    animator_ = animator;
+    if (auto* w = window())
+        w->setWindowTitle(windowTitle);
 }
 
 
@@ -41,41 +78,7 @@ void ArrayPage::replaceContent(QWidget* container, QWidget* newChild) {
  */
 void ArrayPage::showLinearSearch() {
     auto [view, animator] = createLinearSearchAnimation();
-    if (!content_)
-        content_ = this;
-
-    // Build a container with the animation and a bottom-left button
-    const QPointer container = new QWidget(content_);
-    container->setAutoFillBackground(true);
-
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    // Ensure the animation view expands and covers the area
-    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(view, 1); // animation takes all available space
-
-    const QPointer bottomBar = new QWidget(container);
-    bottomBar->setAutoFillBackground(true);
-    const QPointer hbox = new QHBoxLayout(bottomBar);
-    hbox->setContentsMargins(8, 8, 8, 8);
-    hbox->setSpacing(8);
-
-    const QPointer btn = new QPushButton("Back", bottomBar);
-    connect(btn, &QPushButton::clicked, this, &ArrayPage::restoreUI);
-    btn->setCursor(Qt::PointingHandCursor);
-    hbox->addWidget(btn);
-    hbox->addStretch();
-
-    vbox->addWidget(bottomBar, 0);
-
-    replaceContent(content_, container);
-
-    animator_ = nullptr;
-    animator_ = animator;
-    if (auto* w = window())
-        w->setWindowTitle("Dynamic Array - Linear Search");
+    setupAndShowAnimation(view, animator, "Dynamic Array - Linear Search");
 }
 
 
@@ -89,41 +92,7 @@ void ArrayPage::showLinearSearch() {
  */
 void ArrayPage::showBinarySearch() {
     auto [view, animator] = createBinarySearchAnimation();
-    if (!content_)
-        content_ = this;
-
-    // Build a container with the animation and a bottom-left button
-    const QPointer container = new QWidget(content_);
-    container->setAutoFillBackground(true);
-
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(view, 1);
-
-    const QPointer bottomBar = new QWidget(container);
-    bottomBar->setAutoFillBackground(true);
-
-    const QPointer hbox = new QHBoxLayout(bottomBar);
-    hbox->setContentsMargins(8, 8, 8, 8);
-    hbox->setSpacing(8);
-
-    const QPointer btn = new QPushButton("Back", bottomBar);
-    connect(btn, &QPushButton::clicked, this, &ArrayPage::restoreUI);
-    btn->setCursor(Qt::PointingHandCursor);
-    hbox->addWidget(btn);
-    hbox->addStretch();
-
-    vbox->addWidget(bottomBar, 0);
-
-    replaceContent(content_, container);
-
-    animator_ = nullptr;
-    animator_ = animator;
-    if (auto* w = window())
-        w->setWindowTitle("Dynamic Array - Binary Search");
+    setupAndShowAnimation(view, animator, "Dynamic Array - Binary Search");
 }
 
 
@@ -137,77 +106,13 @@ void ArrayPage::showBinarySearch() {
  */
 void ArrayPage::showBubbleSort() {
     auto [view, animator] = createBubbleSortAnimation();
-    if (!content_)
-        content_ = this;
-
-    const QPointer container = new QWidget(content_);
-    container->setAutoFillBackground(true);
-
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(view, 1);
-
-    const QPointer bottomBar = new QWidget(container);
-    bottomBar->setAutoFillBackground(true);
-    const QPointer hbox = new QHBoxLayout(bottomBar);
-    hbox->setContentsMargins(8, 8, 8, 8);
-    hbox->setSpacing(8);
-
-    const QPointer btn = new QPushButton("Back", bottomBar);
-    connect(btn, &QPushButton::clicked, this, &ArrayPage::restoreUI);
-    btn->setCursor(Qt::PointingHandCursor);
-    hbox->addWidget(btn);
-    hbox->addStretch();
-
-    vbox->addWidget(bottomBar, 0);
-
-    replaceContent(content_, container);
-
-    animator_ = nullptr;
-    animator_ = animator;
-    if (auto* w = window())
-        w->setWindowTitle("Dynamic Array - Bubble Sort");
+    setupAndShowAnimation(view, animator, "Dynamic Array - Bubble Sort");
 }
 
 
 void ArrayPage::showImprovedBubbleSort() {
     auto [view, animator] = createImprovedBubbleSortAnimation();
-    if (!content_)
-        content_ = this;
-
-    const QPointer container = new QWidget(content_);
-    container->setAutoFillBackground(true);
-
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(view, 1);
-
-    const QPointer bottomBar = new QWidget(container);
-    bottomBar->setAutoFillBackground(true);
-    const QPointer hbox = new QHBoxLayout(bottomBar);
-    hbox->setContentsMargins(8, 8, 8, 8);
-    hbox->setSpacing(8);
-
-    const QPointer btn = new QPushButton("Back", bottomBar);
-    connect(btn, &QPushButton::clicked, this, &ArrayPage::restoreUI);
-    btn->setCursor(Qt::PointingHandCursor);
-    hbox->addWidget(btn);
-    hbox->addStretch();
-
-    vbox->addWidget(bottomBar, 0);
-
-    replaceContent(content_, container);
-
-    animator_ = nullptr;
-    animator_ = animator;
-    if (auto* w = window())
-        w->setWindowTitle("Dynamic Array - Improved Bubble Sort");
+    setupAndShowAnimation(view, animator, "Dynamic Array - Improved Bubble Sort");
 }
 
 
@@ -237,24 +142,38 @@ void ArrayPage::restoreUI() {
 }
 
 
-/// Connects button click signals to their respective slot functions
-void ArrayPage::connectButtonActions() {
-    connect(uiForm_->btnLinearSearch, &QPushButton::clicked, this,
-            &ArrayPage::showLinearSearch);
-    connect(uiForm_->btnBinarySearch, &QPushButton::clicked, this,
-            &ArrayPage::showBinarySearch);
-    connect(uiForm_->btnBubbleSort, &QPushButton::clicked, this,
-            &ArrayPage::showBubbleSort);
-    connect(uiForm_->btnImpBubbleSort, &QPushButton::clicked, this,
-            &ArrayPage::showImprovedBubbleSort);
-}
-
-
 /// Constructor that initializes the UI and creates the menu
 ArrayPage::ArrayPage(QWidget* parent)
     : QWidget(parent), uiForm_(new Ui::ArrayPage) {
     uiForm_->setupUi(this);
     connectButtonActions();
+}
+
+
+/**
+ * @brief Replaces the content of a given container widget with a new child
+ * widget.
+ *
+ * This function clears any existing layout and widgets within the container,
+ * then adds the new child widget to it. If the container does not have a
+ * layout, a new QVBoxLayout is created for it.
+ *
+ * @param container The QWidget container whose content is to be replaced.
+ * @param newChild The new QWidget to be added to the container.
+ */
+void ArrayPage::replaceContent(QWidget* container, QWidget* newChild) {
+    QPointer boxLayout{container->layout()};
+    if (!boxLayout) {
+        boxLayout = new QVBoxLayout(container);
+        boxLayout->setContentsMargins(0, 0, 0, 0);
+    }
+    while (boxLayout->count() > 0) {
+        const auto* item = boxLayout->takeAt(0);
+        if (auto* old = item->widget())
+            old->deleteLater();
+        delete item;
+    }
+    boxLayout->addWidget(newChild);
 }
 
 

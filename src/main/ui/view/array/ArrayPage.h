@@ -38,16 +38,17 @@ class ArrayPage final : public QWidget {
     QPointer<QWidget> content_{};
 
 
+  private:
+    void connectButtonActions();
+    void setupAndShowAnimation(QWidget* view, QObject* animator, const QString& windowTitle);
+
+
   private slots:
     void showLinearSearch();
     void showBinarySearch();
     void showBubbleSort();
     void showImprovedBubbleSort();
     void restoreUI();
-
-
-  private:
-    void connectButtonActions();
 
 
   public:

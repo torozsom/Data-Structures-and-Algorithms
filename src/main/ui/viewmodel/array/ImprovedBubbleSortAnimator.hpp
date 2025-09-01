@@ -41,6 +41,9 @@ class ImprovedBubbleSortAnimator final : public SortAnimator {
     ImprovedBubbleSortAnimator(containers::DynamicArray<Type>& array,
                                ArrayWidget* widget, QObject* parent = nullptr)
         : SortAnimator(array, widget, ImprovedBubbleSortFn{}, 600, parent) {}
+
+    /// Destructor
+    ~ImprovedBubbleSortAnimator() override = default;
 };
 
 } // namespace ui
