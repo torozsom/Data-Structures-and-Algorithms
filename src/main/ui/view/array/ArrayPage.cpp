@@ -9,8 +9,8 @@ namespace ui {
  * widget.
  *
  * This function clears any existing layout and widgets within the container,
- * then adds the new child widget to it. If the container does not have a layout,
- * a new QVBoxLayout is created for it.
+ * then adds the new child widget to it. If the container does not have a
+ * layout, a new QVBoxLayout is created for it.
  *
  * @param container The QWidget container whose content is to be replaced.
  * @param newChild The new QWidget to be added to the container.
@@ -41,7 +41,8 @@ void ArrayPage::replaceContent(QWidget* container, QWidget* newChild) {
  */
 void ArrayPage::showLinearSearch() {
     auto [view, animator] = createLinearSearchAnimation();
-    if (!content_) content_ = this;
+    if (!content_)
+        content_ = this;
 
     // Build a container with the animation and a bottom-left button
     const QPointer container = new QWidget(content_);
@@ -88,7 +89,8 @@ void ArrayPage::showLinearSearch() {
  */
 void ArrayPage::showBinarySearch() {
     auto [view, animator] = createBinarySearchAnimation();
-    if (!content_) content_ = this;
+    if (!content_)
+        content_ = this;
 
     // Build a container with the animation and a bottom-left button
     const QPointer container = new QWidget(content_);
@@ -124,6 +126,7 @@ void ArrayPage::showBinarySearch() {
         w->setWindowTitle("Dynamic Array - Binary Search");
 }
 
+
 /**
  * @brief Restores the original UI of the ArrayPage.
  *
@@ -152,8 +155,10 @@ void ArrayPage::restoreUI() {
 
 /// Connects button click signals to their respective slot functions
 void ArrayPage::connectButtonActions() {
-    connect(uiForm_->btnLinearSearch, &QPushButton::clicked, this, &ArrayPage::showLinearSearch);
-    connect(uiForm_->btnBinarySearch, &QPushButton::clicked, this, &ArrayPage::showBinarySearch);
+    connect(uiForm_->btnLinearSearch, &QPushButton::clicked, this,
+            &ArrayPage::showLinearSearch);
+    connect(uiForm_->btnBinarySearch, &QPushButton::clicked, this,
+            &ArrayPage::showBinarySearch);
 }
 
 
@@ -166,7 +171,7 @@ ArrayPage::ArrayPage(QWidget* parent)
 
 
 /// Destructor that cleans up the UI form
-ArrayPage::~ArrayPage() { delete uiForm_; };
+ArrayPage::~ArrayPage() { delete uiForm_; }
 
 
 } // namespace ui

@@ -43,6 +43,7 @@ class ArrayWidget final : public QGraphicsView {
     static constexpr int CELL_WIDTH = 40;
     static constexpr int CELL_HEIGHT = 40;
 
+
   public:
     /**
      * @brief Constructs an ArrayWidget that visualizes the given array of
@@ -94,15 +95,14 @@ class ArrayWidget final : public QGraphicsView {
      * above the highlighted cell.
      *
      * @param index The index of the cell to highlight.
+     * @param color The color to highlight the cell with.
      */
-    void highlightIndex(const std::size_t index) const {
+    void highlightIndex(const std::size_t index, const Qt::GlobalColor color = Qt::yellow) const {
         for (auto* cell : cells_)
             cell->setBrush(QBrush{Qt::white});
 
         if (index < cells_.size())
-            cells_[index]->setBrush(QBrush{Qt::yellow});
-
-        setArrowPosition(index);
+            cells_[index]->setBrush(QBrush{color});
     }
 
 

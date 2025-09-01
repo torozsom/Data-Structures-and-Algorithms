@@ -28,7 +28,8 @@ ArrayAnimation createLinearSearchAnimation() {
     QPointer view = new ArrayWidget(values);
     view->resize(600, 120);
 
-    const QPointer animator = new LinearSearchAnimator(values, target, view, view);
+    const QPointer animator =
+        new LinearSearchAnimator(values, target, view, view);
 
     QObject::connect(
         animator, &LinearSearchAnimator::elementFound, view,
@@ -69,7 +70,8 @@ ArrayAnimation createBinarySearchAnimation() {
     auto* view = new ArrayWidget(values);
     view->resize(600, 120);
 
-    const QPointer animator = new BinarySearchAnimator(values, target, view, view);
+    const QPointer animator =
+        new BinarySearchAnimator(values, target, view, view);
 
     QObject::connect(
         animator, &BinarySearchAnimator::elementFound, view,
