@@ -1,5 +1,7 @@
 #include "ArrayAnimations.h"
 
+#include "ImprovedBubbleSortAnimator.hpp"
+
 
 namespace ui {
 
@@ -103,6 +105,27 @@ ArrayAnimation createBubbleSortAnimation() {
     auto* view = new ArrayWidget(values);
     view->resize(600, 120);
     const QPointer animator = new BubbleSortAnimator(values, view, view);
+
+    return {view, animator};
+}
+
+
+/**
+ * @brief Creates an animation for bubble sort on a dynamic array of integers.
+ *
+ * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
+ * it and instantiates a ImprovedBubbleSortAnimator. The animator drives the step-by-step
+ * sorting animation on the provided widget.
+ *
+ * @return An ArrayAnimation struct containing the ArrayWidget and
+ * ImprovedBubbleSortAnimator.
+ */
+ArrayAnimation createImprovedBubbleSortAnimation() {
+    containers::DynamicArray values{6.6, 4.3, 9.7, 3.2, 3.2, 6.6, 2.4, 1.0, 7.0};
+
+    auto* view = new ArrayWidget(values);
+    view->resize(600, 120);
+    const QPointer animator = new ImprovedBubbleSortAnimator(values, view, view);
 
     return {view, animator};
 }

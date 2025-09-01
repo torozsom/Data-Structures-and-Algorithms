@@ -32,6 +32,8 @@ ArrayAnimation createBinarySearchAnimation();
 
 ArrayAnimation createBubbleSortAnimation();
 
+ArrayAnimation createImprovedBubbleSortAnimation();
+
 
 } // namespace ui
 

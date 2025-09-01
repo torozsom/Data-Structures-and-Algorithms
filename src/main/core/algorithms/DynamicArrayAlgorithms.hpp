@@ -361,30 +361,53 @@ void BubbleSort(DynamicArray<Type>& array,
  * - O(1) additional space complexity.
  *
  * @param array The array to sort.
+ * @param callback Optional callback function to report each operation:
+ * The callback receives events as (code, a, b):
+ *  - code = 0: Compare(a, b)           — comparing indices a and b
+ *  - code = 1: Swap(a, b)              — swapping indices a and b
+ *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
-template <typename Type>
-void ImprovedBubbleSort(DynamicArray<Type>& array) {
-    if (array.size() <= 1 || isSorted(array))
+template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
+void ImprovedBubbleSort(DynamicArray<Type>& array,
+                Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
+    size_t n = array.size();
+    if (n <= 1 || isSorted(array)) {
+        for (size_t i = 0; i < n; ++i)
+            callback(2, i, 0);
         return;
+    }
 
     // Early-exit + shrinking boundary optimization
-    size_t n = array.size();
     while (n > 1) {
         bool swapped = false;
         size_t last_swap = 0;
 
         for (size_t j = 0; j + 1 < n; ++j) {
+            callback(0, j, j + 1); // compare
             if (array[j] > array[j + 1]) {
+                callback(1, j, j + 1); // swap
                 swap(array[j], array[j + 1]);
                 swapped = true;
                 last_swap = j + 1;
             }
         }
 
-        if (!swapped)
-            break;
+        // If no swaps, the remaining prefix is already sorted
+        if (!swapped) {
+            for (size_t i = 0; i < n; ++i)
+                callback(2, i, 0);
+            return;
+        }
+
+        // Everything after last_swap is in final position this pass
+        const size_t old_n = n;
+        for (size_t k = last_swap; k < old_n; ++k)
+            callback(2, k, 0);
+
         n = last_swap;
     }
+    // First element is also in its correct place after the final pass
+    callback(2, 0, 0);
 }
 
 
