@@ -27,13 +27,14 @@ class ArrayPage final : public QWidget {
 
     Ui::ArrayPage* uiForm_;
 
-    QPointer<SearchAnimator> animator_{};
+    QPointer<QObject> animator_{};
     QPointer<QWidget> content_{};
 
 
   private slots:
     void showLinearSearch();
     void showBinarySearch();
+    void showBubbleSort();
     void restoreUI();
 
 

@@ -119,8 +119,8 @@ class MinHeap final : public Heap<Type> {
      * heap.
      * @param size The number of elements in the array.
      */
-    MinHeap(const Type* array, const std::size_t size) : Heap<Type>() {
-        for (std::size_t i = 0; i < size; ++i)
+    MinHeap(const Type* array, const size_t size) : Heap<Type>() {
+        for (size_t i = 0; i < size; ++i)
             insert(array[i]);
     }
 
@@ -173,7 +173,7 @@ class MinHeap final : public Heap<Type> {
             return;
         }
 
-        const std::size_t path = this->size() + 1;
+        const size_t path = this->size() + 1;
         Node<Type>* parent = this->findNodeByPath(path >> 1);
         newNode->parent = parent;
 

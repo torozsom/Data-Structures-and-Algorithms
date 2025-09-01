@@ -74,7 +74,7 @@ class BinaryTree {
 
   protected:
     Node<Type>* root_ = nullptr;
-    std::size_t size_ = 0;
+    size_t size_ = 0;
 
 
     /**
@@ -130,12 +130,12 @@ class BinaryTree {
      * Complexity: O(n) over the size of the subtree.
      * Exception safety: No-throw (assuming `node` pointers are valid).
      */
-    std::size_t recursiveHeight(Node<Type>* node) const {
+    size_t recursiveHeight(Node<Type>* node) const {
         if (node == nullptr)
             return 0;
 
-        const std::size_t leftHeight = recursiveHeight(node->left);
-        const std::size_t rightHeight = recursiveHeight(node->right);
+        const size_t leftHeight = recursiveHeight(node->left);
+        const size_t rightHeight = recursiveHeight(node->right);
         return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
     }
 
@@ -254,11 +254,11 @@ class BinaryTree {
      * @param array Pointer to the array of elements.
      * @param size Number of elements in the array.
      */
-    BinaryTree(const Type* array, const std::size_t size) : root_() {
+    BinaryTree(const Type* array, const size_t size) : root_() {
         if (array == nullptr && size != 0)
             throw std::invalid_argument(
                 "Array pointer cannot be null when size is non-zero");
-        for (std::size_t i = 0; i < size; i++)
+        for (size_t i = 0; i < size; i++)
             this->insert(array[i]);
     }
 
@@ -311,7 +311,7 @@ class BinaryTree {
 
     /// Returns the number of elements in the binary tree.
     [[nodiscard]]
-    std::size_t size() const noexcept {
+    size_t size() const noexcept {
         return size_;
     }
 
@@ -323,7 +323,7 @@ class BinaryTree {
 
     /// Returns the height of the binary tree.
     [[nodiscard]]
-    std::size_t getHeight() const noexcept {
+    size_t getHeight() const noexcept {
         return recursiveHeight(root_);
     }
 

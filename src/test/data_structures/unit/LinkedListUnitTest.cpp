@@ -9,6 +9,7 @@
 
 
 using containers::LinkedList;
+using std::size_t;
 
 
 class LinkedListUnitTest : public testing::Test {
@@ -33,7 +34,7 @@ TEST_F(LinkedListUnitTest, ArrayConstructorWithValidData) {
     EXPECT_EQ(list.size(), 5);
     EXPECT_FALSE(list.isEmpty());
 
-    for (std::size_t i = 0; i < 5; ++i) {
+    for (size_t i = 0; i < 5; ++i) {
         EXPECT_EQ(list.get(i), data[i]);
     }
 }
@@ -61,7 +62,7 @@ TEST_F(LinkedListUnitTest, CopyConstructor) {
     LinkedList copy(original);
 
     EXPECT_EQ(copy.size(), original.size());
-    for (std::size_t i = 0; i < copy.size(); ++i) {
+    for (size_t i = 0; i < copy.size(); ++i) {
         EXPECT_EQ(copy.get(i), original.get(i));
     }
 
@@ -86,7 +87,7 @@ TEST_F(LinkedListUnitTest, MoveConstructor) {
     original.addLast(20);
     original.addLast(30);
 
-    const std::size_t original_size = original.size();
+    const size_t original_size = original.size();
 
     LinkedList moved(std::move(original));
 
@@ -110,7 +111,7 @@ TEST_F(LinkedListUnitTest, CopyAssignmentOperator) {
     copy = original;
 
     EXPECT_EQ(copy.size(), original.size());
-    for (std::size_t i = 0; i < copy.size(); ++i) {
+    for (size_t i = 0; i < copy.size(); ++i) {
         EXPECT_EQ(copy.get(i), original.get(i));
     }
 
@@ -140,7 +141,7 @@ TEST_F(LinkedListUnitTest, MoveAssignmentOperator) {
     original.addLast(30);
 
     LinkedList<int> moved;
-    const std::size_t original_size = original.size();
+    const size_t original_size = original.size();
 
     moved = std::move(original);
 
@@ -564,7 +565,7 @@ TEST_F(LinkedListUnitTest, InterleavedOperations) {
     EXPECT_GT(list.size(), 0);
 
     // Verify list is still in valid state
-    for (std::size_t i = 0; i < list.size() - 1; ++i) {
+    for (size_t i = 0; i < list.size() - 1; ++i) {
         EXPECT_LT(list.get(i), list.get(i + 1));
     }
 }
@@ -674,7 +675,7 @@ TEST_F(LinkedListUnitTest, RemoveAllRemovesEveryMatchAndReturnsCount) {
     list.addLast(3);
     list.addLast(1);
 
-    const std::size_t removed_count = list.removeAll(1);
+    const size_t removed_count = list.removeAll(1);
     EXPECT_EQ(removed_count, 3);
     EXPECT_EQ(list.size(), 2);
     EXPECT_EQ(list.get(0), 2);

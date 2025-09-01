@@ -8,6 +8,7 @@
 
 
 using containers::Stack;
+using std::size_t;
 
 
 class StackUnitTest : public testing::Test {
@@ -58,7 +59,7 @@ TEST_F(StackUnitTest, MoveConstructor) {
     original.push(20);
     original.push(30);
 
-    const std::size_t original_size = original.size();
+    const size_t original_size = original.size();
 
     Stack moved(std::move(original));
 
@@ -106,7 +107,7 @@ TEST_F(StackUnitTest, MoveAssignmentOperator) {
     original.push(30);
 
     Stack<int> moved;
-    const std::size_t original_size = original.size();
+    const size_t original_size = original.size();
 
     moved = std::move(original);
 

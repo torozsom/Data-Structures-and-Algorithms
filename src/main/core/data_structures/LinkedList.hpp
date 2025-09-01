@@ -37,7 +37,7 @@ class LinkedList {
 
     Node* head_;
     Node* tail_;
-    std::size_t size_;
+    size_t size_;
 
 
     /**
@@ -53,18 +53,18 @@ class LinkedList {
      * @par Exception Safety
      * Strong: throws only before modifying any state.
      */
-    Node* getNodeAt(const std::size_t idx) {
+    Node* getNodeAt(const size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
         Node* current;
         if (idx < size_ / 2) {
             current = head_;
-            for (std::size_t i = 0; i < idx; ++i)
+            for (size_t i = 0; i < idx; ++i)
                 current = current->next;
         } else {
             current = tail_;
-            for (std::size_t i = size_ - 1; i > idx; --i)
+            for (size_t i = size_ - 1; i > idx; --i)
                 current = current->prev;
         }
 
@@ -85,18 +85,18 @@ class LinkedList {
      * @par Exception Safety
      * Strong: throws only before modifying any state.
      */
-    const Node* getNodeAt(const std::size_t idx) const {
+    const Node* getNodeAt(const size_t idx) const {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
         const Node* current;
         if (idx < size_ / 2) {
             current = head_;
-            for (std::size_t i = 0; i < idx; ++i)
+            for (size_t i = 0; i < idx; ++i)
                 current = current->next;
         } else {
             current = tail_;
-            for (std::size_t i = size_ - 1; i > idx; --i)
+            for (size_t i = size_ - 1; i > idx; --i)
                 current = current->prev;
         }
 
@@ -132,7 +132,7 @@ class LinkedList {
      * @throws std::invalid_argument If the provided array is null and size is
      * greater than zero.
      */
-    LinkedList(const Type* array, const std::size_t size)
+    LinkedList(const Type* array, const size_t size)
         : head_(nullptr), tail_(nullptr), size_(0) {
 
         if (size > 0 && array == nullptr)
@@ -140,7 +140,7 @@ class LinkedList {
                 "Initial data cannot be null if size is positive.");
 
         try {
-            for (std::size_t i = 0; i < size; ++i)
+            for (size_t i = 0; i < size; ++i)
                 addLast(array[i]);
         } catch (...) {
             clear();
@@ -179,7 +179,7 @@ class LinkedList {
 
         Node* new_head = nullptr;
         Node* new_tail = nullptr;
-        std::size_t new_size = 0;
+        size_t new_size = 0;
 
         try {
             for (const Node* cur = other.head_; cur != nullptr;
@@ -232,7 +232,7 @@ class LinkedList {
 
     /// Returns the current size of the linked list.
     [[nodiscard]]
-    std::size_t size() const noexcept {
+    size_t size() const noexcept {
         return size_;
     }
 
@@ -332,7 +332,7 @@ class LinkedList {
      * unchanged.
      */
     template <typename U>
-    void insert(U&& element, const std::size_t idx) {
+    void insert(U&& element, const size_t idx) {
         static_assert(std::is_constructible_v<Type, U&&>,
                       "Element must be constructible into Type");
 
@@ -432,7 +432,7 @@ class LinkedList {
      * @par Exception Safety
      * Strong: throws only before any modification (on out_of_range).
      */
-    void removeAt(const std::size_t idx) {
+    void removeAt(const size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -510,12 +510,12 @@ class LinkedList {
      * Basic: if comparison (`operator==`) throws mid-traversal, some removals
      * may already have occurred; the list remains valid.
      */
-    std::size_t removeAll(const Type& element) {
+    size_t removeAll(const Type& element) {
         if (isEmpty())
             return 0;
 
         Node* current = head_;
-        std::size_t removed_count = 0;
+        size_t removed_count = 0;
 
         while (current != nullptr) {
             Node* next_node = current->next;
@@ -558,7 +558,7 @@ class LinkedList {
      * @par Complexity
      * O(min(idx, size()-idx)).
      */
-    Type& get(const std::size_t idx) {
+    Type& get(const size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -577,7 +577,7 @@ class LinkedList {
      * @par Complexity
      * O(min(idx, size()-idx)).
      */
-    const Type& get(const std::size_t idx) const {
+    const Type& get(const size_t idx) const {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -599,7 +599,7 @@ class LinkedList {
      * @note Unlike `std::vector::operator[]`, this overload performs a bounds
      * check and may throw.
      */
-    Type& operator[](const std::size_t idx) { return get(idx); }
+    Type& operator[](const size_t idx) { return get(idx); }
 
 
     /**
@@ -615,7 +615,7 @@ class LinkedList {
      * @note Unlike `std::vector::operator[]`, this overload performs a bounds
      * check and may throw.
      */
-    const Type& operator[](const std::size_t idx) const { return get(idx); }
+    const Type& operator[](const size_t idx) const { return get(idx); }
 
 
     /**

@@ -11,6 +11,7 @@
 
 
 using containers::DynamicArray;
+using std::size_t;
 
 
 class DynamicArrayUnitTest : public testing::Test {
@@ -68,7 +69,7 @@ TEST_F(DynamicArrayUnitTest, CopyConstructor) {
     EXPECT_EQ(copy.size(), original.size());
     EXPECT_EQ(copy.capacity(), original.capacity());
 
-    for (std::size_t i = 0; i < copy.size(); ++i)
+    for (size_t i = 0; i < copy.size(); ++i)
         EXPECT_EQ(copy.get(i), original.get(i));
 
     original.addLast(999);
@@ -79,8 +80,8 @@ TEST_F(DynamicArrayUnitTest, CopyConstructor) {
 TEST_F(DynamicArrayUnitTest, MoveConstructor) {
     int data[] = {1, 2, 3};
     DynamicArray original(data, 3);
-    const std::size_t original_size = original.size();
-    const std::size_t original_capacity = original.capacity();
+    const size_t original_size = original.size();
+    const size_t original_capacity = original.capacity();
     DynamicArray moved(std::move(original));
 
     EXPECT_EQ(moved.size(), original_size);
@@ -102,7 +103,7 @@ TEST_F(DynamicArrayUnitTest, CopyAssignmentOperator) {
     EXPECT_EQ(copy.size(), original.size());
     EXPECT_EQ(copy.capacity(), original.capacity());
 
-    for (std::size_t i = 0; i < copy.size(); ++i)
+    for (size_t i = 0; i < copy.size(); ++i)
         EXPECT_EQ(copy.get(i), original.get(i));
 
     original = original;
@@ -116,8 +117,8 @@ TEST_F(DynamicArrayUnitTest, CopyAssignmentOperator) {
 TEST_F(DynamicArrayUnitTest, MoveAssignmentOperator) {
     int data[] = {1, 2, 3};
     DynamicArray original(data, 3);
-    const std::size_t original_size = original.size();
-    const std::size_t original_capacity = original.capacity();
+    const size_t original_size = original.size();
+    const size_t original_capacity = original.capacity();
 
     DynamicArray<int> moved;
     moved = std::move(original);
@@ -139,8 +140,8 @@ TEST_F(DynamicArrayUnitTest, MoveAssignmentTransfersUniquePtrOwnership) {
     DynamicArray<std::unique_ptr<int>> original;
     original.addLast(std::make_unique<int>(1));
     original.addLast(std::make_unique<int>(2));
-    const std::size_t original_size = original.size();
-    const std::size_t original_capacity = original.capacity();
+    const size_t original_size = original.size();
+    const size_t original_capacity = original.capacity();
     DynamicArray<std::unique_ptr<int>> moved;
     moved = std::move(original);
 
@@ -206,9 +207,9 @@ TEST_F(DynamicArrayUnitTest, InsertAtInvalidIndex) {
 
 TEST_F(DynamicArrayUnitTest, CapacityExpansionOnInsertion) {
     DynamicArray<int> arr;
-    const std::size_t initial_capacity = arr.capacity();
+    const size_t initial_capacity = arr.capacity();
 
-    for (std::size_t i = 0; i < initial_capacity; ++i)
+    for (size_t i = 0; i < initial_capacity; ++i)
         arr.addLast(i);
 
     EXPECT_EQ(arr.capacity(), initial_capacity);
@@ -330,7 +331,7 @@ TEST_F(DynamicArrayUnitTest, AddLastStrongGuaranteeOnCtorThrow) {
     DynamicArray<ThrowingType> arr;
     for (int i = 0; i < 3; ++i)
         arr.addLast(ThrowingType(i));
-    const std::size_t old_size = arr.size();
+    const size_t old_size = arr.size();
     ThrowingType::should_throw = true;
     EXPECT_THROW(arr.addLast(ThrowingType(999)), std::runtime_error);
     EXPECT_EQ(arr.size(), old_size);
@@ -441,7 +442,7 @@ TEST_F(DynamicArrayUnitTest, CapacityReductionOnRemoval) {
     DynamicArray<int> arr;
     for (int i = 0; i < 10; ++i)
         arr.addLast(i);
-    const std::size_t expanded_capacity = arr.capacity();
+    const size_t expanded_capacity = arr.capacity();
     while (arr.size() > expanded_capacity / 4)
         arr.removeLast();
     arr.removeLast();
@@ -464,7 +465,7 @@ TEST_F(DynamicArrayUnitTest, RemoveAllKeepsCapacityAndZeroesSize) {
     DynamicArray<int> arr;
     for (int i = 0; i < 12; ++i)
         arr.addLast(i);
-    const std::size_t cap = arr.capacity();
+    const size_t cap = arr.capacity();
     arr.removeAll();
     EXPECT_EQ(arr.size(), 0u);
     EXPECT_EQ(arr.capacity(), cap);
@@ -658,7 +659,7 @@ TEST_F(DynamicArrayUnitTest, InsertStrongGuaranteeOnNewElementCtorThrow) {
     arr.emplaceLast(3);
 
     CtorMaybeThrow::should_throw = true;
-    const std::size_t old_size = arr.size();
+    const size_t old_size = arr.size();
     EXPECT_THROW(arr.insert(CtorMaybeThrow(99), 1), std::runtime_error);
     EXPECT_EQ(arr.size(), old_size);
     EXPECT_EQ(arr.get(0).v, 1);
@@ -675,7 +676,7 @@ TEST_F(DynamicArrayUnitTest, EmplaceStrongGuaranteeOnNewElementCtorThrow) {
     arr.emplaceLast(20);
 
     CtorMaybeThrow::should_throw = true;
-    const std::size_t old_size = arr.size();
+    const size_t old_size = arr.size();
     EXPECT_THROW(arr.emplaceAt(1, 42), std::runtime_error);
     EXPECT_EQ(arr.size(), old_size);
     EXPECT_EQ(arr.get(0).v, 10);
@@ -724,7 +725,7 @@ TEST_F(DynamicArrayUnitTest, AlignmentPreservedAfterGrow) {
     DynamicArray<Aligned64> arr;
     for (int i = 0; i < 16; ++i)
         arr.emplaceLast(Aligned64{i});
-    for (std::size_t i = 0; i < arr.size(); ++i)
+    for (size_t i = 0; i < arr.size(); ++i)
         EXPECT_EQ(reinterpret_cast<std::uintptr_t>(&arr.get(i)) %
                       alignof(Aligned64),
                   0u);
@@ -754,7 +755,7 @@ TEST_F(DynamicArrayUnitTest,
 TEST_F(DynamicArrayUnitTest, ReserveIncreasesCapacityOnly) {
     DynamicArray<int> arr;
     arr.addLast(1);
-    const std::size_t old_size = arr.size();
+    const size_t old_size = arr.size();
     arr.reserve(100);
     EXPECT_GE(arr.capacity(), 100u);
     EXPECT_EQ(arr.size(), old_size);
@@ -773,7 +774,7 @@ TEST_F(DynamicArrayUnitTest, ReserveSmallerThanSizeDoesNothing) {
 
 TEST_F(DynamicArrayUnitTest, ReserveThrowsOnExcessivelyLargeCapacity) {
     DynamicArray<int> arr;
-    constexpr std::size_t too_large = SIZE_MAX / sizeof(int) + 1;
+    constexpr size_t too_large = SIZE_MAX / sizeof(int) + 1;
     EXPECT_THROW(arr.reserve(too_large), std::bad_alloc);
 }
 
@@ -792,7 +793,7 @@ TEST_F(DynamicArrayUnitTest, ResizeToSameCapacityDoesNothing) {
     DynamicArray<int> arr;
     for (int i = 0; i < 5; ++i)
         arr.addLast(i);
-    const std::size_t current_capacity = arr.capacity();
+    const size_t current_capacity = arr.capacity();
     arr.reserve(current_capacity);
     EXPECT_EQ(arr.capacity(), current_capacity);
 }
@@ -813,7 +814,7 @@ TEST_F(DynamicArrayUnitTest, ReserveSmallerThanCapacityIsNoopForCapacity) {
     DynamicArray<int> arr;
     for (int i = 0; i < 8; ++i)
         arr.addLast(i);
-    const std::size_t cap = arr.capacity();
+    const size_t cap = arr.capacity();
     arr.reserve(cap - 1);
     EXPECT_EQ(arr.capacity(), cap);
     EXPECT_EQ(arr.size(), 8u);
@@ -888,7 +889,7 @@ TEST_F(DynamicArrayUnitTest, ShrinkToFit) {
         arr.addLast(i);
     for (int i = 0; i < 15; ++i)
         arr.removeLast();
-    const std::size_t old_capacity = arr.capacity();
+    const size_t old_capacity = arr.capacity();
     arr.shrinkToFit();
     EXPECT_GE(old_capacity, arr.capacity());
     EXPECT_EQ(arr.size(), 5u);
@@ -903,7 +904,7 @@ TEST_F(DynamicArrayUnitTest, ShrinkToFitReducesToDefaultCapacity) {
         arr.addLast(i);
     for (int i = 0; i < 31; ++i)
         arr.removeLast();
-    const std::size_t cap_before = arr.capacity();
+    const size_t cap_before = arr.capacity();
     arr.shrinkToFit();
     EXPECT_EQ(arr.size(), 1u);
     EXPECT_LE(arr.capacity(), cap_before);
@@ -917,7 +918,7 @@ TEST_F(DynamicArrayUnitTest, ShrinkToFitToExactSize) {
         arr.addLast(i);
     for (int i = 0; i < 3; ++i)
         arr.removeLast();
-    const std::size_t before = arr.capacity();
+    const size_t before = arr.capacity();
     arr.shrinkToFit();
     EXPECT_LE(arr.capacity(), before);
     EXPECT_GE(arr.capacity(), arr.size());
@@ -1124,7 +1125,7 @@ TEST_F(DynamicArrayUnitTest, LargeNumberOfInsertions) {
     constexpr int num_elements = 1000;
     for (int i = 0; i < num_elements; ++i)
         arr.addLast(i);
-    EXPECT_EQ(arr.size(), static_cast<std::size_t>(num_elements));
+    EXPECT_EQ(arr.size(), static_cast<size_t>(num_elements));
     for (int i = 0; i < num_elements; ++i)
         EXPECT_EQ(arr.get(i), i);
 }
@@ -1139,7 +1140,7 @@ TEST_F(DynamicArrayUnitTest, AlternatingInsertionAndRemoval) {
             arr.removeFirst();
     }
     EXPECT_GT(arr.size(), 0u);
-    for (std::size_t i = 0; i + 1 < arr.size(); ++i)
+    for (size_t i = 0; i + 1 < arr.size(); ++i)
         EXPECT_LT(arr.get(i), arr.get(i + 1));
 }
 

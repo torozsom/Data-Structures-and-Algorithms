@@ -77,7 +77,7 @@ class Heap : public BinaryTree<Type> {
      *
      * @complexity Time: O(log n); Space: O(1).
      */
-    Node<Type>* findNodeByPath(const std::size_t idx) const noexcept {
+    Node<Type>* findNodeByPath(const size_t idx) const noexcept {
         if (this->isEmpty())
             return nullptr;
 
@@ -87,7 +87,7 @@ class Heap : public BinaryTree<Type> {
         if (idx == 1)
             return this->root_;
 
-        std::size_t msb = static_cast<size_t>(1)
+        size_t msb = static_cast<size_t>(1)
                           << (std::numeric_limits<size_t>::digits - 1);
         while (msb > 0 && !(idx & msb))
             msb >>= 1;

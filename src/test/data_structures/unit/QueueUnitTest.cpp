@@ -8,6 +8,7 @@
 
 
 using containers::Queue;
+using std::size_t;
 
 
 class QueueUnitTest : public testing::Test {
@@ -90,7 +91,7 @@ TEST_F(QueueUnitTest, MoveConstructor) {
     original.enqueue(20);
     original.enqueue(30);
 
-    const std::size_t original_size = original.size();
+    const size_t original_size = original.size();
 
     Queue moved(std::move(original));
 
@@ -141,7 +142,7 @@ TEST_F(QueueUnitTest, MoveAssignmentOperator) {
     original.enqueue(30);
 
     Queue<int> moved;
-    const std::size_t original_size = original.size();
+    const size_t original_size = original.size();
 
     moved = std::move(original);
 
@@ -428,7 +429,7 @@ TEST_F(QueueUnitTest, Capacity) {
     EXPECT_GT(queue.capacity(), 0);
 
     // Add elements and verify capacity grows as needed
-    const std::size_t initial_capacity = queue.capacity();
+    const size_t initial_capacity = queue.capacity();
 
     for (int i = 0; i < static_cast<int>(initial_capacity * 2); ++i)
         queue.enqueue(i);
@@ -502,16 +503,16 @@ TEST_F(QueueUnitTest, CustomObjectType) {
 
 TEST_F(QueueUnitTest, WrapAroundDoesNotAllocate) {
     Queue<int> queue;
-    const std::size_t initial_capacity = queue.capacity();
+    const size_t initial_capacity = queue.capacity();
 
-    for (std::size_t i = 0; i < initial_capacity; ++i)
+    for (size_t i = 0; i < initial_capacity; ++i)
         queue.enqueue(static_cast<int>(i));
 
-    constexpr std::size_t num_dequeues = 2;
-    for (std::size_t i = 0; i < num_dequeues; ++i)
+    constexpr size_t num_dequeues = 2;
+    for (size_t i = 0; i < num_dequeues; ++i)
         EXPECT_EQ(queue.dequeue(), static_cast<int>(i));
 
-    for (std::size_t i = 0; i < num_dequeues; ++i)
+    for (size_t i = 0; i < num_dequeues; ++i)
         queue.enqueue(static_cast<int>(initial_capacity + i));
 
     EXPECT_EQ(queue.size(), initial_capacity);
@@ -748,13 +749,13 @@ TEST_F(QueueUnitTest, CapacityShrinksAfterDequeueInterval) {
     for (int i = 0; i < num_elements; ++i)
         queue.enqueue(i);
 
-    const std::size_t initial_capacity = queue.capacity();
-    constexpr std::size_t shrink_check_interval = 16;
-    const std::size_t target_size = initial_capacity / 4;
-    const std::size_t total_dequeues =
+    const size_t initial_capacity = queue.capacity();
+    constexpr size_t shrink_check_interval = 16;
+    const size_t target_size = initial_capacity / 4;
+    const size_t total_dequeues =
         num_elements - target_size + shrink_check_interval;
 
-    for (std::size_t i = 0; i < total_dequeues; ++i)
+    for (size_t i = 0; i < total_dequeues; ++i)
         queue.dequeue();
 
     EXPECT_LT(queue.capacity(), initial_capacity);

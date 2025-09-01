@@ -1,9 +1,4 @@
 #include "ArrayAnimations.h"
-#include "BinarySearchAnimator.hpp"
-#include "DynamicArray.hpp"
-#include "LinearSearchAnimator.hpp"
-
-#include <QPointer>
 
 
 namespace ui {
@@ -33,7 +28,7 @@ ArrayAnimation createLinearSearchAnimation() {
 
     QObject::connect(
         animator, &LinearSearchAnimator::elementFound, view,
-        [view](const std::size_t index) {
+        [view](const size_t index) {
             if (auto* win = view->window())
                 win->setWindowTitle(
                     QString("Found %1 at index %2").arg(target).arg(index));
@@ -75,7 +70,7 @@ ArrayAnimation createBinarySearchAnimation() {
 
     QObject::connect(
         animator, &BinarySearchAnimator::elementFound, view,
-        [view](const std::size_t index) {
+        [view](const size_t index) {
             if (auto* win = view->window())
                 win->setWindowTitle(
                     QString("Found %1 at index %2").arg(target).arg(index));
@@ -87,6 +82,20 @@ ArrayAnimation createBinarySearchAnimation() {
                              win->setWindowTitle(
                                  QString("Element %1 not found").arg(target));
                      });
+
+    return {view, animator};
+}
+
+
+/**
+ * @brief Creates an animation for bubble sort on a dynamic array of integers.
+ */
+ArrayAnimation createBubbleSortAnimation() {
+    containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7};
+
+    auto* view = new ArrayWidget(values);
+    view->resize(600, 120);
+    const QPointer animator = new BubbleSortAnimator(values, view, view);
 
     return {view, animator};
 }

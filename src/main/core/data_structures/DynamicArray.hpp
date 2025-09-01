@@ -13,6 +13,8 @@
 
 namespace containers {
 
+using std::size_t;
+
 
 /**
  * @class DynamicArray
@@ -66,16 +68,16 @@ template <typename Type>
 class DynamicArray {
 
     Type* data_;
-    std::size_t size_;
-    std::size_t capacity_;
+    size_t size_;
+    size_t capacity_;
 
-    static constexpr std::size_t DEFAULT_CAPACITY = 5;
+    static constexpr size_t DEFAULT_CAPACITY = 5;
 
-    static constexpr std::size_t MAX_CAPACITY =
-        std::numeric_limits<std::size_t>::max() / sizeof(Type);
+    static constexpr size_t MAX_CAPACITY =
+        std::numeric_limits<size_t>::max() / sizeof(Type);
 
-    static constexpr std::size_t MAX_SAFE_CAPACITY =
-        std::numeric_limits<std::size_t>::max() / sizeof(Type) / 2;
+    static constexpr size_t MAX_SAFE_CAPACITY =
+        std::numeric_limits<size_t>::max() / sizeof(Type) / 2;
 
 
     /**
@@ -101,7 +103,7 @@ class DynamicArray {
      * @throws std::bad_alloc If storage_size > MAX_CAPACITY or the allocation
      * fails.
      */
-    static Type* allocate(const std::size_t storage_size) {
+    static Type* allocate(const size_t storage_size) {
         if (storage_size == 0)
             return nullptr;
 
@@ -147,7 +149,7 @@ class DynamicArray {
      * - If Type's destructor throws (discouraged), the exception propagates.
      */
     void destroyArrayElements() {
-        for (std::size_t i = 0; i < size_; ++i)
+        for (size_t i = 0; i < size_; ++i)
             data_[i].~Type();
     }
 
@@ -251,7 +253,7 @@ class DynamicArray {
      * @throws std::bad_alloc If new_capacity > MAX_CAPACITY or allocation
      * fails.
      */
-    void resize(std::size_t new_capacity) {
+    void resize(size_t new_capacity) {
         if (new_capacity == capacity_)
             return;
 
@@ -355,7 +357,7 @@ class DynamicArray {
      * succeeds.
      */
     template <typename... CtorArgs>
-    void rebuildBuffer(const std::size_t idx, CtorArgs&&... args) {
+    void rebuildBuffer(const size_t idx, CtorArgs&&... args) {
         static_assert(std::is_constructible_v<Type, CtorArgs&&...>);
         Type* new_data = allocate(capacity_);
         Type* constructed_end = new_data;
@@ -408,8 +410,8 @@ class DynamicArray {
      * - Basic: if an assignment throws, the invariant size() is left unchanged
      * and all elements remain valid (the container can be cleared).
      */
-    void shiftLeftAssignables(const std::size_t from_idx) {
-        for (std::size_t i = from_idx; i < size_ - 1; ++i)
+    void shiftLeftAssignables(const size_t from_idx) {
+        for (size_t i = from_idx; i < size_ - 1; ++i)
             data_[i] = std::move(data_[i + 1]);
         data_[size_ - 1].~Type();
         --size_;
@@ -435,9 +437,9 @@ class DynamicArray {
      * - Strong during the relocation loop: partial progress is rolled back on
      * throw.
      */
-    void shiftLeftNonassignables(std::size_t from_idx) {
+    void shiftLeftNonassignables(size_t from_idx) {
         data_[from_idx].~Type();
-        std::size_t j = from_idx;
+        size_t j = from_idx;
         try {
             for (; j + 1 < size_; ++j) {
                 Type* dst = data_ + j;
@@ -450,7 +452,7 @@ class DynamicArray {
                 src->~Type();
             }
         } catch (...) {
-            for (std::size_t k = j + 1; k < size_; ++k)
+            for (size_t k = j + 1; k < size_; ++k)
                 data_[k].~Type();
             size_ = j;
             throw;
@@ -474,7 +476,7 @@ class DynamicArray {
      *
      * @param capacity The number of elements to allocate memory for.
      */
-    explicit DynamicArray(std::size_t capacity)
+    explicit DynamicArray(size_t capacity)
         : data_(nullptr), size_(0),
           capacity_(capacity < DEFAULT_CAPACITY ? DEFAULT_CAPACITY : capacity) {
         if (capacity < DEFAULT_CAPACITY)
@@ -524,7 +526,7 @@ class DynamicArray {
      * dynamic array.
      * @param initial_size The number of elements in the initial data.
      */
-    DynamicArray(const Type* initial_data, const std::size_t initial_size)
+    DynamicArray(const Type* initial_data, const size_t initial_size)
         : data_(nullptr), size_(initial_size),
           capacity_(initial_size < DEFAULT_CAPACITY ? DEFAULT_CAPACITY
                                                     : initial_size) {
@@ -607,13 +609,13 @@ class DynamicArray {
 
     /// Returns the current size of the dynamic array.
     [[nodiscard]]
-    std::size_t size() const noexcept {
+    size_t size() const noexcept {
         return size_;
     }
 
     /// Returns the current capacity of the dynamic array.
     [[nodiscard]]
-    std::size_t capacity() const noexcept {
+    size_t capacity() const noexcept {
         return capacity_;
     }
 
@@ -635,8 +637,8 @@ class DynamicArray {
      * @return The index of the found element.
      */
     [[nodiscard]]
-    std::size_t contains(const Type& element) const noexcept {
-        for (std::size_t i = 0; i < size_; ++i)
+    size_t contains(const Type& element) const noexcept {
+        for (size_t i = 0; i < size_; ++i)
             if (data_[i] == element)
                 return i;
         return size_;
@@ -668,7 +670,7 @@ class DynamicArray {
      * @throws std::bad_alloc On allocation failure.
      */
     template <typename U>
-    void insert(U&& element, const std::size_t idx) {
+    void insert(U&& element, const size_t idx) {
         static_assert(std::is_constructible_v<Type, U&&>);
         if (idx > size_)
             throw std::out_of_range("Index out of range");
@@ -745,7 +747,7 @@ class DynamicArray {
      * @throws std::bad_alloc On allocation failure.
      */
     template <typename... Args>
-    void emplaceAt(const std::size_t idx, Args&&... args) {
+    void emplaceAt(const size_t idx, Args&&... args) {
         static_assert(std::is_constructible_v<Type, Args&&...>);
         if (idx > size_)
             throw std::out_of_range("Index out of range");
@@ -805,7 +807,7 @@ class DynamicArray {
      * @return True if successfully removed, otherwise false.
      */
     bool remove(const Type& element) {
-        const std::size_t idx = contains(element);
+        const size_t idx = contains(element);
         if (idx == size_)
             return false;
         removeAt(idx);
@@ -834,7 +836,7 @@ class DynamicArray {
      *
      * @throws std::out_of_range If idx >= size().
      */
-    Type removeAt(const std::size_t idx) {
+    Type removeAt(const size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -905,7 +907,7 @@ class DynamicArray {
      * @param idx Index in [0, size()).
      * @return Mutable reference to the element at idx.
      */
-    Type& get(const std::size_t idx) {
+    Type& get(const size_t idx) {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -922,7 +924,7 @@ class DynamicArray {
      * @param idx Index in [0, size()).
      * @return Const reference to the element at idx.
      */
-    const Type& get(const std::size_t idx) const {
+    const Type& get(const size_t idx) const {
         if (idx >= size_)
             throw std::out_of_range("Index out of range");
 
@@ -938,7 +940,7 @@ class DynamicArray {
      * @param idx Index in [0, size()).
      * @return Mutable reference to the element at idx.
      */
-    Type& operator[](const std::size_t idx) { return get(idx); }
+    Type& operator[](const size_t idx) { return get(idx); }
 
 
     /**
@@ -949,7 +951,7 @@ class DynamicArray {
      * @param idx Index in [0, size()).
      * @return Const reference to the element at idx.
      */
-    const Type& operator[](const std::size_t idx) const { return get(idx); }
+    const Type& operator[](const size_t idx) const { return get(idx); }
 
 
     /**
@@ -1025,7 +1027,7 @@ class DynamicArray {
      * @throws std::bad_alloc If new_capacity > MAX_CAPACITY or allocation
      * fails.
      */
-    void reserve(const std::size_t new_capacity) {
+    void reserve(const size_t new_capacity) {
         if (new_capacity > capacity_)
             resize(new_capacity);
     }

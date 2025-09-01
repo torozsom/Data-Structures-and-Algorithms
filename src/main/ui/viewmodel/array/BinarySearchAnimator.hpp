@@ -23,8 +23,8 @@ class BinarySearchAnimator final : public SearchAnimator {
     /// Functor to perform binary search
     struct BinarySearchFn {
         template <typename Type, typename Callback>
-        std::size_t operator()(const containers::DynamicArray<Type>& array,
-                               const Type& target, Callback&& callback) const {
+        size_t operator()(const containers::DynamicArray<Type>& array,
+                          const Type& target, Callback&& callback) const {
             return array_algorithms::BinarySearch(
                 array, target, std::forward<Callback>(callback));
         }
@@ -51,7 +51,7 @@ class BinarySearchAnimator final : public SearchAnimator {
     BinarySearchAnimator(containers::DynamicArray<Type>& array,
                          const Type& target, ArrayWidget* widget,
                          QObject* parent = nullptr)
-        : SearchAnimator(array, target, widget, BinarySearchFn{}, 1000,
+        : SearchAnimator(array, target, widget, BinarySearchFn{}, 800,
                          parent) {}
 
 

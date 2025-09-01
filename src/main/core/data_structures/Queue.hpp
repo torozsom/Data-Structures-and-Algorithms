@@ -65,17 +65,17 @@ class Queue {
 
     DynamicArray<Type> array_;
 
-    std::size_t front_idx_;
-    std::size_t size_;
-    std::size_t shrink_check_counter_ = 0;
+    size_t front_idx_;
+    size_t size_;
+    size_t shrink_check_counter_ = 0;
 
-    static constexpr std::size_t SHRINK_CHECK_INTERVAL = 16;
-    static constexpr std::size_t MIN_SHRINK_CAPACITY = 10;
-    static constexpr std::size_t SHRINK_THRESHOLD_DIVISOR = 4;
-    static constexpr std::size_t GROWTH_FACTOR = 2;
+    static constexpr size_t SHRINK_CHECK_INTERVAL = 16;
+    static constexpr size_t MIN_SHRINK_CAPACITY = 10;
+    static constexpr size_t SHRINK_THRESHOLD_DIVISOR = 4;
+    static constexpr size_t GROWTH_FACTOR = 2;
 
-    static constexpr std::size_t HARD_MAX_ELEMENTS =
-        std::numeric_limits<std::size_t>::max() / sizeof(Type);
+    static constexpr size_t HARD_MAX_ELEMENTS =
+        std::numeric_limits<size_t>::max() / sizeof(Type);
 
 
     /**
@@ -100,8 +100,8 @@ class Queue {
      * must ensure `logical_index < size_`.
      */
     [[nodiscard]]
-    std::size_t
-    getCircularIndex(const std::size_t logical_index) const noexcept {
+    size_t
+    getCircularIndex(const size_t logical_index) const noexcept {
         return (front_idx_ + logical_index) % array_.capacity();
     }
 
@@ -128,7 +128,7 @@ class Queue {
      * `array_.capacity() > 0` (guaranteed by `DynamicArray`).
      */
     [[nodiscard]]
-    std::size_t getBackIndex() const noexcept {
+    size_t getBackIndex() const noexcept {
         return (front_idx_ + size_) % array_.capacity();
     }
 
@@ -179,15 +179,15 @@ class Queue {
                 array_.capacity() > MIN_SHRINK_CAPACITY) {
 
                 DynamicArray<Type> new_array;
-                const std::size_t halved = array_.capacity() / GROWTH_FACTOR;
-                const std::size_t target = size_ > halved ? size_ : halved;
+                const size_t halved = array_.capacity() / GROWTH_FACTOR;
+                const size_t target = size_ > halved ? size_ : halved;
 
-                const std::size_t clamped =
+                const size_t clamped =
                     target < MIN_SHRINK_CAPACITY ? MIN_SHRINK_CAPACITY : target;
 
                 new_array.reserve(clamped);
 
-                for (std::size_t i = 0; i < size_; ++i) {
+                for (size_t i = 0; i < size_; ++i) {
                     auto& src = array_[getCircularIndex(i)];
                     if constexpr (std::is_nothrow_move_constructible_v<Type> ||
                                   !std::is_copy_constructible_v<Type>)
@@ -246,19 +246,19 @@ class Queue {
      */
     template <typename... Args>
     void reallocateAndPush(Args&&... args) {
-        const std::size_t cap = array_.capacity();
+        const size_t cap = array_.capacity();
 
         if (cap >= HARD_MAX_ELEMENTS)
             throw std::length_error("Queue capacity exceeded");
 
-        const std::size_t new_cap = (cap > HARD_MAX_ELEMENTS / GROWTH_FACTOR)
+        const size_t new_cap = (cap > HARD_MAX_ELEMENTS / GROWTH_FACTOR)
                                         ? HARD_MAX_ELEMENTS
                                         : cap * GROWTH_FACTOR;
 
         DynamicArray<Type> new_array;
         new_array.reserve(new_cap);
 
-        for (std::size_t i = 0; i < size_; ++i) {
+        for (size_t i = 0; i < size_; ++i) {
             auto& src = array_[getCircularIndex(i)];
             if constexpr (std::is_nothrow_move_constructible_v<Type> ||
                           !std::is_copy_constructible_v<Type>)
@@ -322,7 +322,7 @@ class Queue {
             return;
         }
 
-        const std::size_t back_idx = getBackIndex();
+        const size_t back_idx = getBackIndex();
         if (back_idx >= array_.size()) {
             array_.emplaceLast(std::forward<Args>(args)...);
             ++size_;
@@ -345,7 +345,7 @@ class Queue {
     Queue() : array_(), front_idx_(0), size_(0) {}
 
     /// Constructor with initial capacity
-    explicit Queue(std::size_t initial_capacity)
+    explicit Queue(size_t initial_capacity)
         : array_(initial_capacity), front_idx_(0), size_(0) {}
 
     /// Constructor for braced-init-lists
@@ -363,15 +363,15 @@ class Queue {
      * @param initial_data Pointer to the initial data array.
      * @param initial_size The number of elements in the initial data array.
      */
-    Queue(const Type* initial_data, const std::size_t initial_size)
+    Queue(const Type* initial_data, const size_t initial_size)
         : array_(initial_data, initial_size), front_idx_(0),
           size_(initial_size) {}
 
     /// Copy constructor
     Queue(const Queue& other) : array_(), front_idx_(0), size_(0) {
         array_.reserve(other.size_);
-        for (std::size_t i = 0; i < other.size_; ++i) {
-            std::size_t src_idx = other.getCircularIndex(i);
+        for (size_t i = 0; i < other.size_; ++i) {
+            size_t src_idx = other.getCircularIndex(i);
             array_.addLast(other.array_[src_idx]);
         }
         size_ = other.size_;
@@ -394,8 +394,8 @@ class Queue {
         DynamicArray<Type> new_array;
         new_array.reserve(other.size_);
 
-        for (std::size_t i = 0; i < other.size_; ++i) {
-            const std::size_t src_idx = other.getCircularIndex(i);
+        for (size_t i = 0; i < other.size_; ++i) {
+            const size_t src_idx = other.getCircularIndex(i);
             new_array.addLast(other.array_[src_idx]);
         }
 
@@ -424,13 +424,13 @@ class Queue {
 
     /// Returns the number of elements in the queue.
     [[nodiscard]]
-    std::size_t size() const noexcept {
+    size_t size() const noexcept {
         return size_;
     }
 
     /// Returns the capacity of the underlying data storage.
     [[nodiscard]]
-    std::size_t capacity() const noexcept {
+    size_t capacity() const noexcept {
         return array_.capacity();
     }
 
@@ -578,7 +578,7 @@ class Queue {
         if (isEmpty())
             throw std::out_of_range("Queue is empty");
 
-        std::size_t back_idx = (front_idx_ + size_ - 1) % array_.capacity();
+        size_t back_idx = (front_idx_ + size_ - 1) % array_.capacity();
         return array_[back_idx];
     }
 
@@ -595,7 +595,7 @@ class Queue {
         if (isEmpty())
             throw std::out_of_range("Queue is empty");
 
-        std::size_t back_idx = (front_idx_ + size_ - 1) % array_.capacity();
+        size_t back_idx = (front_idx_ + size_ - 1) % array_.capacity();
         return array_[back_idx];
     }
 
@@ -658,11 +658,11 @@ class Queue {
         friend class const_iterator;
 
         Queue& queue_;
-        std::size_t index_;
+        size_t index_;
 
       public:
         /// Constructor for iterator
-        explicit iterator(Queue& queue, const std::size_t index)
+        explicit iterator(Queue& queue, const size_t index)
             : queue_(queue), index_(index) {}
 
         /// Dereference operator to access the element at the current index
@@ -743,11 +743,11 @@ class Queue {
      */
     class const_iterator {
         const Queue& queue_;
-        std::size_t index_;
+        size_t index_;
 
       public:
         /// Constructor for iterator
-        explicit const_iterator(const Queue& queue, const std::size_t index)
+        explicit const_iterator(const Queue& queue, const size_t index)
             : queue_(queue), index_(index) {}
 
         /// Constructor for conversion from non-const iterator

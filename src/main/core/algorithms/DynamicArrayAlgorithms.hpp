@@ -29,6 +29,7 @@
 namespace array_algorithms {
 
 using containers::DynamicArray;
+using std::size_t;
 
 
 //*** Utility Functions ***//
@@ -58,14 +59,14 @@ void swap(Type& a, Type& b) noexcept {
  * @param right The right index of the second sub-array.
  */
 template <typename Type>
-void merge(DynamicArray<Type>& array, const std::size_t left,
-           const std::size_t mid, const std::size_t right) {
-    const std::size_t n1 = mid - left + 1;
-    const std::size_t n2 = right - mid;
-    const std::size_t n = n1 + n2;
+void merge(DynamicArray<Type>& array, const size_t left, const size_t mid,
+           const size_t right) {
+    const size_t n1 = mid - left + 1;
+    const size_t n2 = right - mid;
+    const size_t n = n1 + n2;
 
-    std::size_t i = left;
-    std::size_t j = mid + 1;
+    size_t i = left;
+    size_t j = mid + 1;
 
     DynamicArray<Type> temp(n);
 
@@ -83,7 +84,7 @@ void merge(DynamicArray<Type>& array, const std::size_t left,
         temp.addLast(array[j++]);
 
     // Copy back
-    for (std::size_t t = 0; t < n; ++t)
+    for (size_t t = 0; t < n; ++t)
         array[left + t] = temp[t];
 }
 
@@ -99,12 +100,12 @@ void merge(DynamicArray<Type>& array, const std::size_t left,
  * @param right Right index of the sub-array to sort.
  */
 template <typename Type>
-void mergeSortRecursive(DynamicArray<Type>& array, const std::size_t left,
-                        const std::size_t right) {
+void mergeSortRecursive(DynamicArray<Type>& array, const size_t left,
+                        const size_t right) {
     if (left >= right)
         return;
 
-    const std::size_t mid = left + (right - left) / 2;
+    const size_t mid = left + (right - left) / 2;
 
     // Recursively sort both halves
     mergeSortRecursive(array, left, mid);
@@ -131,12 +132,12 @@ void mergeSortRecursive(DynamicArray<Type>& array, const std::size_t left,
  * @return The final index of the pivot after partitioning.
  */
 template <typename Type>
-std::size_t partition(DynamicArray<Type>& array, const std::size_t left,
-                      const std::size_t right) {
+size_t partition(DynamicArray<Type>& array, const size_t left,
+                 const size_t right) {
     Type pivot = array[right]; // Lomuto: pivot is last element
-    std::size_t i = left;
+    size_t i = left;
 
-    for (std::size_t j = left; j < right; ++j)
+    for (size_t j = left; j < right; ++j)
         if (array[j] <= pivot)
             swap(array[i++], array[j]);
 
@@ -157,11 +158,10 @@ std::size_t partition(DynamicArray<Type>& array, const std::size_t left,
  * @param right Right index of the sub-array to sort.
  */
 template <typename Type>
-void quickSortRecursive(DynamicArray<Type>& array, std::size_t left,
-                        std::size_t right) {
+void quickSortRecursive(DynamicArray<Type>& array, size_t left, size_t right) {
     while (left < right) {
         // Tail recursion elimination: recurse into smaller side first
-        if (const std::size_t p = partition(array, left, right);
+        if (const size_t p = partition(array, left, right);
             p > 0 && (p - left) < (right - p)) {
             quickSortRecursive(array, left, p - 1);
             left = p + 1;
@@ -186,16 +186,16 @@ void quickSortRecursive(DynamicArray<Type>& array, std::size_t left,
  * @param size The heap size (considered range is [0, size)).
  */
 template <typename Type>
-void siftDown(DynamicArray<Type>& array, const std::size_t start,
-              const std::size_t size) {
-    std::size_t i = start;
+void siftDown(DynamicArray<Type>& array, const size_t start,
+              const size_t size) {
+    size_t i = start;
     while (true) {
-        const std::size_t left = 2 * i + 1;
+        const size_t left = 2 * i + 1;
         if (left >= size)
             break;
 
-        std::size_t largest = left;
-        const std::size_t right = left + 1;
+        size_t largest = left;
+        const size_t right = left + 1;
 
         if (right < size && array[right] > array[left])
             largest = right;
@@ -218,9 +218,9 @@ void siftDown(DynamicArray<Type>& array, const std::size_t start,
  * @param idx The index to sift up from (typically size-1 after an insertion).
  */
 template <typename Type>
-void siftUp(DynamicArray<Type>& array, std::size_t idx) {
+void siftUp(DynamicArray<Type>& array, size_t idx) {
     while (idx > 0) {
-        const std::size_t parent = (idx - 1) / 2;
+        const size_t parent = (idx - 1) / 2;
         if (array[parent] >= array[idx])
             break;
         swap(array[parent], array[idx]);
@@ -238,11 +238,11 @@ void siftUp(DynamicArray<Type>& array, std::size_t idx) {
  */
 template <typename Type>
 void makeHeap(DynamicArray<Type>& array) {
-    const std::size_t n = array.size();
+    const size_t n = array.size();
     if (n <= 1)
         return;
 
-    for (std::size_t i = (n - 2) / 2 + 1; i-- > 0;)
+    for (size_t i = (n - 2) / 2 + 1; i-- > 0;)
         siftDown(array, i, n);
 }
 
@@ -257,7 +257,7 @@ void makeHeap(DynamicArray<Type>& array) {
  * @param size The new heap size (must be in [1, a.size()]).
  */
 template <typename Type>
-void pushHeap(DynamicArray<Type>& array, const std::size_t size) {
+void pushHeap(DynamicArray<Type>& array, const size_t size) {
     if (size == 0 || size > array.size())
         return;
     siftUp(array, size - 1);
@@ -274,7 +274,7 @@ void pushHeap(DynamicArray<Type>& array, const std::size_t size) {
  * @param size The current heap size (must be in [1, array.size()]).
  */
 template <typename Type>
-void popHeap(DynamicArray<Type>& array, const std::size_t size) {
+void popHeap(DynamicArray<Type>& array, const size_t size) {
     if (size <= 1 || size > array.size())
         return;
     swap(array[0], array[size - 1]);
@@ -285,7 +285,7 @@ void popHeap(DynamicArray<Type>& array, const std::size_t size) {
 /// Checks if the array is sorted in ascending order.
 template <typename Type>
 bool isSorted(const DynamicArray<Type>& array) noexcept {
-    for (std::size_t i = 1; i < array.size(); ++i)
+    for (size_t i = 1; i < array.size(); ++i)
         if (array[i] < array[i - 1])
             return false;
 
@@ -313,16 +313,33 @@ bool isSorted(const DynamicArray<Type>& array) noexcept {
  * - O(1) additional space complexity.
  *
  * @param array The array to sort.
+ * @param callback Optional callback function to report each operation:
+ * The callback receives events as (code, a, b):
+ *  - code = 0: Compare(a, b)           — comparing indices a and b
+ *  - code = 1: Swap(a, b)              — swapping indices a and b
+ *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
-template <typename Type>
-void BubbleSort(DynamicArray<Type>& array) {
-    if (array.size() <= 1 || isSorted(array))
+template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
+void BubbleSort(DynamicArray<Type>& array,
+                Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
+    const size_t n = array.size();
+    if (n <= 1 || isSorted(array)) {
+        for (size_t i = 0; i < n; ++i)
+            callback(2, i, 0);
         return;
+    }
 
-    for (std::size_t i = 0; i < array.size() - 1; ++i)
-        for (std::size_t j = 0; j < array.size() - i - 1; ++j)
-            if (array[j] > array[j + 1])
+    for (size_t i = 0; i < n - 1; ++i) {
+        for (size_t j = 0; j < n - i - 1; ++j) {
+            callback(0, j, j + 1); // compare
+            if (array[j] > array[j + 1]) {
+                callback(1, j, j + 1); // swap
                 swap(array[j], array[j + 1]);
+            }
+        }
+        // Mark the last element of this pass as sorted
+        callback(2, n - i - 1, 0);
+    }
 }
 
 
@@ -349,12 +366,12 @@ void ImprovedBubbleSort(DynamicArray<Type>& array) {
         return;
 
     // Early-exit + shrinking boundary optimization
-    std::size_t n = array.size();
+    size_t n = array.size();
     while (n > 1) {
         bool swapped = false;
-        std::size_t last_swap = 0;
+        size_t last_swap = 0;
 
-        for (std::size_t j = 0; j + 1 < n; ++j) {
+        for (size_t j = 0; j + 1 < n; ++j) {
             if (array[j] > array[j + 1]) {
                 swap(array[j], array[j + 1]);
                 swapped = true;
@@ -392,9 +409,9 @@ void InsertionSortWithLinearSearch(DynamicArray<Type>& array) {
     if (array.size() <= 1 || isSorted(array))
         return;
 
-    for (std::size_t i = 1; i < array.size(); ++i) {
+    for (size_t i = 1; i < array.size(); ++i) {
         Type key = array[i];
-        std::size_t j = i;
+        size_t j = i;
         while (j > 0 && array[j - 1] > key) {
             array[j] = array[j - 1];
             --j;
@@ -430,13 +447,13 @@ void InsertionSortWithBinarySearch(DynamicArray<Type>& array) {
     if (array.size() <= 1 || isSorted(array))
         return;
 
-    for (std::size_t i = 1; i < array.size(); ++i) {
+    for (size_t i = 1; i < array.size(); ++i) {
         Type key = array[i];
 
         // Binary search for insertion position in [0, i)
-        std::size_t left = 0, right = i;
+        size_t left = 0, right = i;
         while (left < right) {
-            std::size_t mid = left + (right - left) / 2;
+            size_t mid = left + (right - left) / 2;
             if (array[mid] <= key)
                 left = mid + 1;
             else
@@ -444,7 +461,7 @@ void InsertionSortWithBinarySearch(DynamicArray<Type>& array) {
         }
 
         // Shift to make room
-        for (std::size_t j = i; j > left; --j)
+        for (size_t j = i; j > left; --j)
             array[j] = array[j - 1];
 
         array[left] = key;
@@ -526,7 +543,7 @@ void MergeSort(DynamicArray<Type>& array) {
  * @throws std::out_of_range if a value is outside [0, universe_size).
  */
 template <typename Type>
-void BinSort(DynamicArray<Type>& array, const std::size_t universe_size) {
+void BinSort(DynamicArray<Type>& array, const size_t universe_size) {
     static_assert(std::numeric_limits<Type>::is_integer,
                   "BinSort(universe) requires an integral Type.");
 
@@ -541,16 +558,16 @@ void BinSort(DynamicArray<Type>& array, const std::size_t universe_size) {
     DynamicArray<Node*> heads(universe_size);
     DynamicArray<Node*> tails(universe_size);
 
-    for (std::size_t b = 0; b < universe_size; ++b) {
+    for (size_t b = 0; b < universe_size; ++b) {
         heads.addLast(nullptr);
         tails.addLast(nullptr);
     }
 
     // Phase 1: distribute elements into bins
     try {
-        for (std::size_t i = 0; i < array.size(); ++i) {
+        for (size_t i = 0; i < array.size(); ++i) {
             const Type v = array[i];
-            const auto bin = static_cast<std::size_t>(v);
+            const auto bin = static_cast<size_t>(v);
             if (bin >= universe_size)
                 throw std::out_of_range(
                     "BinSort: value out of [0, m) universe");
@@ -565,7 +582,7 @@ void BinSort(DynamicArray<Type>& array, const std::size_t universe_size) {
         }
     } catch (...) {
         // Cleanup lists before rethrow
-        for (std::size_t b = 0; b < universe_size; ++b) {
+        for (size_t b = 0; b < universe_size; ++b) {
             Node* cur = heads[b];
             while (cur) {
                 Node* nxt = cur->next;
@@ -577,8 +594,8 @@ void BinSort(DynamicArray<Type>& array, const std::size_t universe_size) {
     }
 
     // Phase 2: collect back to A in increasing bin index
-    std::size_t write = 0;
-    for (std::size_t b = 0; b < universe_size; ++b) {
+    size_t write = 0;
+    for (size_t b = 0; b < universe_size; ++b) {
         Node* cur = heads[b];
         while (cur) {
             array[write++] = cur->value;
@@ -598,7 +615,7 @@ void BinSort(DynamicArray<Type>& array, const std::size_t universe_size) {
  * stability by appending to each bin, then writes bins back in ascending order.
  *
  * Stable, O(n + m) time, O(n + m) extra space, where n = size(),
- * m = static_cast<std::size_t>(max_value - min_value + 1).
+ * m = static_cast<size_t>(max_value - min_value + 1).
  *
  * @param array The array to sort.
  * @param min_value Minimum value in the universe (inclusive).
@@ -625,10 +642,10 @@ void BinSort(DynamicArray<Type>& array, const Type min_value,
     const U span = static_cast<U>(umax - umin);
 
     // Ensure m = span + 1 fits into size_t to avoid overflow on allocation
-    if (span >= static_cast<U>(std::numeric_limits<std::size_t>::max()))
+    if (span >= static_cast<U>(std::numeric_limits<size_t>::max()))
         throw std::length_error("BinSort: universe too large to index");
 
-    const std::size_t m = static_cast<std::size_t>(span) + 1;
+    const size_t m = static_cast<size_t>(span) + 1;
 
     struct Node {
         Type value;
@@ -638,21 +655,21 @@ void BinSort(DynamicArray<Type>& array, const Type min_value,
     DynamicArray<Node*> heads(m);
     DynamicArray<Node*> tails(m);
 
-    for (std::size_t b = 0; b < m; ++b) {
+    for (size_t b = 0; b < m; ++b) {
         heads.addLast(nullptr);
         tails.addLast(nullptr);
     }
 
     // Phase 1: distribute elements into bins
     try {
-        for (std::size_t i = 0; i < array.size(); ++i) {
+        for (size_t i = 0; i < array.size(); ++i) {
             const Type v = array[i];
             if (v < min_value || v > max_value)
                 throw std::out_of_range(
                     "BinSort: value out of [min,max] universe");
 
             // Compute bin index in unsigned domain without narrowing
-            const auto bin = static_cast<std::size_t>(static_cast<U>(v) - umin);
+            const auto bin = static_cast<size_t>(static_cast<U>(v) - umin);
 
             Node* node = new Node{v, nullptr};
             if (!heads[bin]) {
@@ -663,7 +680,7 @@ void BinSort(DynamicArray<Type>& array, const Type min_value,
             }
         }
     } catch (...) {
-        for (std::size_t b = 0; b < m; ++b) {
+        for (size_t b = 0; b < m; ++b) {
             Node* cur = heads[b];
             while (cur) {
                 Node* nxt = cur->next;
@@ -675,8 +692,8 @@ void BinSort(DynamicArray<Type>& array, const Type min_value,
     }
 
     // Phase 2: collect back to A in increasing bin index
-    std::size_t write = 0;
-    for (std::size_t b = 0; b < m; ++b) {
+    size_t write = 0;
+    for (size_t b = 0; b < m; ++b) {
         Node* cur = heads[b];
         while (cur) {
             array[write++] = cur->value;
@@ -706,42 +723,40 @@ void RadixSortLSD(DynamicArray<Type>& array) {
     static_assert(std::numeric_limits<Type>::is_integer,
                   "RadixSortLSD requires an integral Type.");
 
-    const std::size_t n = array.size();
+    const size_t n = array.size();
     if (n <= 1 || isSorted(array))
         return;
 
     using U = std::make_unsigned_t<Type>;
 
-    constexpr std::size_t RADIX = 256;
-    constexpr std::size_t BYTE_MASK = 0xFFu;
-    const std::size_t bytes = sizeof(Type);
+    constexpr size_t RADIX = 256;
+    constexpr size_t BYTE_MASK = 0xFFu;
+    const size_t bytes = sizeof(Type);
 
     // Temporary buffer for stable distribution
     DynamicArray<Type> temp(n);
-    for (std::size_t i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
         temp.addLast(Type());
 
-    for (std::size_t pass = 0; pass < bytes; ++pass) {
-        std::size_t count[RADIX] = {};
+    for (size_t pass = 0; pass < bytes; ++pass) {
+        size_t count[RADIX] = {};
         const bool msb_pass = (pass + 1 == bytes);
         const bool use_array_as_source = (pass % 2 == 0);
 
         // Counting occurrences from the correct source
         if (use_array_as_source) {
-            for (std::size_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 U u = static_cast<U>(array[i]);
-                auto digit =
-                    static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+                auto digit = static_cast<size_t>((u >> (8 * pass)) & BYTE_MASK);
                 if constexpr (std::numeric_limits<Type>::is_signed)
                     if (msb_pass)
                         digit ^= 0x80u;
                 ++count[digit];
             }
         } else {
-            for (std::size_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 U u = static_cast<U>(temp[i]);
-                auto digit =
-                    static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+                auto digit = static_cast<size_t>((u >> (8 * pass)) & BYTE_MASK);
                 if constexpr (std::numeric_limits<Type>::is_signed)
                     if (msb_pass)
                         digit ^= 0x80u;
@@ -750,28 +765,26 @@ void RadixSortLSD(DynamicArray<Type>& array) {
         }
 
         // Prefix sums to get starting positions
-        std::size_t pos[RADIX];
+        size_t pos[RADIX];
         pos[0] = 0;
-        for (std::size_t d = 1; d < RADIX; ++d)
+        for (size_t d = 1; d < RADIX; ++d)
             pos[d] = pos[d - 1] + count[d - 1];
 
         // Stable distribution: even passes write to temp, odd passes back to
         // array
         if (use_array_as_source) {
-            for (std::size_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 U u = static_cast<U>(array[i]);
-                auto digit =
-                    static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+                auto digit = static_cast<size_t>((u >> (8 * pass)) & BYTE_MASK);
                 if constexpr (std::numeric_limits<Type>::is_signed)
                     if (msb_pass)
                         digit ^= 0x80u;
                 temp[pos[digit]++] = array[i];
             }
         } else {
-            for (std::size_t i = 0; i < n; ++i) {
+            for (size_t i = 0; i < n; ++i) {
                 U u = static_cast<U>(temp[i]);
-                auto digit =
-                    static_cast<std::size_t>((u >> (8 * pass)) & BYTE_MASK);
+                auto digit = static_cast<size_t>((u >> (8 * pass)) & BYTE_MASK);
                 if constexpr (std::numeric_limits<Type>::is_signed)
                     if (msb_pass)
                         digit ^= 0x80u;
@@ -782,7 +795,7 @@ void RadixSortLSD(DynamicArray<Type>& array) {
 
     // If number of passes is odd, last write was into temp -> copy back
     if ((bytes % 2) == 1)
-        for (std::size_t i = 0; i < n; ++i)
+        for (size_t i = 0; i < n; ++i)
             array[i] = temp[i];
 }
 
@@ -806,35 +819,35 @@ void RadixSortMSD(DynamicArray<Type>& array) {
     static_assert(std::numeric_limits<Type>::is_integer,
                   "RadixSortMSD requires an integral Type.");
 
-    const std::size_t n = array.size();
+    const size_t n = array.size();
     if (n <= 1 || isSorted(array))
         return;
 
     using U = std::make_unsigned_t<Type>;
-    constexpr std::size_t RADIX = 256;
+    constexpr size_t RADIX = 256;
 
     // Helper to get the byte at position 'byte' (0-based from LSB)
-    auto get_digit = [](U u, const int byte) -> std::size_t {
-        return static_cast<std::size_t>((u >> (8 * byte)) & 0xFFu);
+    auto get_digit = [](U u, const int byte) -> size_t {
+        return static_cast<size_t>((u >> (8 * byte)) & 0xFFu);
     };
 
     // Reusable temporary buffer for stable distribution
     DynamicArray<Type> temp(n);
-    for (std::size_t i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
         temp.addLast(Type());
 
     // Self-recursive lambda via fixpoint pattern: pass 'self' explicitly
-    auto msd_rec = [&](auto&& self, const std::size_t lo, const std::size_t hi,
+    auto msd_rec = [&](auto&& self, const size_t lo, const size_t hi,
                        const int byte, const bool flip_msb) -> void {
-        if (const std::size_t len = hi - lo; len <= 1 || byte < 0)
+        if (const size_t len = hi - lo; len <= 1 || byte < 0)
             return;
 
-        std::size_t count[RADIX] = {};
+        size_t count[RADIX] = {};
 
         // Count digits
-        for (std::size_t i = lo; i < hi; ++i) {
+        for (size_t i = lo; i < hi; ++i) {
             U u = static_cast<U>(array[i]);
-            std::size_t d = get_digit(u, byte);
+            size_t d = get_digit(u, byte);
 
             if (flip_msb)
                 if constexpr (std::numeric_limits<Type>::is_signed)
@@ -844,15 +857,15 @@ void RadixSortMSD(DynamicArray<Type>& array) {
         }
 
         // Compute starting positions in [lo, hi)
-        std::size_t pos[RADIX];
+        size_t pos[RADIX];
         pos[0] = lo;
-        for (std::size_t d = 1; d < RADIX; ++d)
+        for (size_t d = 1; d < RADIX; ++d)
             pos[d] = pos[d - 1] + count[d - 1];
 
         // Stable distribute into temp
-        for (std::size_t i = lo; i < hi; ++i) {
+        for (size_t i = lo; i < hi; ++i) {
             U u = static_cast<U>(array[i]);
-            std::size_t d = get_digit(u, byte);
+            size_t d = get_digit(u, byte);
 
             if (flip_msb)
                 if constexpr (std::numeric_limits<Type>::is_signed)
@@ -862,13 +875,13 @@ void RadixSortMSD(DynamicArray<Type>& array) {
         }
 
         // Copy back to array
-        for (std::size_t i = lo; i < hi; ++i)
+        for (size_t i = lo; i < hi; ++i)
             array[i] = temp[i];
 
         // Recurse on each non-empty bucket with next byte (no sign flip below
         // MSB)
-        std::size_t start = lo;
-        for (const std::size_t cnt : count) {
+        size_t start = lo;
+        for (const size_t cnt : count) {
             if (cnt > 1)
                 self(self, start, start + cnt, byte - 1, false);
             start += cnt;
@@ -897,12 +910,12 @@ void RadixSortMSD(DynamicArray<Type>& array) {
  */
 template <typename Type>
 void HeapSort(DynamicArray<Type>& array) {
-    const std::size_t n = array.size();
+    const size_t n = array.size();
     if (n <= 1 || isSorted(array))
         return;
 
     makeHeap(array);
-    for (std::size_t heap_size = n; heap_size > 1; --heap_size)
+    for (size_t heap_size = n; heap_size > 1; --heap_size)
         popHeap(array, heap_size);
 }
 
@@ -926,10 +939,10 @@ void HeapSort(DynamicArray<Type>& array) {
  * - O(n) time.
  * - O(1) space.
  */
-template <typename Type, typename Callback = void (*)(std::size_t)>
-std::size_t LinearSearch(const DynamicArray<Type>& array, const Type& target,
-                         Callback&& callback = +[](std::size_t) {}) {
-    for (std::size_t i = 0; i < array.size(); ++i) {
+template <typename Type, typename Callback = void (*)(size_t)>
+size_t LinearSearch(const DynamicArray<Type>& array, const Type& target,
+                    Callback&& callback = [](size_t) {}) {
+    for (size_t i = 0; i < array.size(); ++i) {
         callback(i);
         if (array[i] == target)
             return i;
@@ -958,14 +971,14 @@ std::size_t LinearSearch(const DynamicArray<Type>& array, const Type& target,
  * - O(1) space.
  */
 template <typename Type, typename Callback>
-std::size_t BinarySearch(const DynamicArray<Type>& array, const Type& target,
-                         Callback&& callback = +[](std::size_t) -> void {}) {
+size_t BinarySearch(const DynamicArray<Type>& array, const Type& target,
+                    Callback&& callback = [](size_t) -> void {}) {
     // left: inclusive lower bound, right: exclusive upper bound
-    std::size_t left = 0;
-    std::size_t right = array.size() - 1;
+    size_t left = 0;
+    size_t right = array.size() - 1;
 
     while (left < right) {
-        std::size_t middle = left + (right - left) / 2;
+        size_t middle = left + (right - left) / 2;
         callback(middle);
         if (array[middle] == target)
             return middle;

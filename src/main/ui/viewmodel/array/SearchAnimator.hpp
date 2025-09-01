@@ -28,17 +28,17 @@ class SearchAnimator : public QObject {
 
     struct Step {
         StepType type;
-        std::size_t index;
+        size_t index;
     };
 
-    ArrayWidget* widget_{};
+    QPointer<ArrayWidget> widget_{};
     QTimer timer_{};
     containers::DynamicArray<Step> steps_{};
-    std::size_t current_ = 0;
+    size_t current_ = 0;
 
 
   signals:
-    void elementFound(std::size_t index);
+    void elementFound(size_t index);
     void elementNotFound();
 
 
@@ -76,14 +76,47 @@ class SearchAnimator : public QObject {
                 timer_.stop();
                 emit elementNotFound();
                 break;
-
-            default:
-                break;
-            }
+        }
     }
 
 
-  protected:
+  private:
+    /**
+     * Collects the steps of the search algorithm by invoking the provided
+     * search function. The search function should call the provided callback
+     * with each index it visits.
+     *
+     * @tparam Type The type of elements in the array.
+     * @tparam SearchFunc The type of the search function (should be callable).
+     *
+     * @param array The dynamic array to search within.
+     * @param target The target value to search for.
+     * @param searchFunc The search function that performs the search and calls
+     * back on each step.
+     * @param intervalMs The interval in milliseconds between animation steps.
+     */
+    template <typename Type, typename SearchFunc>
+    void collectSteps(containers::DynamicArray<Type>& array, const Type& target,
+                      SearchFunc&& searchFunc, const size_t intervalMs) {
+        steps_.clear();
+        current_ = 0;
+
+        auto step_cb = [this](const size_t idx) {
+            steps_.emplaceLast(Step{StepType::Visit, idx});
+        };
+
+        const size_t result = searchFunc(array, target, step_cb);
+
+        if (result < array.size())
+            steps_.emplaceLast(Step{StepType::Found, result});
+        else
+            steps_.emplaceLast(Step{StepType::NotFound, result});
+
+        timer_.setInterval(intervalMs);
+    }
+
+
+  public:
     /// Default constructor for derived classes that will set up the animation
     /// later.
     explicit SearchAnimator(QObject* parent = nullptr) : QObject(parent) {}
@@ -109,7 +142,7 @@ class SearchAnimator : public QObject {
     template <typename Type, typename SearchFunc>
     SearchAnimator(containers::DynamicArray<Type>& array, const Type& target,
                    ArrayWidget* widget, SearchFunc&& searchFunc,
-                   int intervalMs = 500, QObject* parent = nullptr)
+                   const size_t intervalMs, QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
         collectSteps(array, target, std::forward<SearchFunc>(searchFunc),
                      intervalMs);
@@ -118,42 +151,6 @@ class SearchAnimator : public QObject {
     }
 
 
-    /**
-     * Collects the steps of the search algorithm by invoking the provided
-     * search function. The search function should call the provided callback
-     * with each index it visits.
-     *
-     * @tparam Type The type of elements in the array.
-     * @tparam SearchFunc The type of the search function (should be callable).
-     *
-     * @param array The dynamic array to search within.
-     * @param target The target value to search for.
-     * @param searchFunc The search function that performs the search and calls
-     * back on each step.
-     * @param intervalMs The interval in milliseconds between animation steps.
-     */
-    template <typename Type, typename SearchFunc>
-    void collectSteps(containers::DynamicArray<Type>& array, const Type& target,
-                      SearchFunc&& searchFunc, const int intervalMs) {
-        steps_.clear();
-        current_ = 0;
-
-        auto step_cb = [this](const std::size_t idx) {
-            steps_.emplaceLast(Step{StepType::Visit, idx});
-        };
-
-        const std::size_t result = searchFunc(array, target, step_cb);
-
-        if (result < array.size())
-            steps_.emplaceLast(Step{StepType::Found, result});
-        else
-            steps_.emplaceLast(Step{StepType::NotFound, result});
-
-        timer_.setInterval(intervalMs);
-    }
-
-
-  public:
     /// Destructor
     ~SearchAnimator() override = default;
 };

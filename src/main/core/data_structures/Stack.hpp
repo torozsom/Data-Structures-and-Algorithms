@@ -80,7 +80,7 @@ class Stack {
     Stack() : array_() {}
 
     /// Constructor with initial capacity
-    explicit Stack(std::size_t capacity) : array_(capacity) {}
+    explicit Stack(size_t capacity) : array_(capacity) {}
 
     /// Constructor for braced-init-lists
     Stack(std::initializer_list<Type> initial_data) : array_(initial_data) {}
@@ -95,7 +95,7 @@ class Stack {
      * @param initial_data Pointer to the initial data array.
      * @param initial_size The number of elements in the initial data array.
      */
-    Stack(const Type* initial_data, const std::size_t initial_size)
+    Stack(const Type* initial_data, const size_t initial_size)
         : array_(initial_data, initial_size) {}
 
     /// Copy constructor
@@ -129,7 +129,7 @@ class Stack {
 
     /// Returns the number of elements in the stack.
     [[nodiscard]]
-    std::size_t size() const noexcept {
+    size_t size() const noexcept {
         return array_.size();
     }
 
@@ -150,7 +150,7 @@ class Stack {
      * @par Exception Safety
      * Strong (allocate+construct+commit).
      */
-    void reserve(const std::size_t capacity) { array_.reserve(capacity); }
+    void reserve(const size_t capacity) { array_.reserve(capacity); }
 
 
     /**

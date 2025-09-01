@@ -269,9 +269,9 @@ class BinarySearchTree : public BinaryTree<Type> {
      * binary search tree.
      * @param size The number of elements in the array.
      */
-    BinarySearchTree(const Type* array, const std::size_t size)
+    BinarySearchTree(const Type* array, const size_t size)
         : BinaryTree<Type>() {
-        for (std::size_t i = 0; i < size; ++i)
+        for (size_t i = 0; i < size; ++i)
             this->insert(array[i]);
     }
 

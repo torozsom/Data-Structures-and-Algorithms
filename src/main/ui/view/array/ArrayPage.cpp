@@ -128,6 +128,47 @@ void ArrayPage::showBinarySearch() {
 
 
 /**
+ * @brief Show bubble sort animation
+ */
+void ArrayPage::showBubbleSort() {
+    auto [view, animator] = createBubbleSortAnimation();
+    if (!content_)
+        content_ = this;
+
+    const QPointer container = new QWidget(content_);
+    container->setAutoFillBackground(true);
+
+    const QPointer vbox = new QVBoxLayout(container);
+    vbox->setContentsMargins(0, 0, 0, 0);
+    vbox->setSpacing(0);
+
+    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    vbox->addWidget(view, 1);
+
+    const QPointer bottomBar = new QWidget(container);
+    bottomBar->setAutoFillBackground(true);
+    const QPointer hbox = new QHBoxLayout(bottomBar);
+    hbox->setContentsMargins(8, 8, 8, 8);
+    hbox->setSpacing(8);
+
+    const QPointer btn = new QPushButton("Back", bottomBar);
+    connect(btn, &QPushButton::clicked, this, &ArrayPage::restoreUI);
+    btn->setCursor(Qt::PointingHandCursor);
+    hbox->addWidget(btn);
+    hbox->addStretch();
+
+    vbox->addWidget(bottomBar, 0);
+
+    replaceContent(content_, container);
+
+    animator_ = nullptr;
+    animator_ = animator;
+    if (auto* w = window())
+        w->setWindowTitle("Dynamic Array - Bubble Sort");
+}
+
+
+/**
  * @brief Restores the original UI of the ArrayPage.
  *
  * This function clears any existing layout and widgets within the ArrayPage,
@@ -159,6 +200,8 @@ void ArrayPage::connectButtonActions() {
             &ArrayPage::showLinearSearch);
     connect(uiForm_->btnBinarySearch, &QPushButton::clicked, this,
             &ArrayPage::showBinarySearch);
+    connect(uiForm_->btnBubbleSort, &QPushButton::clicked, this,
+            &ArrayPage::showBubbleSort);
 }
 
 
