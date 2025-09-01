@@ -7,13 +7,10 @@ namespace ui {
 
 
 /**
- * @brief Slot for handling the click event of the dynamic array button.
+ * @brief Slot invoked when the Dynamic Array button is clicked.
  *
- * This function checks if the ArrayWindow is already created. If not, it
- * creates a new instance, sets it to delete on close, and connects its
- * destroyed signal to a lambda function that shows the main window again and
- * resets the window_ pointer to nullptr. Finally, it shows the ArrayWindow,
- * raises it to the front, activates it, and hides the main window.
+ * Lazily creates the ArrayPage and replaces the main window's central widget
+ * with it so that array animations can be shown.
  */
 void MainWindow::on_btnDynamicArray_clicked() {
     if (!page_)

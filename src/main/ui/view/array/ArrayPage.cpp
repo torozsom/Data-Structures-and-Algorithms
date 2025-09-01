@@ -128,7 +128,12 @@ void ArrayPage::showBinarySearch() {
 
 
 /**
- * @brief Show bubble sort animation
+ * @brief Show bubble sort animation.
+ *
+ * Creates and displays the bubble sort animation within a container that
+ * includes a bottom bar with a "Back" button. The animation view expands to
+ * fill the available space, and clicking the "Back" button restores the
+ * original UI.
  */
 void ArrayPage::showBubbleSort() {
     auto [view, animator] = createBubbleSortAnimation();

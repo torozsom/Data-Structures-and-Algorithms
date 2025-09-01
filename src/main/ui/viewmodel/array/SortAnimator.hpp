@@ -1,9 +1,19 @@
 #ifndef SORT_ANIMATOR_HPP
 #define SORT_ANIMATOR_HPP
 
+
 #include <QObject>
 
+
 namespace ui {
+
+
+/**
+ * @brief Base class for animating sorting algorithms on an ArrayWidget.
+ *
+ * Collects instrumentation steps from a sorting function and replays them
+ * with timed updates on the associated widget.
+ */
 class SortAnimator : public QObject {
 
     Q_OBJECT
@@ -24,7 +34,13 @@ class SortAnimator : public QObject {
 
 
   protected slots:
-    /// Perform the next step in the animation
+    /**
+     * @brief Perform the next step in the animation sequence.
+     *
+     * Executes the recorded operation (comparison, swap or marking an element
+     * as sorted) and advances the internal step counter. Stops the timer when
+     * all steps have been processed.
+     */
     void nextStep() {
         if (current_ >= steps_.size()) {
             timer_.stop();
@@ -49,6 +65,18 @@ class SortAnimator : public QObject {
 
 
   private:
+    /**
+     * @brief Collects steps from the provided sorting function.
+     *
+     * Runs the algorithm with an instrumentation callback that records each
+     * comparison, swap or "sorted" event for later playback.
+     *
+     * @tparam Type Type of elements in the array.
+     * @tparam SortFunc Callable sorting routine.
+     * @param array Array to be sorted.
+     * @param sortFunc Sorting function invoked to produce steps.
+     * @param intervalMs Interval between animation frames in milliseconds.
+     */
     template <typename Type, typename SortFunc>
     void collectSteps(containers::DynamicArray<Type>& array,
                       SortFunc&& sortFunc, const size_t intervalMs) {

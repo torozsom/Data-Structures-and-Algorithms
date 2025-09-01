@@ -36,14 +36,14 @@ C++23 features. Each implementation is designed with a focus on:
 
 |     Data Structure     |                 Implementation                 |                             Operations                              |          Time Complexity          | Space Complexity |
 |:----------------------:|:----------------------------------------------:|:-------------------------------------------------------------------:|:---------------------------------:|:----------------:|
-|   **Dynamic Array**    |     [`DynamicArray.hpp`](src/main/core/data_structures/DynamicArray.hpp)     |    Access<br>Insert/Remove (end)<br>Insert/Remove (arbitrary)       |  O(1)<br>Amortized O(1)<br>O(n)   |       O(n)       |
-|    **Linked List**     |       [`LinkedList.hpp`](src/main/core/data_structures/LinkedList.hpp)       |    Access<br>Insert/Remove (ends)<br>Insert/Remove (middle)         |       O(n)<br>O(1)<br>O(n)        |       O(n)       |
-|       **Stack**        |            [`Stack.hpp`](src/main/core/data_structures/Stack.hpp)            |                         Push<br>Pop<br>Top                          |       O(1)<br>O(1)<br>O(1)        |       O(n)       |
-|       **Queue**        |            [`Queue.hpp`](src/main/core/data_structures/Queue.hpp)            |                 Enqueue<br>Dequeue<br>Front/Back                    |       O(1)<br>O(1)<br>O(1)        |       O(n)       |
-|    **Binary Tree**     |       [`BinaryTree.hpp`](src/main/core/data_structures/BinaryTree.hpp)       |            Insert (level-order)<br>Find/Contains<br>Height          |               O(n)                |       O(n)       |
-| **Binary Search Tree** | [`BinarySearchTree.hpp`](src/main/core/data_structures/BinarySearchTree.hpp) |           Insert<br>Search/Contains<br>Delete<br>Min/Max            | O(h)\*<br>O(h)\*<br>O(h)\*<br>O(h)\* |       O(n)       |
-|      **Min Heap**      |          [`MinHeap.hpp`](src/main/core/data_structures/MinHeap.hpp)          |                  Insert<br>Extract-Min<br>Peek                      |   O(log n)<br>O(log n)<br>O(1)    |       O(n)       |
-|      **Max Heap**      |          [`MaxHeap.hpp`](src/main/core/data_structures/MaxHeap.hpp)          |                  Insert<br>Extract-Max<br>Peek                      |   O(log n)<br>O(log n)<br>O(1)    |       O(n)       |
+|   **Dynamic Array**    |     [`DynamicArray.hpp`](DynamicArray.hpp)     |    Access<br>Insert/Remove (end)<br>Insert/Remove (arbitrary)       |  O(1)<br>Amortized O(1)<br>O(n)   |       O(n)       |
+|    **Linked List**     |       [`LinkedList.hpp`](LinkedList.hpp)       |    Access<br>Insert/Remove (ends)<br>Insert/Remove (middle)         |       O(n)<br>O(1)<br>O(n)        |       O(n)       |
+|       **Stack**        |            [`Stack.hpp`](Stack.hpp)            |                         Push<br>Pop<br>Top                          |       O(1)<br>O(1)<br>O(1)        |       O(n)       |
+|       **Queue**        |            [`Queue.hpp`](Queue.hpp)            |                 Enqueue<br>Dequeue<br>Front/Back                    |       O(1)<br>O(1)<br>O(1)        |       O(n)       |
+|    **Binary Tree**     |       [`BinaryTree.hpp`](BinaryTree.hpp)       |            Insert (level-order)<br>Find/Contains<br>Height          |               O(n)                |       O(n)       |
+| **Binary Search Tree** | [`BinarySearchTree.hpp`](BinarySearchTree.hpp) |           Insert<br>Search/Contains<br>Delete<br>Min/Max            | O(h)\*<br>O(h)\*<br>O(h)\*<br>O(h)\* |       O(n)       |
+|      **Min Heap**      |          [`MinHeap.hpp`](MinHeap.hpp)          |                  Insert<br>Extract-Min<br>Peek                      |   O(log n)<br>O(log n)<br>O(1)    |       O(n)       |
+|      **Max Heap**      |          [`MaxHeap.hpp`](MaxHeap.hpp)          |                  Insert<br>Extract-Max<br>Peek                      |   O(log n)<br>O(log n)<br>O(1)    |       O(n)       |
 
 \* `h` is the tree height (worst case O(n), balanced case O(log n)).
 

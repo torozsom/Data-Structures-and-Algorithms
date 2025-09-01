@@ -22,6 +22,13 @@ QT_END_NAMESPACE
 namespace ui {
 
 
+/**
+ * @brief Page displaying array algorithm animations and controls.
+ *
+ * Hosts buttons to launch specific algorithm visualizations and replaces its
+ * content area with the selected animation view. The page can be restored to
+ * its original state via the provided Back buttons.
+ */
 class ArrayPage final : public QWidget {
     Q_OBJECT
 

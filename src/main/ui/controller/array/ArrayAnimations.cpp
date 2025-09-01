@@ -89,6 +89,13 @@ ArrayAnimation createBinarySearchAnimation() {
 
 /**
  * @brief Creates an animation for bubble sort on a dynamic array of integers.
+ *
+ * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
+ * it and instantiates a BubbleSortAnimator. The animator drives the step-by-step
+ * sorting animation on the provided widget.
+ *
+ * @return An ArrayAnimation struct containing the ArrayWidget and
+ * BubbleSortAnimator.
  */
 ArrayAnimation createBubbleSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7};

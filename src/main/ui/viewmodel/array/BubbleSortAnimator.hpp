@@ -14,6 +14,12 @@
 namespace ui {
 
 
+/**
+ * @brief Class to animate the bubble sort algorithm on a dynamic array.
+ *
+ * Collects sorting steps from the algorithm and plays them back on an
+ * ArrayWidget to visualize the process.
+ */
 class BubbleSortAnimator final : public SortAnimator {
     Q_OBJECT
 

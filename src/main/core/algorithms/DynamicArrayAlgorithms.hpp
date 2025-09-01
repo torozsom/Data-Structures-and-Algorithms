@@ -1,17 +1,17 @@
 /**
- * @file DynamicArrayAlgorithms.hpp
+* @file DynamicArrayAlgorithms.hpp
  *
- * This file contains some sorting and searching algorithms
- * that can be executed over the data_structs::DynamicArray class
- * and also some utility functions for these algorithms.
+ * This file contains sorting and searching algorithms that operate on the
+ * containers::DynamicArray class, along with utility functions used by these
+ * algorithms.
  *
- * Note that these algorithms can EXCLUSIVELY be used on such
- * DynamicArrays that store built-in numeric types, so to be precise:
- * int, double, float, unsigned int and size_t.
+ * Note that these algorithms can EXCLUSIVELY be used on DynamicArrays that
+ * store built-in numeric types, specifically: int, double, float, unsigned int
+ * and size_t.
  *
- * The purpose of these functions to ensure a basis for the
- * visualization of these data structures and its algorithms,
- * so there is no need to take care of user types.
+ * The purpose of these functions is to provide a basis for the visualization
+ * of these data structures and their algorithms, so there is no need to support
+ * user-defined types.
  */
 
 

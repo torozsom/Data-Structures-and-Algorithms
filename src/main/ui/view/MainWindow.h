@@ -23,7 +23,13 @@ QT_END_NAMESPACE
 namespace ui {
 
 
-/// Main window of the application
+/**
+ * @brief Main entry window for the application.
+ *
+ * Hosts the initial menu with buttons to launch the various algorithm
+ * demonstrations. The central widget is replaced with the appropriate page
+ * when an option is selected.
+ */
 class MainWindow final : public QMainWindow {
     Q_OBJECT
 

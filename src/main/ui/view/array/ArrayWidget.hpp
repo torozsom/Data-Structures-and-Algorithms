@@ -184,6 +184,12 @@ class ArrayWidget final : public QGraphicsView {
     /**
      * @brief Animates swapping of two cells by making them "float" and
      * exchanging positions.
+     *
+     * The two indexed cells move upward, cross over, and settle back in the
+     * opposite locations. Indices outside the array are ignored.
+     *
+     * @param first Index of the first cell to swap.
+     * @param second Index of the second cell to swap.
      */
     void swapCells(const size_t first, const size_t second) {
         if (first >= cells_.size() || second >= cells_.size() ||

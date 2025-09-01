@@ -17,9 +17,11 @@ namespace ui {
 
 using std::size_t;
 
-/// Struct to hold the components needed for an array animation
+/// Holds the view and animator used to display an array algorithm.
 struct ArrayAnimation {
+    /// Widget that renders the array and its animation.
     ArrayWidget* view;
+    /// Animator object controlling the visualized algorithm steps.
     QObject* animator;
 };
 
