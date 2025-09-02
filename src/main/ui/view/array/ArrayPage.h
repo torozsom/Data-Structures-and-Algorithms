@@ -49,6 +49,7 @@ class ArrayPage final : public QWidget {
     void showBinarySearch();
     void showBubbleSort();
     void showImprovedBubbleSort();
+    void showInsertSortLS();
     void restoreUI();
 
 

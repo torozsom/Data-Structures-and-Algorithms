@@ -60,6 +60,7 @@ add_executable(algorithms_main
         src/main/ui/viewmodel/array/BubbleSortAnimator.hpp
         src/main/ui/viewmodel/array/SortAnimator.hpp
         src/main/ui/viewmodel/array/ImprovedBubbleSortAnimator.hpp
+        src/main/ui/viewmodel/array/InsertSortLSAnimator.hpp
 )
 
 
