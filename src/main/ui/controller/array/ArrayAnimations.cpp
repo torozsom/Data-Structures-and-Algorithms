@@ -1,5 +1,4 @@
 #include "ArrayAnimations.h"
-
 #include "ImprovedBubbleSortAnimator.hpp"
 
 #include <QBoxLayout>
@@ -9,6 +8,18 @@
 namespace ui {
 
 
+/**
+ * @brief Creates a header widget displaying the target element for search animations.
+ *
+ * This function constructs a QWidget containing a label and a graphical
+ * representation of the target element. The target is displayed inside a
+ * bordered rectangle, styled for visibility.
+ *
+ * @tparam Type The type of the target element (e.g., int, double).
+ * @param target The target element to be displayed.
+ * @param parent The parent widget (default is nullptr).
+ * @return A pointer to the created QWidget containing the target header.
+ */
 template <typename Type>
 QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
     constexpr int w = 40;
@@ -59,6 +70,89 @@ QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
 
 
 /**
+ * @brief Creates an animation for search algorithms: Animator(array, target,
+ * widget, parent)
+ *
+ * This function sets up the necessary UI components and animator for visualizing
+ * search algorithms on a dynamic array. It creates an ArrayWidget to display
+ * the array and a header to show the target element being searched for.
+ * The function also connects signals from the animator to update the window
+ * title based on whether the target is found or not.
+ *
+ * @tparam Animator The type of the search animator.
+ * @tparam Values The type of the dynamic array values.
+ * @tparam Target The type of the target element to search for.
+ *
+ * @param values The dynamic array containing the elements to be searched.
+ * @param target The target element to search for in the array.
+ * @return An ArrayAnimation struct containing the container view and animator.
+ */
+template <typename Animator, typename Values, typename Target>
+static ArrayAnimation makeSearchAnimation(const Values& values, const Target& target) {
+    QPointer arrayView = new ArrayWidget(values);
+
+    const QPointer container = new QWidget();
+    const QPointer vbox = new QVBoxLayout(container);
+    vbox->setContentsMargins(0, 0, 0, 0);
+    vbox->setSpacing(0);
+    vbox->addWidget(makeTargetHeader(target, container), 0);
+    arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    vbox->addWidget(arrayView, 1);
+
+    QObject* animator = new Animator(values, target, arrayView, arrayView);
+
+    if (auto* sa = qobject_cast<SearchAnimator*>(animator)) {
+        QObject::connect(sa, &SearchAnimator::elementFound, arrayView,
+                         [arrayView, target](const size_t index) {
+                             if (auto* win = arrayView->window()) {
+                                 win->setWindowTitle(
+                                     QString("Found %1 at index %2").arg(target).arg(index));
+                             }
+                         });
+        QObject::connect(sa, &SearchAnimator::elementNotFound, arrayView,
+                         [arrayView, target] {
+                             if (auto* win = arrayView->window()) {
+                                 win->setWindowTitle(
+                                     QString("Element %1 not found").arg(target));
+                             }
+                         });
+    }
+
+    return {container, animator};
+}
+
+
+/**
+ * @brief Creates an animation for sort algorithms: Animator(array, widget,
+ * parent)
+ *
+ * This function sets up the necessary UI components and animator for visualizing
+ * sorting algorithms on a dynamic array. It creates an ArrayWidget to display
+ * the array and instantiates the specified sorting animator.
+ *
+ * @tparam Animator The type of the sort animator.
+ * @tparam Values The type of the dynamic array values.
+ *
+ * @param values The dynamic array containing the elements to be sorted.
+ * @return An ArrayAnimation struct containing the container view and animator.
+ */
+template <typename Animator, typename Values>
+static ArrayAnimation makeSortAnimation(Values& values) {
+    const QPointer arrayView = new ArrayWidget(values);
+
+    const QPointer container = new QWidget();
+    const QPointer vbox = new QVBoxLayout(container);
+    vbox->setContentsMargins(0, 0, 0, 0);
+    vbox->setSpacing(0);
+    arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    vbox->addWidget(arrayView, 1);
+
+    QObject* animator = new Animator(values, arrayView, arrayView);
+    return {container, animator};
+}
+
+
+/**
  * @brief Creates an animation for linear search on a dynamic array of integers.
  *
  * This function initializes a dynamic array with integer values from 1 to 10,
@@ -71,41 +165,9 @@ QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
  * LinearSearchAnimator.
  */
 ArrayAnimation createLinearSearchAnimation() {
-    containers::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    const containers::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     constexpr int target = 8;
-
-    // Build the core view
-    QPointer arrayView = new ArrayWidget(values);
-
-    // Build a container with a header row showing the target
-    const QPointer container = new QWidget();
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    vbox->addWidget(makeTargetHeader(target, container), 0);
-    arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(arrayView, 1);
-
-    const QPointer animator =
-        new LinearSearchAnimator(values, target, arrayView, arrayView);
-
-    QObject::connect(
-        animator, &LinearSearchAnimator::elementFound, arrayView,
-        [arrayView](const size_t index) {
-            if (auto* win = arrayView->window())
-                win->setWindowTitle(
-                    QString("Found %1 at index %2").arg(target).arg(index));
-        });
-
-    QObject::connect(animator, &LinearSearchAnimator::elementNotFound,
-                     arrayView, [arrayView] {
-                         if (auto* win = arrayView->window())
-                             win->setWindowTitle(
-                                 QString("Element %1 not found").arg(target));
-                     });
-
-    return {container, animator};
+    return makeSearchAnimation<LinearSearchAnimator>(values, target);
 }
 
 
@@ -122,40 +184,10 @@ ArrayAnimation createLinearSearchAnimation() {
  * BinarySearchAnimator.
  */
 ArrayAnimation createBinarySearchAnimation() {
-    containers::DynamicArray values{1.6, 2.5, 3.4, 4.8, 5.9,
+    const containers::DynamicArray values{1.6, 2.5, 3.4, 4.8, 5.9,
                                     6.2, 7.7, 8.1, 9.1, 10.9};
     constexpr double target = 9.1;
-
-    QPointer arrayView = new ArrayWidget(values);
-
-    const QPointer container = new QWidget();
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    vbox->addWidget(makeTargetHeader(target, container), 0);
-    arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(arrayView, 1);
-
-    const QPointer animator =
-        new BinarySearchAnimator(values, target, arrayView, arrayView);
-
-    QObject::connect(
-        animator, &BinarySearchAnimator::elementFound, arrayView,
-        [arrayView](const size_t index) {
-            if (auto* win = arrayView->window())
-                win->setWindowTitle(
-                    QString("Found %1 at index %2").arg(target).arg(index));
-        });
-
-    QObject::connect(animator, &BinarySearchAnimator::elementNotFound,
-                     arrayView, [arrayView] {
-                         if (auto* win = arrayView->window())
-                             win->setWindowTitle(
-                                 QString("Element %1 not found").arg(target));
-                     });
-
-    return {container, animator};
+    return makeSearchAnimation<BinarySearchAnimator>(values, target);
 }
 
 
@@ -171,22 +203,7 @@ ArrayAnimation createBinarySearchAnimation() {
  */
 ArrayAnimation createBubbleSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-
-    const QPointer arrayView = new ArrayWidget(values);
-
-    const QPointer container = new QWidget();
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    // No target for sorting; keep header area empty
-    arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(arrayView, 1);
-
-    const QPointer animator =
-        new BubbleSortAnimator(values, arrayView, arrayView);
-
-    return {container, animator};
+    return makeSortAnimation<BubbleSortAnimator>(values);
 }
 
 
@@ -201,24 +218,9 @@ ArrayAnimation createBubbleSortAnimation() {
  * ImprovedBubbleSortAnimator.
  */
 ArrayAnimation createImprovedBubbleSortAnimation() {
-    containers::DynamicArray values{6.6, 4.3, 9.7, 3.2, 3.2,
-                                    6.6, 2.4, 1.0, 7.0, 6.6};
-
-    const QPointer arrayView = new ArrayWidget(values);
-
-    const QPointer container = new QWidget();
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    // No target for sorting; keep header area empty
-    arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(arrayView, 1);
-
-    const QPointer animator =
-        new ImprovedBubbleSortAnimator(values, arrayView, arrayView);
-
-    return {container, animator};
+    containers::DynamicArray values{6.4, 4.3, 9.7, 3.2, 3.2,
+                                    6.5, 2.4, 1.0, 7.0, 6.6};
+    return makeSortAnimation<ImprovedBubbleSortAnimator>(values);
 }
 
 
@@ -234,22 +236,7 @@ ArrayAnimation createImprovedBubbleSortAnimation() {
  */
 ArrayAnimation createInsertSortLSAnimation() {
     containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
-
-    const QPointer arrayView = new ArrayWidget(values);
-
-    const QPointer container = new QWidget();
-    const QPointer vbox = new QVBoxLayout(container);
-    vbox->setContentsMargins(0, 0, 0, 0);
-    vbox->setSpacing(0);
-
-    // No target for sorting; keep header area empty
-    arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    vbox->addWidget(arrayView, 1);
-
-    const QPointer animator =
-        new InsertSortLSAnimator(values, arrayView, arrayView);
-
-    return {container, animator};
+    return makeSortAnimation<InsertSortLSAnimator>(values);
 }
 
 

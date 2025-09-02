@@ -48,7 +48,7 @@ class BinarySearchAnimator final : public SearchAnimator {
      * @param parent The parent QObject (default is nullptr).
      */
     template <typename Type>
-    BinarySearchAnimator(containers::DynamicArray<Type>& array,
+    BinarySearchAnimator(const containers::DynamicArray<Type>& array,
                          const Type& target, ArrayWidget* widget,
                          QObject* parent = nullptr)
         : SearchAnimator(array, target, widget, BinarySearchFn{}, 800, parent) {

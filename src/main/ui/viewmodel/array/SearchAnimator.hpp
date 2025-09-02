@@ -96,7 +96,7 @@ class SearchAnimator : public QObject {
      * @param intervalMs The interval in milliseconds between animation steps.
      */
     template <typename Type, typename SearchFunc>
-    void collectSteps(containers::DynamicArray<Type>& array, const Type& target,
+    void collectSteps(const containers::DynamicArray<Type>& array, const Type& target,
                       SearchFunc&& searchFunc, const size_t intervalMs) {
         steps_.clear();
         current_ = 0;
@@ -140,7 +140,7 @@ class SearchAnimator : public QObject {
      *  @param parent The parent QObject (default is nullptr).
      */
     template <typename Type, typename SearchFunc>
-    SearchAnimator(containers::DynamicArray<Type>& array, const Type& target,
+    SearchAnimator(const containers::DynamicArray<Type>& array, const Type& target,
                    ArrayWidget* widget, SearchFunc&& searchFunc,
                    const size_t intervalMs, QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
