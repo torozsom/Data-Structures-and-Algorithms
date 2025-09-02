@@ -1081,16 +1081,43 @@ class DynamicArray {
 
     // --- Iterator support for range-based for loops ---
 
-    Type* begin() noexcept { return data_; }
-    const Type* begin() const noexcept { return data_; }
+    using value_type = Type;
+    using reference = Type&;
+    using const_reference = const Type&;
+    using pointer = Type*;
+    using const_pointer = const Type*;
 
-    Type* end() noexcept { return data_ ? data_ + size_ : data_; }
-    const Type* end() const noexcept { return data_ ? data_ + size_ : data_; }
+    using iterator = Type*;
+    using const_iterator = const Type*;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using difference_type = std::ptrdiff_t;
+    using size_type = size_t;
+
+
+    iterator begin() noexcept { return data_; }
+    const_iterator begin() const noexcept { return data_; }
+
+    iterator end() noexcept { return data_ ? data_ + size_ : data_; }
+    const_iterator end() const noexcept { return data_ ? data_ + size_ : data_; }
 
     // --- C++11 range-based for loop support ---
 
-    const Type* cbegin() const noexcept { return data_; }
-    const Type* cend() const noexcept { return data_ ? data_ + size_ : data_; }
+    const_iterator cbegin() const noexcept { return data_; }
+    const_iterator cend() const noexcept { return data_ ? data_ + size_ : data_; }
+
+    // Reverse iterators
+
+    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+
+    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+
+    const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
+    const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+
 
     // Note: All insert/remove/resize operations invalidate pointers/iterators.
     // A moved-from array has begin()==end() and yields zero elements.
