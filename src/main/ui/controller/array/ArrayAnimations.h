@@ -3,28 +3,21 @@
 
 
 #include <QObject>
+#include <QWidget>
 #include <QPointer>
 
-#include "ArrayWidget.hpp"
-#include "BinarySearchAnimator.hpp"
-#include "BubbleSortAnimator.hpp"
-#include "DynamicArray.hpp"
-#include "InsertSortLSAnimator.hpp"
-#include "LinearSearchAnimator.hpp"
 #include "SearchAnimator.hpp"
-#include "MergeSortAnimator.hpp"
-#include "HeapSortAnimator.hpp"
-
+#include "SortAnimator.hpp"
+#include "DynamicArrayAlgorithms.hpp"
 
 namespace ui {
 
-using std::size_t;
 
 /// Holds the view and animator used to display an array algorithm.
 struct ArrayAnimation {
-    /// Widget that renders the array and its animation.
+    // Widget that renders the array and its animation.
     QWidget* view;
-    /// Animator object controlling the visualized algorithm steps.
+    // Animator controlling the visualized steps.
     QObject* animator;
 };
 
@@ -32,6 +25,7 @@ struct ArrayAnimation {
 ArrayAnimation createLinearSearchAnimation();
 
 ArrayAnimation createBinarySearchAnimation();
+
 
 ArrayAnimation createBubbleSortAnimation();
 

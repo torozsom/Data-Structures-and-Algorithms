@@ -9,12 +9,17 @@ namespace ui {
 
 
 /**
- * @brief Base class for animating sorting algorithms on an ArrayWidget.
+ * @brief Generic animator for sorting algorithms.
  *
- * Collects instrumentation steps from a sorting function and replays them
- * with timed updates on the associated widget.
+ * The class records instrumentation steps emitted by a sorting routine and
+ * replays them on an ArrayWidget using a timer. Any sorting function that
+ * accepts a callback of the form `(size_t code, size_t a, size_t b)` can be
+ * visualised by this animator:
+ *   - code = 0 : compare indices a and b
+ *   - code = 1 : swap indices a and b
+ *   - code = 2 : mark index a as sorted
  */
-class SortAnimator : public QObject {
+class SortAnimator final : public QObject {
 
     Q_OBJECT
 
@@ -48,18 +53,18 @@ class SortAnimator : public QObject {
         }
 
         switch (const auto [type, a, b] = steps_[current_++]; type) {
-            case StepType::Compare:
-                if (widget_)
-                    widget_->highlightIndices(a, b);
-                break;
-            case StepType::Swap:
-                if (widget_)
-                    widget_->swapCells(a, b);
-                break;
-            case StepType::MarkSorted:
-                if (widget_)
-                    widget_->markSorted(a);
-                break;
+        case StepType::Compare:
+            if (widget_)
+                widget_->highlightIndices(a, b);
+            break;
+        case StepType::Swap:
+            if (widget_)
+                widget_->swapCells(a, b);
+            break;
+        case StepType::MarkSorted:
+            if (widget_)
+                widget_->markSorted(a);
+            break;
         }
     }
 
@@ -79,7 +84,7 @@ class SortAnimator : public QObject {
      */
     template <typename Type, typename SortFunc>
     void collectSteps(containers::DynamicArray<Type>& array,
-                      SortFunc&& sortFunc, const size_t intervalMs) {
+                      SortFunc&& sortFunc, const int intervalMs) {
         steps_.clear();
         current_ = 0;
 
@@ -106,7 +111,7 @@ class SortAnimator : public QObject {
         sortFunc(array, step_cb);
 
         // Configure timer interval for playback
-        timer_.setInterval(static_cast<int>(intervalMs));
+        timer_.setInterval(intervalMs);
     }
 
 
@@ -126,10 +131,11 @@ class SortAnimator : public QObject {
      */
     template <typename Type, typename SortFunc>
     SortAnimator(containers::DynamicArray<Type>& array, ArrayWidget* widget,
-                 SortFunc&& sortFunc, const size_t intervalMs,
+                 SortFunc&& sortFunc, const int intervalMs,
                  QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
-        widget_->hideArrow();
+        if (widget_)
+            widget_->hideArrow();
         collectSteps(array, std::forward<SortFunc>(sortFunc), intervalMs);
         connect(&timer_, &QTimer::timeout, this, &SortAnimator::nextStep);
         timer_.start();

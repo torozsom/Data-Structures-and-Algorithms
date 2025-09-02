@@ -2,6 +2,7 @@
 #define SEARCH_ANIMATOR_HPP
 
 #include <QObject>
+#include <QPointer>
 #include <QTimer>
 #include <cstddef>
 #include <utility>
@@ -13,13 +14,13 @@ namespace ui {
 
 
 /**
- * @brief Class to animate search algorithms on a dynamic array.
+ * @brief Generic animator for search algorithms.
  *
  * This class provides functionality to visualize the steps of a search
  * algorithm on a dynamic array using an ArrayWidget. It collects the steps of
  * the search process and animates them using a timer.
  */
-class SearchAnimator : public QObject {
+class SearchAnimator final : public QObject {
 
     Q_OBJECT
 
@@ -55,19 +56,19 @@ class SearchAnimator : public QObject {
             return;
         }
 
-        switch (const auto& [type, index] = steps_[current_++]; type) {
+        switch (const auto& [type, idx] = steps_[current_++]; type) {
             case StepType::Visit:
                 if (widget_) {
-                    widget_->highlightIndex(index);
-                    widget_->setArrowPosition(index);
+                    widget_->highlightIndex(idx);
+                    widget_->setArrowPosition(idx);
                 }
                 break;
 
             case StepType::Found:
                 if (widget_)
-                    widget_->markFound(index);
+                    widget_->markFound(idx);
                 timer_.stop();
-                emit elementFound(index);
+                emit elementFound(idx);
                 break;
 
             case StepType::NotFound:
@@ -76,7 +77,7 @@ class SearchAnimator : public QObject {
                 timer_.stop();
                 emit elementNotFound();
                 break;
-        }
+            }
     }
 
 
@@ -98,7 +99,7 @@ class SearchAnimator : public QObject {
     template <typename Type, typename SearchFunc>
     void collectSteps(const containers::DynamicArray<Type>& array,
                       const Type& target, SearchFunc&& searchFunc,
-                      const size_t intervalMs) {
+                      const int intervalMs) {
         steps_.clear();
         current_ = 0;
 
@@ -143,7 +144,7 @@ class SearchAnimator : public QObject {
     template <typename Type, typename SearchFunc>
     SearchAnimator(const containers::DynamicArray<Type>& array,
                    const Type& target, ArrayWidget* widget,
-                   SearchFunc&& searchFunc, const size_t intervalMs,
+                   SearchFunc&& searchFunc, const int intervalMs,
                    QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
         collectSteps(array, target, std::forward<SearchFunc>(searchFunc),

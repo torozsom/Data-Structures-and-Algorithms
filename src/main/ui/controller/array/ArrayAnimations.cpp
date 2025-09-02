@@ -1,11 +1,5 @@
 #include "ArrayAnimations.h"
 
-#include "HeapSortAnimator.hpp"
-#include "ImprovedBubbleSortAnimator.hpp"
-#include "InsertSortBSAnimator.hpp"
-#include "MergeSortAnimator.hpp"
-#include "QuickSortAnimator.hpp"
-
 #include <QBoxLayout>
 #include <QLabel>
 
@@ -83,17 +77,19 @@ QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
  * for. The function also connects signals from the animator to update the
  * window title based on whether the target is found or not.
  *
- * @tparam Animator The type of the search animator.
+ * @tparam SearchFunc The type of the search function to animate.
  * @tparam Values The type of the dynamic array values.
  * @tparam Target The type of the target element to search for.
  *
  * @param values The dynamic array containing the elements to be searched.
  * @param target The target element to search for in the array.
+ * @param searchFunc The search function to animate over the array.
  * @return An ArrayAnimation struct containing the container view and animator.
  */
-template <typename Animator, typename Values, typename Target>
+template <typename SearchFunc, typename Values, typename Target>
 static ArrayAnimation makeSearchAnimation(const Values& values,
-                                          const Target& target) {
+                                          const Target& target,
+                                          SearchFunc&& searchFunc) {
     QPointer arrayView = new ArrayWidget(values);
 
     const QPointer container = new QWidget();
@@ -104,26 +100,26 @@ static ArrayAnimation makeSearchAnimation(const Values& values,
     arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     vbox->addWidget(arrayView, 1);
 
-    QObject* animator = new Animator(values, target, arrayView, arrayView);
+    QPointer animator = new SearchAnimator(
+        values, target, arrayView, std::forward<SearchFunc>(searchFunc), 550,
+        arrayView);
 
-    if (auto* sa = qobject_cast<SearchAnimator*>(animator)) {
-        QObject::connect(
-            sa, &SearchAnimator::elementFound, arrayView,
-            [arrayView, target](const size_t index) {
-                if (auto* win = arrayView->window()) {
-                    win->setWindowTitle(
-                        QString("Found %1 at index %2").arg(target).arg(index));
-                }
-            });
-        QObject::connect(
-            sa, &SearchAnimator::elementNotFound, arrayView,
-            [arrayView, target] {
-                if (auto* win = arrayView->window()) {
-                    win->setWindowTitle(
-                        QString("Element %1 not found").arg(target));
-                }
-            });
-    }
+    QObject::connect(
+        animator, &SearchAnimator::elementFound, arrayView,
+        [arrayView, target](size_t index) {
+            if (auto* win = arrayView->window()) {
+                win->setWindowTitle(
+                    QString("Found %1 at index %2").arg(target).arg(index));
+            }
+        });
+
+    QObject::connect(animator, &SearchAnimator::elementNotFound, arrayView,
+                     [arrayView, target] {
+                         if (auto* win = arrayView->window()) {
+                             win->setWindowTitle(
+                                 QString("Element %1 not found").arg(target));
+                         }
+                     });
 
     return {container, animator};
 }
@@ -131,20 +127,23 @@ static ArrayAnimation makeSearchAnimation(const Values& values,
 
 /**
  * @brief Creates an animation for sort algorithms: Animator(array, widget,
- * parent)
+ * sortFunc, delay, parent)
  *
  * This function sets up the necessary UI components and animator for
  * visualizing sorting algorithms on a dynamic array. It creates an ArrayWidget
- * to display the array and instantiates the specified sorting animator.
+ * to display the array and instantiates the appropriate SortAnimator based on
+ * the provided sorting function. The function returns an ArrayAnimation struct
+ * containing the container view and animator.
  *
- * @tparam Animator The type of the sort animator.
+ * @tparam SortFunc The type of the sorting function to animate.
  * @tparam Values The type of the dynamic array values.
  *
  * @param values The dynamic array containing the elements to be sorted.
+ * @param sortFunc The sorting function to animate over the array.
  * @return An ArrayAnimation struct containing the container view and animator.
  */
-template <typename Animator, typename Values>
-static ArrayAnimation makeSortAnimation(Values& values) {
+template <typename Values, typename SortFunc>
+static ArrayAnimation makeSortAnimation(Values& values, SortFunc&& sortFunc) {
     const QPointer arrayView = new ArrayWidget(values);
     const QPointer container = new QWidget();
     const QPointer vbox = new QVBoxLayout(container);
@@ -153,7 +152,9 @@ static ArrayAnimation makeSortAnimation(Values& values) {
     arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     vbox->addWidget(arrayView, 1);
 
-    QObject* animator = new Animator(values, arrayView, arrayView);
+    const QPointer<SortAnimator> animator = new SortAnimator(
+        values, arrayView, std::forward<SortFunc>(sortFunc), 550, arrayView);
+
     return {container, animator};
 }
 
@@ -173,7 +174,10 @@ static ArrayAnimation makeSortAnimation(Values& values) {
 ArrayAnimation createLinearSearchAnimation() {
     const containers::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     constexpr int target = 8;
-    return makeSearchAnimation<LinearSearchAnimator>(values, target);
+    return makeSearchAnimation(
+        values, target, [](const auto& arr, const auto& val, auto cb) {
+            return array_algorithms::LinearSearch(arr, val, cb);
+        });
 }
 
 
@@ -193,7 +197,10 @@ ArrayAnimation createBinarySearchAnimation() {
     const containers::DynamicArray values{1.6, 2.5, 3.4, 4.8, 5.9,
                                           6.2, 7.7, 8.1, 9.1, 10.9};
     constexpr double target = 9.1;
-    return makeSearchAnimation<BinarySearchAnimator>(values, target);
+    return makeSearchAnimation(
+        values, target, [](const auto& arr, const auto& val, auto cb) {
+            return array_algorithms::BinarySearch(arr, val, cb);
+        });
 }
 
 
@@ -209,7 +216,9 @@ ArrayAnimation createBinarySearchAnimation() {
  */
 ArrayAnimation createBubbleSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation<BubbleSortAnimator>(values);
+    return makeSortAnimation(values, [](auto& arr, auto cb) {
+        array_algorithms::BubbleSort(arr, cb);
+    });
 }
 
 
@@ -226,7 +235,9 @@ ArrayAnimation createBubbleSortAnimation() {
 ArrayAnimation createImprovedBubbleSortAnimation() {
     containers::DynamicArray values{6.4, 4.3, 9.7, 3.2, 3.2,
                                     6.5, 2.4, 1.0, 7.0, 6.6};
-    return makeSortAnimation<ImprovedBubbleSortAnimator>(values);
+    return makeSortAnimation(values, [](auto& arr, auto cb) {
+        array_algorithms::ImprovedBubbleSort(arr, cb);
+    });
 }
 
 
@@ -243,7 +254,9 @@ ArrayAnimation createImprovedBubbleSortAnimation() {
  */
 ArrayAnimation createInsertSortLSAnimation() {
     containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
-    return makeSortAnimation<InsertSortLSAnimator>(values);
+    return makeSortAnimation(values, [](auto& arr, auto cb) {
+        array_algorithms::InsertionSortWithLinearSearch(arr, cb);
+    });
 }
 
 
@@ -260,7 +273,9 @@ ArrayAnimation createInsertSortLSAnimation() {
  */
 ArrayAnimation createInsertSortBSAnimation() {
     containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
-    return makeSortAnimation<InsertSortBSAnimator>(values);
+    return makeSortAnimation(values, [](auto& arr, auto cb) {
+        array_algorithms::InsertionSortWithBinarySearch(arr, cb);
+    });
 }
 
 
@@ -276,7 +291,9 @@ ArrayAnimation createInsertSortBSAnimation() {
  */
 ArrayAnimation createQuickSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation<QuickSortAnimator>(values);
+    return makeSortAnimation(values, [](auto& arr, auto cb) {
+        array_algorithms::QuickSort(arr, cb);
+    });
 }
 
 
@@ -292,7 +309,9 @@ ArrayAnimation createQuickSortAnimation() {
  */
 ArrayAnimation createMergeSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation<MergeSortAnimator>(values);
+    return makeSortAnimation(values, [](auto& arr, auto cb) {
+        array_algorithms::MergeSort(arr, cb);
+    });
 }
 
 
@@ -308,7 +327,9 @@ ArrayAnimation createMergeSortAnimation() {
  */
 ArrayAnimation createHeapSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation<HeapSortAnimator>(values);
+    return makeSortAnimation(values, [](auto& arr, auto cb) {
+        array_algorithms::HeapSort(arr, cb);
+    });
 }
 
 

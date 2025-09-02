@@ -51,20 +51,11 @@ add_executable(algorithms_main
         src/main/ui/view/array/ArrayPage.ui
         src/main/ui/view/array/ArrayWidget.hpp
 
-        src/main/ui/viewmodel/array/LinearSearchAnimator.hpp
-        src/main/ui/viewmodel/array/BinarySearchAnimator.hpp
         src/main/ui/viewmodel/array/SearchAnimator.hpp
 
         src/main/ui/controller/array/ArrayAnimations.cpp
         src/main/ui/controller/array/ArrayAnimations.h
-        src/main/ui/viewmodel/array/BubbleSortAnimator.hpp
         src/main/ui/viewmodel/array/SortAnimator.hpp
-        src/main/ui/viewmodel/array/ImprovedBubbleSortAnimator.hpp
-        src/main/ui/viewmodel/array/InsertSortLSAnimator.hpp
-        src/main/ui/viewmodel/array/InsertSortBSAnimator.hpp
-        src/main/ui/viewmodel/array/QuickSortAnimator.hpp
-        src/main/ui/viewmodel/array/MergeSortAnimator.hpp
-        src/main/ui/viewmodel/array/HeapSortAnimator.hpp
 )
 
 
