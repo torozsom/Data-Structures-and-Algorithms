@@ -9,6 +9,7 @@
 #include "BinarySearchAnimator.hpp"
 #include "BubbleSortAnimator.hpp"
 #include "DynamicArray.hpp"
+#include "InsertionSortWithLinearSearchAnimator.hpp"
 #include "LinearSearchAnimator.hpp"
 #include "SearchAnimator.hpp"
 
@@ -33,6 +34,8 @@ ArrayAnimation createBinarySearchAnimation();
 ArrayAnimation createBubbleSortAnimation();
 
 ArrayAnimation createImprovedBubbleSortAnimation();
+
+ArrayAnimation createInsertionSortWithLinearSearchAnimation();
 
 
 } // namespace ui

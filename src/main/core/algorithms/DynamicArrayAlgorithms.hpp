@@ -428,20 +428,46 @@ void ImprovedBubbleSort(DynamicArray<Type>& array,
  * - O(1) additional space complexity.
  *
  * @param array The array to sort.
+ * @param callback Optional callback function to report each operation:
+ * The callback receives events as (code, a, b):
+ *  - code = 0: Compare(a, b)           — comparing indices a and b
+ *  - code = 1: Swap(a, b)              — swapping indices a and b
+ *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
-template <typename Type>
-void InsertionSortWithLinearSearch(DynamicArray<Type>& array) {
-    if (array.size() <= 1 || isSorted(array))
+template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
+void InsertionSortWithLinearSearch(DynamicArray<Type>& array,
+                                   Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
+    const size_t n = array.size();
+    if (n <= 1 || isSorted(array)) {
+        for (size_t i = 0; i < n; ++i)
+            callback(2, i, 0);
         return;
+    }
 
-    for (size_t i = 1; i < array.size(); ++i) {
+    // Mark first element as sorted
+    callback(2, 0, 0);
+
+    for (size_t i = 1; i < n; ++i) {
         Type key = array[i];
         size_t j = i;
-        while (j > 0 && array[j - 1] > key) {
-            array[j] = array[j - 1];
-            --j;
+        
+        // Linear search backwards to find insertion position
+        while (j > 0) {
+            callback(0, j - 1, i); // Compare with key (stored at original position i)
+            if (array[j - 1] > key) {
+                callback(1, j - 1, j); // Swap (shift element right)
+                array[j] = array[j - 1];
+                --j;
+            } else {
+                break;
+            }
         }
+        
+        // Insert key at position j
         array[j] = key;
+        
+        // Mark the newly sorted element
+        callback(2, j, 0);
     }
 }
 

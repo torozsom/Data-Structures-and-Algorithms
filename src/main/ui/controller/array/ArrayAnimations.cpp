@@ -222,4 +222,35 @@ ArrayAnimation createImprovedBubbleSortAnimation() {
 }
 
 
+/**
+ * @brief Creates an animation for insertion sort with linear search on a dynamic array of integers.
+ *
+ * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
+ * it and instantiates an InsertionSortWithLinearSearchAnimator. The animator drives the
+ * step-by-step sorting animation on the provided widget.
+ *
+ * @return An ArrayAnimation struct containing the container view and
+ * InsertionSortWithLinearSearchAnimator.
+ */
+ArrayAnimation createInsertionSortWithLinearSearchAnimation() {
+    containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
+
+    const QPointer arrayView = new ArrayWidget(values);
+
+    const QPointer container = new QWidget();
+    const QPointer vbox = new QVBoxLayout(container);
+    vbox->setContentsMargins(0, 0, 0, 0);
+    vbox->setSpacing(0);
+
+    // No target for sorting; keep header area empty
+    arrayView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    vbox->addWidget(arrayView, 1);
+
+    const QPointer animator =
+        new InsertionSortWithLinearSearchAnimator(values, arrayView, arrayView);
+
+    return {container, animator};
+}
+
+
 } // namespace ui

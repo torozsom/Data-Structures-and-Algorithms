@@ -14,6 +14,8 @@ void ArrayPage::connectButtonActions() {
             &ArrayPage::showBubbleSort);
     connect(uiForm_->btnImpBubbleSort, &QPushButton::clicked, this,
             &ArrayPage::showImprovedBubbleSort);
+    connect(uiForm_->btnInsertSort1, &QPushButton::clicked, this,
+            &ArrayPage::showInsertionSortWithLinearSearch);
 }
 
 
@@ -115,6 +117,21 @@ void ArrayPage::showImprovedBubbleSort() {
     auto [view, animator] = createImprovedBubbleSortAnimation();
     setupAndShowAnimation(view, animator,
                           "Dynamic Array - Improved Bubble Sort");
+}
+
+
+/**
+ * @brief Show insertion sort with linear search animation.
+ *
+ * Creates and displays the insertion sort with linear search animation within a container that
+ * includes a bottom bar with a "Back" button. The animation view expands to
+ * fill the available space, and clicking the "Back" button restores the
+ * original UI.
+ */
+void ArrayPage::showInsertionSortWithLinearSearch() {
+    auto [view, animator] = createInsertionSortWithLinearSearchAnimation();
+    setupAndShowAnimation(view, animator,
+                          "Dynamic Array - Insertion Sort (Linear Search)");
 }
 
 

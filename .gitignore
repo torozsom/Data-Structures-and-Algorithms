@@ -1,0 +1,19 @@
+# Build directory
+build/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Qt generated files
+*.qm
+*.pro.user*
+
+# Temporary files
+*~
+*.swp
+*.tmp
