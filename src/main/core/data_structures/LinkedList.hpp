@@ -3,10 +3,10 @@
 
 
 #include <cassert>
+#include <initializer_list>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include <initializer_list>
 
 
 namespace containers {
@@ -938,6 +938,6 @@ class LinkedList {
     ~LinkedList() noexcept { clear(); }
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // LINKEDLIST_HPP

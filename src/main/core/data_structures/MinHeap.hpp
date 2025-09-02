@@ -211,6 +211,6 @@ class MinHeap final : public Heap<Type> {
     ~MinHeap() override = default;
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // MINHEAP_HPP

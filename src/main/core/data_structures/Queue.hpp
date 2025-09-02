@@ -100,8 +100,7 @@ class Queue {
      * must ensure `logical_index < size_`.
      */
     [[nodiscard]]
-    size_t
-    getCircularIndex(const size_t logical_index) const noexcept {
+    size_t getCircularIndex(const size_t logical_index) const noexcept {
         return (front_idx_ + logical_index) % array_.capacity();
     }
 
@@ -252,8 +251,8 @@ class Queue {
             throw std::length_error("Queue capacity exceeded");
 
         const size_t new_cap = (cap > HARD_MAX_ELEMENTS / GROWTH_FACTOR)
-                                        ? HARD_MAX_ELEMENTS
-                                        : cap * GROWTH_FACTOR;
+                                   ? HARD_MAX_ELEMENTS
+                                   : cap * GROWTH_FACTOR;
 
         DynamicArray<Type> new_array;
         new_array.reserve(new_cap);
@@ -859,6 +858,6 @@ class Queue {
     }
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // QUEUE_HPP

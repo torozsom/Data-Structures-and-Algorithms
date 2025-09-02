@@ -76,8 +76,8 @@ class MaxHeap final : public Heap<Type> {
      * @brief Push a node downward to re-establish the max-heap property after
      *        a removal or swap.
      *
-     * At each step selects the larger child and swaps values while that child is
-     * greater than the current node. Terminates when both children are <=
+     * At each step selects the larger child and swaps values while that child
+     * is greater than the current node. Terminates when both children are <=
      * `node->data` or when a leaf is reached.
      *
      * @param node Subtree root to sift downward.
@@ -212,6 +212,6 @@ class MaxHeap final : public Heap<Type> {
     ~MaxHeap() override = default;
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // MAXHEAP_HPP

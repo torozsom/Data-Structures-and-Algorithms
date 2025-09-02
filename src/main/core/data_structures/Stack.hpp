@@ -280,13 +280,21 @@ class Stack {
     // Reverse iterators
 
     reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
 
     reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-    const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+    const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
 
-    const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
-    const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+    const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+    const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
 
 
     // Note: All insert/remove/resize operations invalidate pointers/iterators.
@@ -296,6 +304,6 @@ class Stack {
     ~Stack() = default;
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // STACK_HPP

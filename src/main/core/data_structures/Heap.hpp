@@ -88,7 +88,7 @@ class Heap : public BinaryTree<Type> {
             return this->root_;
 
         size_t msb = static_cast<size_t>(1)
-                          << (std::numeric_limits<size_t>::digits - 1);
+                     << (std::numeric_limits<size_t>::digits - 1);
         while (msb > 0 && !(idx & msb))
             msb >>= 1;
 
@@ -242,6 +242,6 @@ class Heap : public BinaryTree<Type> {
     ~Heap() override = default;
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // HEAP_HPP

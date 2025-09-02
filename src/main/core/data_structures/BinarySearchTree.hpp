@@ -422,6 +422,6 @@ class BinarySearchTree : public BinaryTree<Type> {
     ~BinarySearchTree() override = default;
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // BINARYSEARCHTREE_HPP

@@ -1100,23 +1100,35 @@ class DynamicArray {
     const_iterator begin() const noexcept { return data_; }
 
     iterator end() noexcept { return data_ ? data_ + size_ : data_; }
-    const_iterator end() const noexcept { return data_ ? data_ + size_ : data_; }
+    const_iterator end() const noexcept {
+        return data_ ? data_ + size_ : data_;
+    }
 
     // --- C++11 range-based for loop support ---
 
     const_iterator cbegin() const noexcept { return data_; }
-    const_iterator cend() const noexcept { return data_ ? data_ + size_ : data_; }
+    const_iterator cend() const noexcept {
+        return data_ ? data_ + size_ : data_;
+    }
 
     // Reverse iterators
 
     reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
 
     reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-    const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+    const_reverse_iterator rend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
 
-    const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
-    const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+    const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(end());
+    }
+    const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(begin());
+    }
 
 
     // Note: All insert/remove/resize operations invalidate pointers/iterators.
@@ -1173,6 +1185,6 @@ class DynamicArray {
     }
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // DYNAMICARRAY_HPP

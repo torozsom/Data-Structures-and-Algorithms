@@ -3,10 +3,10 @@
 
 
 #include <cassert>
+#include <initializer_list>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include <initializer_list>
 
 #include "Queue.hpp"
 
@@ -638,6 +638,6 @@ class BinaryTree {
     virtual ~BinaryTree() noexcept { clear(); }
 };
 
-} // namespace data_structs
+} // namespace containers
 
 #endif // BINARYTREE_HPP
