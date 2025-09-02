@@ -51,7 +51,7 @@ class BubbleSortAnimator final : public SortAnimator {
     template <typename Type>
     BubbleSortAnimator(containers::DynamicArray<Type>& array,
                        ArrayWidget* widget, QObject* parent = nullptr)
-        : SortAnimator(array, widget, BubbleSortFn{}, 600, parent) {}
+        : SortAnimator(array, widget, BubbleSortFn{}, 550, parent) {}
 
     /// Destructor
     ~BubbleSortAnimator() override = default;

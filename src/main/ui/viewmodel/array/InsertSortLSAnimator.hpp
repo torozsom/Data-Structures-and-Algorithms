@@ -52,7 +52,7 @@ class InsertSortLSAnimator final : public SortAnimator {
     template <typename Type>
     InsertSortLSAnimator(containers::DynamicArray<Type>& array,
                          ArrayWidget* widget, QObject* parent = nullptr)
-        : SortAnimator(array, widget, InsertionSortWithLinearSearchFn{}, 600,
+        : SortAnimator(array, widget, InsertionSortWithLinearSearchFn{}, 550,
                        parent) {}
 
     /// Destructor

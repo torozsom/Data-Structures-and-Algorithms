@@ -51,7 +51,7 @@ public:
     template <typename Type>
     QuickSortAnimator(containers::DynamicArray<Type>& array,
                          ArrayWidget* widget, QObject* parent = nullptr)
-        : SortAnimator(array, widget, QuickSortFn{}, 600,
+        : SortAnimator(array, widget, QuickSortFn{}, 550,
                        parent) {}
 
     /// Destructor

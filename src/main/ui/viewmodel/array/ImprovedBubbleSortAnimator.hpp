@@ -40,7 +40,7 @@ class ImprovedBubbleSortAnimator final : public SortAnimator {
     template <typename Type>
     ImprovedBubbleSortAnimator(containers::DynamicArray<Type>& array,
                                ArrayWidget* widget, QObject* parent = nullptr)
-        : SortAnimator(array, widget, ImprovedBubbleSortFn{}, 600, parent) {}
+        : SortAnimator(array, widget, ImprovedBubbleSortFn{}, 550, parent) {}
 
     /// Destructor
     ~ImprovedBubbleSortAnimator() override = default;

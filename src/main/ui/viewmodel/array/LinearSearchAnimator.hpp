@@ -51,7 +51,7 @@ class LinearSearchAnimator final : public SearchAnimator {
     LinearSearchAnimator(const containers::DynamicArray<Type>& array,
                          const Type& target, ArrayWidget* widget,
                          QObject* parent = nullptr)
-        : SearchAnimator(array, target, widget, LinearSearchFn{}, 500, parent) {
+        : SearchAnimator(array, target, widget, LinearSearchFn{}, 550, parent) {
     }
 
 

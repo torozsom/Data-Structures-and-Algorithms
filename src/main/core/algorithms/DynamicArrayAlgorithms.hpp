@@ -485,6 +485,10 @@ void QuickSort(DynamicArray<Type>& array,
                 right = p - 1;
             }
         }
+
+        // When left == right, a single element remains unsorted; mark it.
+        if (left == right)
+            callback(2, left, 0);
     };
 
     quick_sort(quick_sort, 0, n - 1);
