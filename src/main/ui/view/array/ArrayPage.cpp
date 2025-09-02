@@ -116,9 +116,9 @@ void ArrayPage::showBubbleSort() {
 /**
  * @brief Show improved bubble sort animation.
  *
- * Creates and displays the improved bubble sort animation within a container that
- * includes a bottom bar with a "Back" button. The animation view expands to
- * fill the available space, and clicking the "Back" button restores the
+ * Creates and displays the improved bubble sort animation within a container
+ * that includes a bottom bar with a "Back" button. The animation view expands
+ * to fill the available space, and clicking the "Back" button restores the
  * original UI.
  */
 void ArrayPage::showImprovedBubbleSort() {
@@ -190,16 +190,19 @@ ArrayPage::ArrayPage(QWidget* parent)
  */
 void ArrayPage::replaceContent(QWidget* container, QWidget* newChild) {
     QPointer boxLayout{container->layout()};
+
     if (!boxLayout) {
         boxLayout = new QVBoxLayout(container);
         boxLayout->setContentsMargins(0, 0, 0, 0);
     }
+
     while (boxLayout->count() > 0) {
         const auto* item = boxLayout->takeAt(0);
         if (auto* old = item->widget())
             old->deleteLater();
         delete item;
     }
+
     boxLayout->addWidget(newChild);
 }
 

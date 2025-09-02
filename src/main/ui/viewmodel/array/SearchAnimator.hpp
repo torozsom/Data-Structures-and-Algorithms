@@ -56,26 +56,26 @@ class SearchAnimator : public QObject {
         }
 
         switch (const auto& [type, index] = steps_[current_++]; type) {
-        case StepType::Visit:
-            if (widget_) {
-                widget_->highlightIndex(index);
-                widget_->setArrowPosition(index);
-            }
-            break;
+            case StepType::Visit:
+                if (widget_) {
+                    widget_->highlightIndex(index);
+                    widget_->setArrowPosition(index);
+                }
+                break;
 
-        case StepType::Found:
-            if (widget_)
-                widget_->markFound(index);
-            timer_.stop();
-            emit elementFound(index);
-            break;
+            case StepType::Found:
+                if (widget_)
+                    widget_->markFound(index);
+                timer_.stop();
+                emit elementFound(index);
+                break;
 
-        case StepType::NotFound:
-            if (widget_)
-                widget_->markNotFound();
-            timer_.stop();
-            emit elementNotFound();
-            break;
+            case StepType::NotFound:
+                if (widget_)
+                    widget_->markNotFound();
+                timer_.stop();
+                emit elementNotFound();
+                break;
         }
     }
 
@@ -96,8 +96,9 @@ class SearchAnimator : public QObject {
      * @param intervalMs The interval in milliseconds between animation steps.
      */
     template <typename Type, typename SearchFunc>
-    void collectSteps(const containers::DynamicArray<Type>& array, const Type& target,
-                      SearchFunc&& searchFunc, const size_t intervalMs) {
+    void collectSteps(const containers::DynamicArray<Type>& array,
+                      const Type& target, SearchFunc&& searchFunc,
+                      const size_t intervalMs) {
         steps_.clear();
         current_ = 0;
 
@@ -140,9 +141,10 @@ class SearchAnimator : public QObject {
      *  @param parent The parent QObject (default is nullptr).
      */
     template <typename Type, typename SearchFunc>
-    SearchAnimator(const containers::DynamicArray<Type>& array, const Type& target,
-                   ArrayWidget* widget, SearchFunc&& searchFunc,
-                   const size_t intervalMs, QObject* parent = nullptr)
+    SearchAnimator(const containers::DynamicArray<Type>& array,
+                   const Type& target, ArrayWidget* widget,
+                   SearchFunc&& searchFunc, const size_t intervalMs,
+                   QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
         collectSteps(array, target, std::forward<SearchFunc>(searchFunc),
                      intervalMs);

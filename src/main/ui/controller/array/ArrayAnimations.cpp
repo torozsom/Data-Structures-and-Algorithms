@@ -9,7 +9,8 @@ namespace ui {
 
 
 /**
- * @brief Creates a header widget displaying the target element for search animations.
+ * @brief Creates a header widget displaying the target element for search
+ * animations.
  *
  * This function constructs a QWidget containing a label and a graphical
  * representation of the target element. The target is displayed inside a
@@ -33,7 +34,7 @@ QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
     const QPointer label = new QLabel("Target element:", header);
     label->setStyleSheet("color: yellow; font-weight: bold;");
 
-    // Build a small graphics view that renders a single cell like the array
+    // Build a small graphics view that renders a single cell
     const QPointer gv = new QGraphicsView(header);
     gv->setFrameShape(QFrame::NoFrame);
     gv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -46,7 +47,6 @@ QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
     QPen pen;
     pen.setColor(Qt::black);
     pen.setWidth(2);
-
     scene->addRect(0, 0, w, h, pen, QBrush{Qt::white});
 
     QPointer text = scene->addText(QString::number(target));
@@ -57,7 +57,6 @@ QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
 
     const QRectF tr = text->boundingRect();
     text->setPos((w - tr.width()) / 2.0, (h - tr.height()) / 2.0);
-
     scene->setSceneRect(0, 0, w, h);
     gv->setFixedSize(w + 2, h + 2);
 
@@ -73,11 +72,11 @@ QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
  * @brief Creates an animation for search algorithms: Animator(array, target,
  * widget, parent)
  *
- * This function sets up the necessary UI components and animator for visualizing
- * search algorithms on a dynamic array. It creates an ArrayWidget to display
- * the array and a header to show the target element being searched for.
- * The function also connects signals from the animator to update the window
- * title based on whether the target is found or not.
+ * This function sets up the necessary UI components and animator for
+ * visualizing search algorithms on a dynamic array. It creates an ArrayWidget
+ * to display the array and a header to show the target element being searched
+ * for. The function also connects signals from the animator to update the
+ * window title based on whether the target is found or not.
  *
  * @tparam Animator The type of the search animator.
  * @tparam Values The type of the dynamic array values.
@@ -88,7 +87,8 @@ QWidget* makeTargetHeader(const Type& target, QWidget* parent = nullptr) {
  * @return An ArrayAnimation struct containing the container view and animator.
  */
 template <typename Animator, typename Values, typename Target>
-static ArrayAnimation makeSearchAnimation(const Values& values, const Target& target) {
+static ArrayAnimation makeSearchAnimation(const Values& values,
+                                          const Target& target) {
     QPointer arrayView = new ArrayWidget(values);
 
     const QPointer container = new QWidget();
@@ -102,20 +102,22 @@ static ArrayAnimation makeSearchAnimation(const Values& values, const Target& ta
     QObject* animator = new Animator(values, target, arrayView, arrayView);
 
     if (auto* sa = qobject_cast<SearchAnimator*>(animator)) {
-        QObject::connect(sa, &SearchAnimator::elementFound, arrayView,
-                         [arrayView, target](const size_t index) {
-                             if (auto* win = arrayView->window()) {
-                                 win->setWindowTitle(
-                                     QString("Found %1 at index %2").arg(target).arg(index));
-                             }
-                         });
-        QObject::connect(sa, &SearchAnimator::elementNotFound, arrayView,
-                         [arrayView, target] {
-                             if (auto* win = arrayView->window()) {
-                                 win->setWindowTitle(
-                                     QString("Element %1 not found").arg(target));
-                             }
-                         });
+        QObject::connect(
+            sa, &SearchAnimator::elementFound, arrayView,
+            [arrayView, target](const size_t index) {
+                if (auto* win = arrayView->window()) {
+                    win->setWindowTitle(
+                        QString("Found %1 at index %2").arg(target).arg(index));
+                }
+            });
+        QObject::connect(
+            sa, &SearchAnimator::elementNotFound, arrayView,
+            [arrayView, target] {
+                if (auto* win = arrayView->window()) {
+                    win->setWindowTitle(
+                        QString("Element %1 not found").arg(target));
+                }
+            });
     }
 
     return {container, animator};
@@ -126,9 +128,9 @@ static ArrayAnimation makeSearchAnimation(const Values& values, const Target& ta
  * @brief Creates an animation for sort algorithms: Animator(array, widget,
  * parent)
  *
- * This function sets up the necessary UI components and animator for visualizing
- * sorting algorithms on a dynamic array. It creates an ArrayWidget to display
- * the array and instantiates the specified sorting animator.
+ * This function sets up the necessary UI components and animator for
+ * visualizing sorting algorithms on a dynamic array. It creates an ArrayWidget
+ * to display the array and instantiates the specified sorting animator.
  *
  * @tparam Animator The type of the sort animator.
  * @tparam Values The type of the dynamic array values.
@@ -139,7 +141,6 @@ static ArrayAnimation makeSearchAnimation(const Values& values, const Target& ta
 template <typename Animator, typename Values>
 static ArrayAnimation makeSortAnimation(Values& values) {
     const QPointer arrayView = new ArrayWidget(values);
-
     const QPointer container = new QWidget();
     const QPointer vbox = new QVBoxLayout(container);
     vbox->setContentsMargins(0, 0, 0, 0);
@@ -185,7 +186,7 @@ ArrayAnimation createLinearSearchAnimation() {
  */
 ArrayAnimation createBinarySearchAnimation() {
     const containers::DynamicArray values{1.6, 2.5, 3.4, 4.8, 5.9,
-                                    6.2, 7.7, 8.1, 9.1, 10.9};
+                                          6.2, 7.7, 8.1, 9.1, 10.9};
     constexpr double target = 9.1;
     return makeSearchAnimation<BinarySearchAnimator>(values, target);
 }
@@ -225,7 +226,8 @@ ArrayAnimation createImprovedBubbleSortAnimation() {
 
 
 /**
- * @brief Creates an animation for insertion sort with linear search on a dynamic array of integers.
+ * @brief Creates an animation for insertion sort with linear search on a
+ * dynamic array of integers.
  *
  * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
  * it and instantiates an InsertSortLSAnimator. The animator drives the

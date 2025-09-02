@@ -9,9 +9,9 @@
 #include "BinarySearchAnimator.hpp"
 #include "BubbleSortAnimator.hpp"
 #include "DynamicArray.hpp"
+#include "InsertSortLSAnimator.hpp"
 #include "LinearSearchAnimator.hpp"
 #include "SearchAnimator.hpp"
-#include "InsertSortLSAnimator.hpp"
 
 
 namespace ui {

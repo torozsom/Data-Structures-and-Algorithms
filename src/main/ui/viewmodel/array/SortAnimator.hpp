@@ -48,18 +48,18 @@ class SortAnimator : public QObject {
         }
 
         switch (const auto [type, a, b] = steps_[current_++]; type) {
-        case StepType::Compare:
-            if (widget_)
-                widget_->highlightIndices(a, b);
-            break;
-        case StepType::Swap:
-            if (widget_)
-                widget_->swapCells(a, b);
-            break;
-        case StepType::MarkSorted:
-            if (widget_)
-                widget_->markSorted(a);
-            break;
+            case StepType::Compare:
+                if (widget_)
+                    widget_->highlightIndices(a, b);
+                break;
+            case StepType::Swap:
+                if (widget_)
+                    widget_->swapCells(a, b);
+                break;
+            case StepType::MarkSorted:
+                if (widget_)
+                    widget_->markSorted(a);
+                break;
         }
     }
 
@@ -88,17 +88,17 @@ class SortAnimator : public QObject {
         auto step_cb = [this](const size_t code, const size_t a,
                               const size_t b) {
             switch (code) {
-            case 0:
-                steps_.emplaceLast(Step{StepType::Compare, a, b});
-                break;
-            case 1:
-                steps_.emplaceLast(Step{StepType::Swap, a, b});
-                break;
-            case 2:
-                steps_.emplaceLast(Step{StepType::MarkSorted, a, b});
-                break;
-            default:
-                break;
+                case 0:
+                    steps_.emplaceLast(Step{StepType::Compare, a, b});
+                    break;
+                case 1:
+                    steps_.emplaceLast(Step{StepType::Swap, a, b});
+                    break;
+                case 2:
+                    steps_.emplaceLast(Step{StepType::MarkSorted, a, b});
+                    break;
+                default:
+                    break;
             }
         };
 
@@ -126,8 +126,7 @@ class SortAnimator : public QObject {
      */
     template <typename Type, typename SortFunc>
     SortAnimator(containers::DynamicArray<Type>& array, ArrayWidget* widget,
-                 SortFunc&& sortFunc, const size_t intervalMs,
-                 QObject* parent = nullptr)
+                 SortFunc&& sortFunc, const size_t intervalMs, QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
         widget_->hideArrow();
         collectSteps(array, std::forward<SortFunc>(sortFunc), intervalMs);
