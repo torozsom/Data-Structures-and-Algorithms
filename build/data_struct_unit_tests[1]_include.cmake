@@ -1,0 +1,5 @@
+if(EXISTS "/home/runner/work/Data-Structures-and-Algorithms/Data-Structures-and-Algorithms/build/data_struct_unit_tests[1]_tests.cmake")
+  include("/home/runner/work/Data-Structures-and-Algorithms/Data-Structures-and-Algorithms/build/data_struct_unit_tests[1]_tests.cmake")
+else()
+  add_test(data_struct_unit_tests_NOT_BUILT data_struct_unit_tests_NOT_BUILT)
+endif()
