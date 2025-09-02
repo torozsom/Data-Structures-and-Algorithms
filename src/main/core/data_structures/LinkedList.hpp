@@ -859,6 +859,21 @@ class LinkedList {
     };
 
 
+    using value_type = Type;
+    using reference = Type&;
+    using const_reference = const Type&;
+    using pointer = Type*;
+    using const_pointer = const Type*;
+
+    using iterator = LinkedList::iterator;
+    using const_iterator = LinkedList::const_iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using difference_type = std::ptrdiff_t;
+    using size_type = size_t;
+
+
     // Regular iterators
     iterator begin() { return iterator(head_); }
     iterator end() { return iterator(nullptr); }
