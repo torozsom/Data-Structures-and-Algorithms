@@ -1,4 +1,6 @@
 #include "ArrayAnimations.h"
+
+#include "HeapSortAnimator.hpp"
 #include "ImprovedBubbleSortAnimator.hpp"
 #include "InsertSortBSAnimator.hpp"
 #include "MergeSortAnimator.hpp"
@@ -212,7 +214,7 @@ ArrayAnimation createBubbleSortAnimation() {
 
 
 /**
- * @brief Creates an animation for bubble sort on a dynamic array of integers.
+ * @brief Creates an animation for improved bubble sort on a dynamic array of integers.
  *
  * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
  * it and instantiates a ImprovedBubbleSortAnimator. The animator drives the
@@ -262,15 +264,51 @@ ArrayAnimation createInsertSortBSAnimation() {
 }
 
 
+/**
+ * @brief Creates an animation for quick sort on a dynamic array of integers.
+ *
+ * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
+ * it and instantiates a QuickSortAnimator. The animator drives the
+ * step-by-step sorting animation on the provided widget.
+ *
+ * @return An ArrayAnimation struct containing the container view and
+ * QuickSortAnimator.
+ */
 ArrayAnimation createQuickSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
     return makeSortAnimation<QuickSortAnimator>(values);
 }
 
 
+/**
+ * @brief Creates an animation for merge sort on a dynamic array of integers.
+ *
+ * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
+ * it and instantiates a MergeSortAnimator. The animator drives the
+ * step-by-step sorting animation on the provided widget.
+ *
+ * @return An ArrayAnimation struct containing the container view and
+ * MergeSortAnimator.
+ */
 ArrayAnimation createMergeSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
     return makeSortAnimation<MergeSortAnimator>(values);
+}
+
+
+/**
+ * @brief Creates an animation for heap sort on a dynamic array of integers.
+ *
+ * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
+ * it and instantiates a HeapSortAnimator. The animator drives the
+ * step-by-step sorting animation on the provided widget.
+ *
+ * @return An ArrayAnimation struct containing the container view and
+ * HeapSortAnimator.
+ */
+ArrayAnimation createHeapSortAnimation() {
+    containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
+    return makeSortAnimation<HeapSortAnimator>(values);
 }
 
 

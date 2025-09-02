@@ -484,7 +484,7 @@ void MergeSort(DynamicArray<Type>& array,
  *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
 template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
-void MaxHeapSort(DynamicArray<Type>& array,
+void HeapSort(DynamicArray<Type>& array,
                Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
     const size_t n = array.size();
     if (n <= 1 || isSorted(array)) {
@@ -503,12 +503,19 @@ void MaxHeapSort(DynamicArray<Type>& array,
             size_t largest = left;
             const size_t right = left + 1;
 
-            if (right < size && array[right] > array[left])
-                largest = right;
+            if (right < size) {
+                callback(0, right, left); // compare children
+                if (array[right] > array[left])
+                    largest = right;
+            }
+
+            callback(0, i, largest); // compare parent with largest child
 
             if (array[i] >= array[largest])
                 break;
 
+            if (i != largest)
+                callback(1, i, largest); // swap parent with largest child
             swap(array[i], array[largest]);
             i = largest;
         }
@@ -520,13 +527,19 @@ void MaxHeapSort(DynamicArray<Type>& array,
 
 
     auto pop_heap = [&](const size_t size) -> void {
+        if (size <= 1)
+            return;
+        callback(1, 0, size - 1); // swap root with last
         swap(array[0], array[size - 1]);
+        callback(2, size - 1, 0); // mark sorted
         sift_down(0, size - 1);
     };
 
     // Repeatedly extract max to the end
     for (size_t heap_size = n; heap_size > 1; --heap_size)
         pop_heap(heap_size);
+
+    callback(2, 0, 0);
 }
 
 

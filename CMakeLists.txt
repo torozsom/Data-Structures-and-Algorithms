@@ -64,6 +64,7 @@ add_executable(algorithms_main
         src/main/ui/viewmodel/array/InsertSortBSAnimator.hpp
         src/main/ui/viewmodel/array/QuickSortAnimator.hpp
         src/main/ui/viewmodel/array/MergeSortAnimator.hpp
+        src/main/ui/viewmodel/array/HeapSortAnimator.hpp
 )
 
 

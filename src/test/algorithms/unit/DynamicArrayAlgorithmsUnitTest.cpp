@@ -67,7 +67,7 @@ TEST_F(DynamicArrayAlgorithmsUnitTest, MergeSortCorrectlySorts) {
 
 TEST_F(DynamicArrayAlgorithmsUnitTest, HeapSortCorrectlySorts) {
     DynamicArray arr{6, 4, 9, 3, 3, 6, 2, 1, 7};
-    MaxHeapSort(arr);
+    HeapSort(arr);
     for (std::size_t i = 1; i < arr.size(); i++)
         EXPECT_LE(arr[i - 1], arr[i]);
 }

@@ -47,12 +47,15 @@ class ArrayPage final : public QWidget {
   private slots:
     void showLinearSearch();
     void showBinarySearch();
+
     void showBubbleSort();
     void showImprovedBubbleSort();
     void showInsertSortLS();
     void showInsertSortBS();
     void showQuickSort();
     void showMergeSort();
+    void showHeapSort();
+
     void restoreUI();
 
 

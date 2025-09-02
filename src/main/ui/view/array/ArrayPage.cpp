@@ -8,20 +8,30 @@ namespace ui {
 void ArrayPage::connectButtonActions() {
     connect(uiForm_->btnLinearSearch, &QPushButton::clicked, this,
             &ArrayPage::showLinearSearch);
+
     connect(uiForm_->btnBinarySearch, &QPushButton::clicked, this,
             &ArrayPage::showBinarySearch);
+
     connect(uiForm_->btnBubbleSort, &QPushButton::clicked, this,
             &ArrayPage::showBubbleSort);
+
     connect(uiForm_->btnImpBubbleSort, &QPushButton::clicked, this,
             &ArrayPage::showImprovedBubbleSort);
+
     connect(uiForm_->btnInsertSortLS, &QPushButton::clicked, this,
             &ArrayPage::showInsertSortLS);
+
     connect(uiForm_->btnInsertSortBS, &QPushButton::clicked, this,
             &ArrayPage::showInsertSortBS);
+
     connect(uiForm_->btnQuickSort, &QPushButton::clicked, this,
             &ArrayPage::showQuickSort);
+
     connect(uiForm_->btnMergeSort, &QPushButton::clicked, this,
             &ArrayPage::showMergeSort);
+
+    connect(uiForm_->btnHeapSort, &QPushButton::clicked, this,
+            &ArrayPage::showHeapSort);
 }
 
 
@@ -164,17 +174,45 @@ void ArrayPage::showInsertSortBS() {
 }
 
 
-
+/**
+ * @brief Show quick sort animation.
+ *
+ * Creates and displays the quick sort animation within a container
+ * that includes a bottom bar with a "Back" button. The animation view expands
+ * to fill the available space, and clicking the "Back" button restores the
+ * original UI.
+ */
 void ArrayPage::showQuickSort() {
     auto [view, animator] = createQuickSortAnimation();
     setupAndShowAnimation(view, animator, "Dynamic Array - Quick Sort");
 }
 
 
-
+/**
+ * @brief Show merge sort animation.
+ *
+ * Creates and displays the merge sort animation within a container
+ * that includes a bottom bar with a "Back" button. The animation view expands
+ * to fill the available space, and clicking the "Back" button restores the
+ * original UI.
+ */
 void ArrayPage::showMergeSort() {
     auto [view, animator] = createMergeSortAnimation();
     setupAndShowAnimation(view, animator, "Dynamic Array - Merge Sort");
+}
+
+
+/**
+ * @brief Show heap sort animation.
+ *
+ * Creates and displays the heap sort animation within a container
+ * that includes a bottom bar with a "Back" button. The animation view expands
+ * to fill the available space, and clicking the "Back" button restores the
+ * original UI.
+ */
+void ArrayPage::showHeapSort() {
+    auto [view, animator] = createHeapSortAnimation();
+    setupAndShowAnimation(view, animator, "Dynamic Array - Heap Sort");
 }
 
 
