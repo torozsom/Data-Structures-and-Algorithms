@@ -40,8 +40,6 @@ ArrayAnimation createInsertSortLSAnimation();
 
 ArrayAnimation createInsertSortBSAnimation();
 
-ArrayAnimation createInsertSortBSAnimation();
-
 ArrayAnimation createQuickSortAnimation();
 
 ArrayAnimation createMergeSortAnimation();
