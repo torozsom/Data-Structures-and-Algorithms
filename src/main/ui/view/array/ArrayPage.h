@@ -50,6 +50,8 @@ class ArrayPage final : public QWidget {
     void showBubbleSort();
     void showImprovedBubbleSort();
     void showInsertSortLS();
+    void showInsertSortBS();
+    void showQuickSort();
     void restoreUI();
 
 

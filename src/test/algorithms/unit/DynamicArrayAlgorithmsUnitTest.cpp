@@ -9,9 +9,9 @@ using namespace array_algorithms;
 
 
 class DynamicArrayAlgorithmsUnitTest : public testing::Test {
-protected:
+  protected:
     void SetUp() override {}
-    void TearDown() override { }
+    void TearDown() override {}
 };
 
 
@@ -31,7 +31,8 @@ TEST_F(DynamicArrayAlgorithmsUnitTest, ImprovedBubbleSortCorrectlySorts) {
 }
 
 
-TEST_F(DynamicArrayAlgorithmsUnitTest, InsertionSortWithLinearSearchCorrectlySorts) {
+TEST_F(DynamicArrayAlgorithmsUnitTest,
+       InsertionSortWithLinearSearchCorrectlySorts) {
     DynamicArray arr{6, 4, 9, 3, 3, 6, 2, 1, 7};
     InsertionSortWithLinearSearch(arr);
     for (std::size_t i = 1; i < arr.size(); i++)
@@ -39,7 +40,8 @@ TEST_F(DynamicArrayAlgorithmsUnitTest, InsertionSortWithLinearSearchCorrectlySor
 }
 
 
-TEST_F(DynamicArrayAlgorithmsUnitTest, InsertionSortWithBinarySearchCorrectlySorts) {
+TEST_F(DynamicArrayAlgorithmsUnitTest,
+       InsertionSortWithBinarySearchCorrectlySorts) {
     DynamicArray arr{6, 4, 9, 3, 3, 6, 2, 1, 7};
     InsertionSortWithBinarySearch(arr);
     for (std::size_t i = 1; i < arr.size(); i++)

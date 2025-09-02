@@ -1,5 +1,5 @@
-#ifndef INSERTION_SORT_WITH_LINEAR_SEARCH_ANIMATOR_HPP
-#define INSERTION_SORT_WITH_LINEAR_SEARCH_ANIMATOR_HPP
+#ifndef INSERTION_SORT_WITH_BINARY_SEARCH_ANIMATOR_HPP
+#define INSERTION_SORT_WITH_BINARY_SEARCH_ANIMATOR_HPP
 
 
 #include <QObject>
@@ -15,29 +15,29 @@ namespace ui {
 
 
 /**
- * @brief Class to animate the insertion sort with linear search algorithm on a
+ * @brief Class to animate the insertion sort with binary search algorithm on a
  * dynamic array.
  *
  * Collects sorting steps from the algorithm and plays them back on an
  * ArrayWidget to visualize the process.
  */
-class InsertSortLSAnimator final : public SortAnimator {
+class InsertSortBSAnimator final : public SortAnimator {
     Q_OBJECT
 
-    /// Functor to perform insertion sort with linear search
-    struct InsertionSortWithLinearSearchFn {
+    /// Functor to perform insertion sort with binary search
+    struct InsertionSortWithBinarySearchFn {
         template <typename Type, typename Callback>
         void operator()(containers::DynamicArray<Type>& array,
                         Callback&& callback) const {
-            array_algorithms::InsertionSortWithLinearSearch(
+            array_algorithms::InsertionSortWithBinarySearch(
                 array, std::forward<Callback>(callback));
         }
     };
 
 
-  public:
+public:
     /// Constructor
-    explicit InsertSortLSAnimator(QObject* parent = nullptr)
+    explicit InsertSortBSAnimator(QObject* parent = nullptr)
         : SortAnimator(parent) {}
 
 
@@ -50,17 +50,17 @@ class InsertSortLSAnimator final : public SortAnimator {
      * @param parent The parent QObject
      */
     template <typename Type>
-    InsertSortLSAnimator(containers::DynamicArray<Type>& array,
+    InsertSortBSAnimator(containers::DynamicArray<Type>& array,
                          ArrayWidget* widget, QObject* parent = nullptr)
-        : SortAnimator(array, widget, InsertionSortWithLinearSearchFn{}, 600,
+        : SortAnimator(array, widget, InsertionSortWithBinarySearchFn{}, 550,
                        parent) {}
 
     /// Destructor
-    ~InsertSortLSAnimator() override = default;
+    ~InsertSortBSAnimator() override = default;
 };
 
 
 } // namespace ui
 
 
-#endif // INSERTION_SORT_WITH_LINEAR_SEARCH_ANIMATOR_HPP
+#endif //INSERTION_SORT_WITH_BINARY_SEARCH_ANIMATOR_HPP

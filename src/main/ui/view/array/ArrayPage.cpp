@@ -16,6 +16,10 @@ void ArrayPage::connectButtonActions() {
             &ArrayPage::showImprovedBubbleSort);
     connect(uiForm_->btnInsertSortLS, &QPushButton::clicked, this,
             &ArrayPage::showInsertSortLS);
+    connect(uiForm_->btnInsertSortBS, &QPushButton::clicked, this,
+            &ArrayPage::showInsertSortBS);
+    connect(uiForm_->btnQuickSort, &QPushButton::clicked, this,
+            &ArrayPage::showQuickSort);
 }
 
 
@@ -140,6 +144,28 @@ void ArrayPage::showInsertSortLS() {
     auto [view, animator] = createInsertSortLSAnimation();
     setupAndShowAnimation(view, animator,
                           "Dynamic Array - Insertion Sort with Linear Search");
+}
+
+
+/**
+ * @brief Show the insertion sort animation with binary search.
+ *
+ * Creates and displays the insertion sort animation with binary search
+ * within a container that includes a bottom bar with a "Back" button.
+ * The animation view expands to fill the available space, and clicking
+ * the "Back" button restores the original UI.
+ */
+void ArrayPage::showInsertSortBS() {
+    auto [view, animator] = createInsertSortBSAnimation();
+    setupAndShowAnimation(view, animator,
+                          "Dynamic Array - Insertion Sort with Binary Search");
+}
+
+
+
+void ArrayPage::showQuickSort() {
+    auto [view, animator] = createQuickSortAnimation();
+    setupAndShowAnimation(view, animator, "Dynamic Array - Quick Sort");
 }
 
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(Algorithms LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 
 enable_testing()
 
@@ -61,6 +61,8 @@ add_executable(algorithms_main
         src/main/ui/viewmodel/array/SortAnimator.hpp
         src/main/ui/viewmodel/array/ImprovedBubbleSortAnimator.hpp
         src/main/ui/viewmodel/array/InsertSortLSAnimator.hpp
+        src/main/ui/viewmodel/array/InsertSortBSAnimator.hpp
+        src/main/ui/viewmodel/array/QuickSortAnimator.hpp
 )
 
 

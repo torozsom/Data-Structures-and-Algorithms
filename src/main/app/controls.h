@@ -3,11 +3,10 @@
 
 
 #include <QApplication>
-
 #include "MainWindow.h"
 
 
 int runApp(int& argc, char** argv);
 
 
-#endif //CONTROLS_H
+#endif // CONTROLS_H

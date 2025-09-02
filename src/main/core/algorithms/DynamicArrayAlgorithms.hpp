@@ -44,139 +44,6 @@ void swap(Type& a, Type& b) noexcept {
 
 
 /**
- * @brief Merge two sorted sub-arrays into a single sorted array (numeric
- * types).
- *
- * Merges data_[left..mid] and data_[mid+1..right] using a single temporary
- * buffer. Original data is not modified until the temporary is fully built,
- * then we copy back in one pass.
- *
- * Strong exception guarantee under numeric-type assumptions (no-throw ops).
- *
- * @param array The array to sort.
- * @param left The left index of the first sub-array.
- * @param mid The middle index, end of the first sub-array.
- * @param right The right index of the second sub-array.
- */
-template <typename Type>
-void merge(DynamicArray<Type>& array, const size_t left, const size_t mid,
-           const size_t right) {
-    const size_t n1 = mid - left + 1;
-    const size_t n2 = right - mid;
-    const size_t n = n1 + n2;
-
-    size_t i = left;
-    size_t j = mid + 1;
-
-    DynamicArray<Type> temp(n);
-
-    // Merge into temp
-    while (i <= mid && j <= right) {
-        if (array[i] <= array[j])
-            temp.addLast(array[i++]);
-        else
-            temp.addLast(array[j++]);
-    }
-
-    while (i <= mid)
-        temp.addLast(array[i++]);
-    while (j <= right)
-        temp.addLast(array[j++]);
-
-    // Copy back
-    for (size_t t = 0; t < n; ++t)
-        array[left + t] = temp[t];
-}
-
-
-/**
- * @brief Recursive merge sort implementation.
- *
- * Recursively splits the array into halves until single-element arrays are
- * reached, then merges them back together in sorted order.
- *
- * @param array The array to sort
- * @param left Left index of the sub-array to sort.
- * @param right Right index of the sub-array to sort.
- */
-template <typename Type>
-void mergeSortRecursive(DynamicArray<Type>& array, const size_t left,
-                        const size_t right) {
-    if (left >= right)
-        return;
-
-    const size_t mid = left + (right - left) / 2;
-
-    // Recursively sort both halves
-    mergeSortRecursive(array, left, mid);
-    mergeSortRecursive(array, mid + 1, right);
-
-    if (array[mid] < array[mid + 1])
-        return;
-
-    // Merge the sorted halves
-    merge(array, left, mid, right);
-}
-
-
-/**
- * @brief Partition the array around a pivot for quicksort.
- *
- * Uses the Lomuto partition scheme, selecting the last element as the pivot.
- * Elements less than or equal to the pivot are moved to its left, and those
- * greater are moved to its right.
- *
- * @param array The array to partition.
- * @param left Left index of the sub-array to partition.
- * @param right Right index of the sub-array to partition.
- * @return The final index of the pivot after partitioning.
- */
-template <typename Type>
-size_t partition(DynamicArray<Type>& array, const size_t left,
-                 const size_t right) {
-    Type pivot = array[right]; // Lomuto: pivot is last element
-    size_t i = left;
-
-    for (size_t j = left; j < right; ++j)
-        if (array[j] <= pivot)
-            swap(array[i++], array[j]);
-
-    swap(array[i], array[right]);
-    return i;
-}
-
-
-/**
- * @brief Recursive quicksort implementation with tail recursion elimination.
- *
- * Partitions the array around a pivot, then recursively sorts the partitions.
- * Tail recursion is eliminated by always recursing into the smaller partition
- * first and iterating on the larger one.
- *
- * @param array The array to sort.
- * @param left Left index of the sub-array to sort.
- * @param right Right index of the sub-array to sort.
- */
-template <typename Type>
-void quickSortRecursive(DynamicArray<Type>& array, size_t left, size_t right) {
-    while (left < right) {
-        // Tail recursion elimination: recurse into smaller side first
-        if (const size_t p = partition(array, left, right);
-            p > 0 && (p - left) < (right - p)) {
-            quickSortRecursive(array, left, p - 1);
-            left = p + 1;
-        } else {
-            if (p + 1 < right)
-                quickSortRecursive(array, p + 1, right);
-            if (p == 0)
-                break; // prevent size_t underflow
-            right = p - 1;
-        }
-    }
-}
-
-
-/**
  * @brief Sift a node down in a max-heap (array-based, 0-indexed).
  *
  * Restores heap property in the range [0, size). No effect if start is a leaf.
@@ -494,19 +361,33 @@ void InsertionSortWithLinearSearch(DynamicArray<Type>& array,
  * - O(1) additional space complexity.
  *
  * @param array The array to sort.
+ * @param callback Optional callback function to report each operation:
+ * The callback receives events as (code, a, b):
+ *  - code = 0: Compare(a, b)           — comparing indices a and b
+ *  - code = 1: Swap(a, b)              — swapping indices a and b
+ *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
-template <typename Type>
-void InsertionSortWithBinarySearch(DynamicArray<Type>& array) {
-    if (array.size() <= 1 || isSorted(array))
+template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
+void InsertionSortWithBinarySearch(DynamicArray<Type>& array,
+                                   Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
+    const size_t n = array.size();
+    if (n <= 1 || isSorted(array)) {
+        for (size_t i = 0; i < n; ++i)
+            callback(2, i, 0);
         return;
+    }
 
-    for (size_t i = 1; i < array.size(); ++i) {
+    // Mark first element as sorted
+    callback(2, 0, 0);
+
+    for (size_t i = 1; i < n; ++i) {
         Type key = array[i];
 
         // Binary search for insertion position in [0, i)
         size_t left = 0, right = i;
         while (left < right) {
             size_t mid = left + (right - left) / 2;
+            callback(0, mid, i);
             if (array[mid] <= key)
                 left = mid + 1;
             else
@@ -514,11 +395,18 @@ void InsertionSortWithBinarySearch(DynamicArray<Type>& array) {
         }
 
         // Shift to make room
-        for (size_t j = i; j > left; --j)
+        for (size_t j = i; j > left; --j) {
             array[j] = array[j - 1];
+            callback(1, j, j - 1); // Swap (shift element right)
+        }
 
+        // Insert key
         array[left] = key;
+        // Mark the newly sorted element
+        callback(2, left, 0);
     }
+    // First element is also in its correct place after the final pass
+    callback(2, 0, 0);
 }
 
 
@@ -541,13 +429,65 @@ void InsertionSortWithBinarySearch(DynamicArray<Type>& array) {
  * on larger side).
  *
  * @param array The array to sort.
+ * @param callback Optional callback function to report each operation:
+ * The callback receives events as (code, a, b):
+ *  - code = 0: Compare(a, b)           — comparing indices a and b
+ *  - code = 1: Swap(a, b)              — swapping indices a and b
+ *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
-template <typename Type>
-void QuickSort(DynamicArray<Type>& array) {
-    if (array.size() <= 1 || isSorted(array))
+template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
+void QuickSort(DynamicArray<Type>& array,
+               Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
+    const size_t n = array.size();
+    if (n <= 1 || isSorted(array)) {
+        for (size_t i = 0; i < n; ++i)
+            callback(2, i, 0);
         return;
+    }
 
-    quickSortRecursive(array, 0, array.size() - 1);
+    auto partition = [&](const size_t left, const size_t right) -> size_t {
+        Type pivot = array[right]; // Lomuto: pivot is last element
+        size_t i = left;
+
+        for (size_t j = left; j < right; ++j) {
+            callback(0, j, right); // compare A[j] with pivot at 'right'
+            if (array[j] <= pivot) {
+                if (i != j)
+                    callback(1, i, j); // swap A[i] <-> A[j]
+                swap(array[i++], array[j]);
+            }
+        }
+
+        if (i != right)
+            callback(1, i, right); // place pivot into final position
+        swap(array[i], array[right]);
+        callback(2, i, 0); // pivot at index i is now in its final place
+        return i;
+    };
+
+
+    auto quick_sort = [&](auto&& self, size_t left, size_t right) -> void {
+        while (left < right) {
+            const size_t p = partition(left, right);
+
+            // Sizes of the two partitions [left..p-1] and [p+1..right]
+            const size_t leftSize  = (p > left)  ? (p - left)   : 0;
+            const size_t rightSize = (p < right) ? (right - p)  : 0;
+
+            if (leftSize < rightSize) {
+                // Recurse on the smaller left side, iterate on the right
+                if (p > 0) self(self, left, p - 1);
+                left = p + 1;
+            } else {
+                // Recurse on the smaller right side, iterate on the left
+                if (p + 1 <= right) self(self, p + 1, right);
+                if (p == 0) break; // prevent underflow on p-1
+                right = p - 1;
+            }
+        }
+    };
+
+    quick_sort(quick_sort, 0, n - 1);
 }
 
 
@@ -570,11 +510,55 @@ void QuickSort(DynamicArray<Type>& array) {
  */
 template <typename Type>
 void MergeSort(DynamicArray<Type>& array) {
-    if (array.size() <= 1 || isSorted(array))
+    const size_t n = array.size();
+    if (n <= 1 || isSorted(array))
         return;
 
-    mergeSortRecursive(array, 0, array.size() - 1);
+    // Reusable temporary buffer to avoid reallocating on each merge
+    DynamicArray<Type> temp(n);
+    for (size_t i = 0; i < n; ++i)
+        temp.addLast(Type());
+
+    // Recursive merge sort on inclusive bounds [left, right]
+    auto merge_sort = [&](auto&& self, size_t left, size_t right) -> void {
+        if (left >= right)
+            return;
+
+        const size_t mid = left + (right - left) / 2;
+
+        // Sort both halves
+        self(self, left, mid);
+        self(self, mid + 1, right);
+
+        // Already in order? Then skip merging.
+        if (array[mid] <= array[mid + 1])
+            return;
+
+        // Merge into temp in [left, right]
+        size_t i = left;
+        size_t j = mid + 1;
+        size_t write = left;
+
+        while (i <= mid && j <= right) {
+            if (array[i] <= array[j])
+                temp[write++] = array[i++];
+            else
+                temp[write++] = array[j++];
+        }
+
+        while (i <= mid)
+            temp[write++] = array[i++];
+        while (j <= right)
+            temp[write++] = array[j++];
+
+        // Copy back to array
+        for (size_t k = left; k <= right; ++k)
+            array[k] = temp[k];
+    };
+
+    merge_sort(merge_sort, 0, n - 1);
 }
+
 
 
 /**

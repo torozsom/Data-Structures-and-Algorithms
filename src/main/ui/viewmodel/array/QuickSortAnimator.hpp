@@ -1,6 +1,5 @@
-#ifndef INSERTION_SORT_WITH_LINEAR_SEARCH_ANIMATOR_HPP
-#define INSERTION_SORT_WITH_LINEAR_SEARCH_ANIMATOR_HPP
-
+#ifndef QUICK_SORT_ANIMATOR_HPP
+#define QUICK_SORT_ANIMATOR_HPP
 
 #include <QObject>
 #include <utility>
@@ -21,23 +20,23 @@ namespace ui {
  * Collects sorting steps from the algorithm and plays them back on an
  * ArrayWidget to visualize the process.
  */
-class InsertSortLSAnimator final : public SortAnimator {
+class QuickSortAnimator final : public SortAnimator {
     Q_OBJECT
 
-    /// Functor to perform insertion sort with linear search
-    struct InsertionSortWithLinearSearchFn {
+    /// Functor to perform insertion sort with binary search
+    struct QuickSortFn {
         template <typename Type, typename Callback>
         void operator()(containers::DynamicArray<Type>& array,
                         Callback&& callback) const {
-            array_algorithms::InsertionSortWithLinearSearch(
+            array_algorithms::QuickSort(
                 array, std::forward<Callback>(callback));
         }
     };
 
 
-  public:
+public:
     /// Constructor
-    explicit InsertSortLSAnimator(QObject* parent = nullptr)
+    explicit QuickSortAnimator(QObject* parent = nullptr)
         : SortAnimator(parent) {}
 
 
@@ -50,17 +49,15 @@ class InsertSortLSAnimator final : public SortAnimator {
      * @param parent The parent QObject
      */
     template <typename Type>
-    InsertSortLSAnimator(containers::DynamicArray<Type>& array,
+    QuickSortAnimator(containers::DynamicArray<Type>& array,
                          ArrayWidget* widget, QObject* parent = nullptr)
-        : SortAnimator(array, widget, InsertionSortWithLinearSearchFn{}, 600,
+        : SortAnimator(array, widget, QuickSortFn{}, 600,
                        parent) {}
 
     /// Destructor
-    ~InsertSortLSAnimator() override = default;
+    ~QuickSortAnimator() override = default;
 };
-
 
 } // namespace ui
 
-
-#endif // INSERTION_SORT_WITH_LINEAR_SEARCH_ANIMATOR_HPP
+#endif //QUICK_SORT_ANIMATOR_HPP

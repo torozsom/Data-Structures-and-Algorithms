@@ -39,6 +39,10 @@ ArrayAnimation createInsertSortLSAnimation();
 
 ArrayAnimation createInsertSortBSAnimation();
 
+ArrayAnimation createInsertSortBSAnimation();
+
+ArrayAnimation createQuickSortAnimation();
+
 
 } // namespace ui
 

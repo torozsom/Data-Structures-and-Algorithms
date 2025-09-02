@@ -126,7 +126,8 @@ class SortAnimator : public QObject {
      */
     template <typename Type, typename SortFunc>
     SortAnimator(containers::DynamicArray<Type>& array, ArrayWidget* widget,
-                 SortFunc&& sortFunc, const size_t intervalMs, QObject* parent = nullptr)
+                 SortFunc&& sortFunc, const size_t intervalMs,
+                 QObject* parent = nullptr)
         : QObject(parent), widget_(widget) {
         widget_->hideArrow();
         collectSteps(array, std::forward<SortFunc>(sortFunc), intervalMs);

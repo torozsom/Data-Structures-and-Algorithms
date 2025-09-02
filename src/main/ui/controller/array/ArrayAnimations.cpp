@@ -1,5 +1,7 @@
 #include "ArrayAnimations.h"
 #include "ImprovedBubbleSortAnimator.hpp"
+#include "InsertSortBSAnimator.hpp"
+#include "QuickSortAnimator.hpp"
 
 #include <QBoxLayout>
 #include <QLabel>
@@ -239,6 +241,29 @@ ArrayAnimation createImprovedBubbleSortAnimation() {
 ArrayAnimation createInsertSortLSAnimation() {
     containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
     return makeSortAnimation<InsertSortLSAnimator>(values);
+}
+
+
+/**
+ * @brief Creates an animation for insertion sort with binary search on a
+ * dynamic array of integers.
+ *
+ * Initializes an unsorted integer array, sets up an ArrayWidget to visualize
+ * it and instantiates an InsertSortBSAnimator. The animator drives the
+ * step-by-step sorting animation on the provided widget.
+ *
+ * @return An ArrayAnimation struct containing the container view and
+ * InsertSortBSAnimator.
+ */
+ArrayAnimation createInsertSortBSAnimation() {
+    containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
+    return makeSortAnimation<InsertSortBSAnimator>(values);
+}
+
+
+ArrayAnimation createQuickSortAnimation() {
+    containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
+    return makeSortAnimation<QuickSortAnimator>(values);
 }
 
 
