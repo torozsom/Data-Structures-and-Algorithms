@@ -52,6 +52,7 @@ class ArrayPage final : public QWidget {
     void showInsertSortLS();
     void showInsertSortBS();
     void showQuickSort();
+    void showMergeSort();
     void restoreUI();
 
 

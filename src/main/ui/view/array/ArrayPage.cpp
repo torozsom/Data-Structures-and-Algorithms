@@ -20,6 +20,8 @@ void ArrayPage::connectButtonActions() {
             &ArrayPage::showInsertSortBS);
     connect(uiForm_->btnQuickSort, &QPushButton::clicked, this,
             &ArrayPage::showQuickSort);
+    connect(uiForm_->btnMergeSort, &QPushButton::clicked, this,
+            &ArrayPage::showMergeSort);
 }
 
 
@@ -166,6 +168,13 @@ void ArrayPage::showInsertSortBS() {
 void ArrayPage::showQuickSort() {
     auto [view, animator] = createQuickSortAnimation();
     setupAndShowAnimation(view, animator, "Dynamic Array - Quick Sort");
+}
+
+
+
+void ArrayPage::showMergeSort() {
+    auto [view, animator] = createMergeSortAnimation();
+    setupAndShowAnimation(view, animator, "Dynamic Array - Merge Sort");
 }
 
 

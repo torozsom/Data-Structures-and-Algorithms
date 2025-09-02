@@ -1,5 +1,5 @@
-#ifndef QUICK_SORT_ANIMATOR_HPP
-#define QUICK_SORT_ANIMATOR_HPP
+#ifndef MERGE_SORT_ANIMATOR_HPP
+#define MERGE_SORT_ANIMATOR_HPP
 
 #include <QObject>
 #include <utility>
@@ -14,21 +14,21 @@ namespace ui {
 
 
 /**
- * @brief Class to animate the quick sort algorithm on a
+ * @brief Class to animate the merge sort algorithm on a
  * dynamic array.
  *
  * Collects sorting steps from the algorithm and plays them back on an
  * ArrayWidget to visualize the process.
  */
-class QuickSortAnimator final : public SortAnimator {
+class MergeSortAnimator final : public SortAnimator {
     Q_OBJECT
 
-    /// Functor to perform quick sort
-    struct QuickSortFn {
+    /// Functor to perform merge sort
+    struct MergeSortFn {
         template <typename Type, typename Callback>
         void operator()(containers::DynamicArray<Type>& array,
                         Callback&& callback) const {
-            array_algorithms::QuickSort(
+            array_algorithms::MergeSort(
                 array, std::forward<Callback>(callback));
         }
     };
@@ -36,7 +36,7 @@ class QuickSortAnimator final : public SortAnimator {
 
 public:
     /// Constructor
-    explicit QuickSortAnimator(QObject* parent = nullptr)
+    explicit MergeSortAnimator(QObject* parent = nullptr)
         : SortAnimator(parent) {}
 
 
@@ -49,15 +49,15 @@ public:
      * @param parent The parent QObject
      */
     template <typename Type>
-    QuickSortAnimator(containers::DynamicArray<Type>& array,
+    MergeSortAnimator(containers::DynamicArray<Type>& array,
                          ArrayWidget* widget, QObject* parent = nullptr)
-        : SortAnimator(array, widget, QuickSortFn{}, 550,
+        : SortAnimator(array, widget, MergeSortFn{}, 550,
                        parent) {}
 
     /// Destructor
-    ~QuickSortAnimator() override = default;
+    ~MergeSortAnimator() override = default;
 };
 
 } // namespace ui
 
-#endif //QUICK_SORT_ANIMATOR_HPP
+#endif //MERGE_SORT_ANIMATOR_HPP

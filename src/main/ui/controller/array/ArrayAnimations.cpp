@@ -1,6 +1,7 @@
 #include "ArrayAnimations.h"
 #include "ImprovedBubbleSortAnimator.hpp"
 #include "InsertSortBSAnimator.hpp"
+#include "MergeSortAnimator.hpp"
 #include "QuickSortAnimator.hpp"
 
 #include <QBoxLayout>
@@ -264,6 +265,12 @@ ArrayAnimation createInsertSortBSAnimation() {
 ArrayAnimation createQuickSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
     return makeSortAnimation<QuickSortAnimator>(values);
+}
+
+
+ArrayAnimation createMergeSortAnimation() {
+    containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
+    return makeSortAnimation<MergeSortAnimator>(values);
 }
 
 

@@ -1,5 +1,5 @@
 /**
-* @file DynamicArrayAlgorithms.hpp
+ * @file DynamicArrayAlgorithms.hpp
  *
  * This file contains sorting and searching algorithms that operate on the
  * containers::DynamicArray class, along with utility functions used by these
@@ -511,12 +511,21 @@ void QuickSort(DynamicArray<Type>& array,
  * - O(n) additional space complexity for the temporary buffer.
  *
  * @param array The array to sort.
+ * @param callback Optional callback function to report each operation:
+ * The callback receives events as (code, a, b):
+ *  - code = 0: Compare(a, b)           — comparing indices a and b
+ *  - code = 1: Swap(a, b)              — swapping indices a and b
+ *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
-template <typename Type>
-void MergeSort(DynamicArray<Type>& array) {
+template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
+void MergeSort(DynamicArray<Type>& array,
+               Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
     const size_t n = array.size();
-    if (n <= 1 || isSorted(array))
+    if (n <= 1 || isSorted(array)) {
+        for (size_t i = 0; i < n; ++i)
+            callback(2, i, 0);
         return;
+    }
 
     // Reusable temporary buffer to avoid reallocating on each merge
     DynamicArray<Type> temp(n);
@@ -535,6 +544,7 @@ void MergeSort(DynamicArray<Type>& array) {
         self(self, mid + 1, right);
 
         // Already in order? Then skip merging.
+        callback(0, mid, mid + 1);
         if (array[mid] <= array[mid + 1])
             return;
 
@@ -544,23 +554,41 @@ void MergeSort(DynamicArray<Type>& array) {
         size_t write = left;
 
         while (i <= mid && j <= right) {
-            if (array[i] <= array[j])
+            callback(0, i, j);
+            if (array[i] <= array[j]) {
+                if (write != i)
+                    callback(1, write, i);
                 temp[write++] = array[i++];
-            else
+            } else {
+                if (write != j)
+                    callback(1, write, j);
                 temp[write++] = array[j++];
+            }
         }
 
-        while (i <= mid)
+        while (i <= mid) {
+            if (write != i)
+                callback(1, write, i);
             temp[write++] = array[i++];
-        while (j <= right)
+        }
+
+        while (j <= right) {
+            if (write != j)
+                callback(1, write, j);
             temp[write++] = array[j++];
+        }
 
         // Copy back to array
-        for (size_t k = left; k <= right; ++k)
+        for (size_t k = left; k <= right; ++k) {
+            callback(1, k, k);
             array[k] = temp[k];
+        }
     };
 
     merge_sort(merge_sort, 0, n - 1);
+
+    for (size_t i = 0; i < n; ++i)
+        callback(2, i, 0);
 }
 
 

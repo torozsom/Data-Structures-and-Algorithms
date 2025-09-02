@@ -12,6 +12,7 @@
 #include "InsertSortLSAnimator.hpp"
 #include "LinearSearchAnimator.hpp"
 #include "SearchAnimator.hpp"
+#include "MergeSortAnimator.hpp"
 
 
 namespace ui {
@@ -42,6 +43,8 @@ ArrayAnimation createInsertSortBSAnimation();
 ArrayAnimation createInsertSortBSAnimation();
 
 ArrayAnimation createQuickSortAnimation();
+
+ArrayAnimation createMergeSortAnimation();
 
 
 } // namespace ui
