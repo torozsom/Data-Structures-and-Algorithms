@@ -43,112 +43,6 @@ void swap(Type& a, Type& b) noexcept {
 }
 
 
-/**
- * @brief Sift a node down in a max-heap (array-based, 0-indexed).
- *
- * Restores heap property in the range [0, size). No effect if start is a leaf.
- *
- * @param array The array representing the heap.
- * @param start The index to sift down from (typically 0).
- * @param size The heap size (considered range is [0, size)).
- */
-template <typename Type>
-void siftDown(DynamicArray<Type>& array, const size_t start,
-              const size_t size) {
-    size_t i = start;
-    while (true) {
-        const size_t left = 2 * i + 1;
-        if (left >= size)
-            break;
-
-        size_t largest = left;
-        const size_t right = left + 1;
-
-        if (right < size && array[right] > array[left])
-            largest = right;
-
-        if (array[i] >= array[largest])
-            break;
-
-        swap(array[i], array[largest]);
-        i = largest;
-    }
-}
-
-
-/**
- * @brief Sift a node up in a max-heap (array-based, 0-indexed).
- *
- * Restores heap property assuming the new element is at index idx.
- *
- * @param array The array representing the heap.
- * @param idx The index to sift up from (typically size-1 after an insertion).
- */
-template <typename Type>
-void siftUp(DynamicArray<Type>& array, size_t idx) {
-    while (idx > 0) {
-        const size_t parent = (idx - 1) / 2;
-        if (array[parent] >= array[idx])
-            break;
-        swap(array[parent], array[idx]);
-        idx = parent;
-    }
-}
-
-
-/**
- * @brief Transform the array into a max-heap in-place.
- *
- * Uses bottom-up heap construction in O(n) time.
- *
- * @param array The array to heapify (range is [0, a.size())).
- */
-template <typename Type>
-void makeHeap(DynamicArray<Type>& array) {
-    const size_t n = array.size();
-    if (n <= 1)
-        return;
-
-    for (size_t i = (n - 2) / 2 + 1; i-- > 0;)
-        siftDown(array, i, n);
-}
-
-
-/**
- * @brief Insert the last element into the heap (restore heap property).
- *
- * Assumes the logical heap occupies [0, size), with a new element placed at
- * index size-1. After the call, [0, size) is a valid max-heap.
- *
- * @param array The array containing the heap.
- * @param size The new heap size (must be in [1, a.size()]).
- */
-template <typename Type>
-void pushHeap(DynamicArray<Type>& array, const size_t size) {
-    if (size == 0 || size > array.size())
-        return;
-    siftUp(array, size - 1);
-}
-
-
-/**
- * @brief Move the max element to the end (size-1) and restore heap on prefix.
- *
- * Swaps array[0] with array[size-1] and then fixes the heap on [0, size-1).
- * After the call, the range [size-1, size) contains the extracted maximum.
- *
- * @param array The array containing the heap.
- * @param size The current heap size (must be in [1, array.size()]).
- */
-template <typename Type>
-void popHeap(DynamicArray<Type>& array, const size_t size) {
-    if (size <= 1 || size > array.size())
-        return;
-    swap(array[0], array[size - 1]);
-    siftDown(array, 0, size - 1);
-}
-
-
 /// Checks if the array is sorted in ascending order.
 template <typename Type>
 bool isSorted(const DynamicArray<Type>& array) noexcept {
@@ -569,6 +463,72 @@ void MergeSort(DynamicArray<Type>& array,
 }
 
 
+/**
+ * @brief Sorts the array in ascending order using HeapSort (max-heap).
+ *
+ * In-place, not stable. Builds a max-heap, then repeatedly moves the maximum
+ * to the end and shrinks the heap.
+ *
+ * Note for float/double: Arrays containing NaN are unsupported for ordering;
+ * results are unspecified.
+ *
+ * @par Complexity
+ * - O(n log n) time.
+ * - O(1) extra space (ignoring recursion stack as there is none).
+ *
+ * @param array The array to sort.
+ * @param callback Optional callback function to report each operation:
+ * The callback receives events as (code, a, b):
+ *  - code = 0: Compare(a, b)           — comparing indices a and b
+ *  - code = 1: Swap(a, b)              — swapping indices a and b
+ *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
+ */
+template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
+void MaxHeapSort(DynamicArray<Type>& array,
+               Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
+    const size_t n = array.size();
+    if (n <= 1 || isSorted(array)) {
+        for (size_t i = 0; i < n; ++i)
+            callback(2, i, 0);
+        return;
+    }
+
+    auto sift_down = [&](const size_t start, const size_t size) -> void {
+        size_t i = start;
+        while (true) {
+            const size_t left = 2 * i + 1;
+            if (left >= size)
+                break;
+
+            size_t largest = left;
+            const size_t right = left + 1;
+
+            if (right < size && array[right] > array[left])
+                largest = right;
+
+            if (array[i] >= array[largest])
+                break;
+
+            swap(array[i], array[largest]);
+            i = largest;
+        }
+    };
+
+    // Make heap
+    for (size_t i = (n - 2) / 2 + 1; i-- > 0;)
+        sift_down(i, n);
+
+
+    auto pop_heap = [&](const size_t size) -> void {
+        swap(array[0], array[size - 1]);
+        sift_down(0, size - 1);
+    };
+
+    // Repeatedly extract max to the end
+    for (size_t heap_size = n; heap_size > 1; --heap_size)
+        pop_heap(heap_size);
+}
+
 
 /**
  * @brief Bin Sort for a known 0-based universe.
@@ -939,34 +899,7 @@ void RadixSortMSD(DynamicArray<Type>& array) {
 }
 
 
-/**
- * @brief Sorts the array in ascending order using HeapSort (max-heap).
- *
- * In-place, not stable. Builds a max-heap, then repeatedly moves the maximum
- * to the end and shrinks the heap.
- *
- * Note for float/double: Arrays containing NaN are unsupported for ordering;
- * results are unspecified.
- *
- * @par Complexity
- * - O(n log n) time.
- * - O(1) extra space (ignoring recursion stack as there is none).
- *
- * @param array The array to sort.
- */
-template <typename Type>
-void HeapSort(DynamicArray<Type>& array) {
-    const size_t n = array.size();
-    if (n <= 1 || isSorted(array))
-        return;
-
-    makeHeap(array);
-    for (size_t heap_size = n; heap_size > 1; --heap_size)
-        popHeap(array, heap_size);
-}
-
-
-/*** Searching Algorithms ***/
+// -- Searching Algorithms -- //
 
 
 /**
