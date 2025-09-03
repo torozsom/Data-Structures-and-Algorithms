@@ -53,18 +53,18 @@ class SortAnimator final : public QObject {
         }
 
         switch (const auto [type, a, b] = steps_[current_++]; type) {
-        case StepType::Compare:
-            if (widget_)
-                widget_->highlightIndices(a, b);
-            break;
-        case StepType::Swap:
-            if (widget_)
-                widget_->swapCells(a, b);
-            break;
-        case StepType::MarkSorted:
-            if (widget_)
-                widget_->markSorted(a);
-            break;
+            case StepType::Compare:
+                if (widget_)
+                    widget_->highlightIndices(a, b);
+                break;
+            case StepType::Swap:
+                if (widget_)
+                    widget_->swapCells(a, b);
+                break;
+            case StepType::MarkSorted:
+                if (widget_)
+                    widget_->markSorted(a);
+                break;
         }
     }
 
