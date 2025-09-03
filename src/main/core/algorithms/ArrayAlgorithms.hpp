@@ -432,26 +432,37 @@ void MergeSort(DynamicArray<Type>& array,
         self(self, left, mid);
         self(self, mid + 1, right);
 
-        // Merge the two sorted halves in-place using adjacent swaps.
-        size_t i = left;
-        size_t j = mid + 1;
+        size_t n1 = mid - left + 1;
+        size_t n2 = right - mid;
 
-        while (i <= mid && j <= right) {
-            callback(0, i, j); // compare
-            if (array[i] <= array[j]) {
-                ++i;
+        // Create temp arrays
+        DynamicArray<Type> Left(n1), Right(n2);
+
+        // Copy data to temp arrays
+        for (int i = 0; i < n1; i++)
+            Left.addLast(array[left + i]);
+        for (int j = 0; j < n2; j++)
+            Right.addLast(array[mid + 1 + j]);
+
+        size_t i = 0, j = 0, k = left;
+
+        // Merge the temp arrays back into array[left..right]
+        while (i < n1 && j < n2) {
+            if (Left[i] <= Right[j]) {
+                array[k++] = Left[i++];
             } else {
-                // Move array[j] into position i by swapping it leftwards
-                size_t index = j;
-                while (index > i) {
-                    callback(1, index, index - 1); // swap
-                    swap(array[index], array[index - 1]);
-                    --index;
-                }
-                ++i;
-                ++mid; // one more element now in left half
-                ++j;
+                array[k++] = Right[j++];
             }
+        }
+
+        // Copy the remaining elements of Left if there are any
+        while (i < n1) {
+            array[k++] = Left[i++];
+        }
+
+        // Copy the remaining elements of Right if there are any
+        while (j < n2) {
+            array[k++] = Right[j++];
         }
     };
 
