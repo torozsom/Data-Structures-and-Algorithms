@@ -37,18 +37,18 @@ struct ImprovedBubbleSortFn {
 };
 
 
-struct InsertionSortLSFn {
+struct LinearInsertionSortFn {
     template <typename Array, typename Callback>
     void operator()(Array& array, Callback&& callback) {
-        array_algorithms::InsertionSortWithLinearSearch(array, callback);
+        array_algorithms::LinearInsertionSort(array, callback);
     }
 };
 
 
-struct InsertionSortBSFn {
+struct BinaryInsertionSortFn {
     template <typename Array, typename Callback>
     void operator()(Array& array, Callback&& callback) {
-        array_algorithms::InsertionSortWithBinarySearch(array, callback);
+        array_algorithms::BinaryInsertionSort(array, callback);
     }
 };
 

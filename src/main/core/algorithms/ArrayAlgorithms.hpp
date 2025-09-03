@@ -196,7 +196,7 @@ void ImprovedBubbleSort(DynamicArray<Type>& array,
  *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
 template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
-void InsertionSortWithLinearSearch(DynamicArray<Type>& array,
+void LinearInsertionSort(DynamicArray<Type>& array,
                                    Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
     const size_t n = array.size();
     if (n <= 1 || isSorted(array)) {
@@ -262,7 +262,7 @@ void InsertionSortWithLinearSearch(DynamicArray<Type>& array,
  *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
 template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
-void InsertionSortWithBinarySearch(DynamicArray<Type>& array,
+void BinaryInsertionSort(DynamicArray<Type>& array,
                                    Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
     const size_t n = array.size();
     if (n <= 1 || isSorted(array)) {

@@ -241,7 +241,7 @@ ArrayAnimation createImprovedBubbleSortAnimation() {
  */
 ArrayAnimation createInsertSortLSAnimation() {
     containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
-    return makeSortAnimation(values, InsertionSortLSFn{});
+    return makeSortAnimation(values, LinearInsertionSortFn{});
 }
 
 
@@ -258,7 +258,7 @@ ArrayAnimation createInsertSortLSAnimation() {
  */
 ArrayAnimation createInsertSortBSAnimation() {
     containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
-    return makeSortAnimation(values, InsertionSortBSFn{});
+    return makeSortAnimation(values, BinaryInsertionSortFn{});
 }
 
 
