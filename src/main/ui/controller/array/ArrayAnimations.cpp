@@ -1,8 +1,5 @@
 #include "ArrayAnimations.h"
 
-#include <QBoxLayout>
-#include <QLabel>
-
 
 namespace ui {
 
@@ -174,10 +171,7 @@ static ArrayAnimation makeSortAnimation(Values& values, SortFunc&& sortFunc) {
 ArrayAnimation createLinearSearchAnimation() {
     const containers::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     constexpr int target = 8;
-    return makeSearchAnimation(
-        values, target, [](const auto& arr, const auto& val, auto cb) {
-            return array_algorithms::LinearSearch(arr, val, cb);
-        });
+    return makeSearchAnimation(values, target, LinearSearchFn{});
 }
 
 
@@ -197,10 +191,7 @@ ArrayAnimation createBinarySearchAnimation() {
     const containers::DynamicArray values{1.6, 2.5, 3.4, 4.8, 5.9,
                                           6.2, 7.7, 8.1, 9.1, 10.9};
     constexpr double target = 9.1;
-    return makeSearchAnimation(
-        values, target, [](const auto& arr, const auto& val, auto cb) {
-            return array_algorithms::BinarySearch(arr, val, cb);
-        });
+    return makeSearchAnimation(values, target, BinarySearchFn{});
 }
 
 
@@ -216,9 +207,7 @@ ArrayAnimation createBinarySearchAnimation() {
  */
 ArrayAnimation createBubbleSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation(values, [](auto& arr, auto cb) {
-        array_algorithms::BubbleSort(arr, cb);
-    });
+    return makeSortAnimation(values, BubbleSortFn{});
 }
 
 
@@ -235,9 +224,7 @@ ArrayAnimation createBubbleSortAnimation() {
 ArrayAnimation createImprovedBubbleSortAnimation() {
     containers::DynamicArray values{6.4, 4.3, 9.7, 3.2, 3.2,
                                     6.5, 2.4, 1.0, 7.0, 6.6};
-    return makeSortAnimation(values, [](auto& arr, auto cb) {
-        array_algorithms::ImprovedBubbleSort(arr, cb);
-    });
+    return makeSortAnimation(values, ImprovedBubbleSortFn{});
 }
 
 
@@ -254,9 +241,7 @@ ArrayAnimation createImprovedBubbleSortAnimation() {
  */
 ArrayAnimation createInsertSortLSAnimation() {
     containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
-    return makeSortAnimation(values, [](auto& arr, auto cb) {
-        array_algorithms::InsertionSortWithLinearSearch(arr, cb);
-    });
+    return makeSortAnimation(values, InsertionSortLSFn{});
 }
 
 
@@ -273,9 +258,7 @@ ArrayAnimation createInsertSortLSAnimation() {
  */
 ArrayAnimation createInsertSortBSAnimation() {
     containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
-    return makeSortAnimation(values, [](auto& arr, auto cb) {
-        array_algorithms::InsertionSortWithBinarySearch(arr, cb);
-    });
+    return makeSortAnimation(values, InsertionSortBSFn{});
 }
 
 
@@ -291,9 +274,7 @@ ArrayAnimation createInsertSortBSAnimation() {
  */
 ArrayAnimation createQuickSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation(values, [](auto& arr, auto cb) {
-        array_algorithms::QuickSort(arr, cb);
-    });
+    return makeSortAnimation(values, QuickSortFn{});
 }
 
 
@@ -309,9 +290,7 @@ ArrayAnimation createQuickSortAnimation() {
  */
 ArrayAnimation createMergeSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation(values, [](auto& arr, auto cb) {
-        array_algorithms::MergeSort(arr, cb);
-    });
+    return makeSortAnimation(values, MergeSortFn{});
 }
 
 
@@ -327,9 +306,7 @@ ArrayAnimation createMergeSortAnimation() {
  */
 ArrayAnimation createHeapSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation(values, [](auto& arr, auto cb) {
-        array_algorithms::HeapSort(arr, cb);
-    });
+    return makeSortAnimation(values, HeapSortFn{});
 }
 
 

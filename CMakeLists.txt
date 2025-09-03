@@ -40,7 +40,7 @@ add_executable(algorithms_main
         src/main/core/data_structures/MaxHeap.hpp
         src/main/core/data_structures/Queue.hpp
 
-        src/main/core/algorithms/DynamicArrayAlgorithms.hpp
+        src/main/core/algorithms/ArrayAlgorithms.hpp
 
         src/main/ui/view/MainWindow.h
         src/main/ui/view/MainWindow.cpp
@@ -56,6 +56,7 @@ add_executable(algorithms_main
         src/main/ui/controller/array/ArrayAnimations.cpp
         src/main/ui/controller/array/ArrayAnimations.h
         src/main/ui/viewmodel/array/SortAnimator.hpp
+        src/main/ui/viewmodel/array/ArrayAlgorithmFunctors.hpp
 )
 
 

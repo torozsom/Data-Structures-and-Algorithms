@@ -5,10 +5,13 @@
 #include <QObject>
 #include <QWidget>
 #include <QPointer>
+#include <QBoxLayout>
+#include <QLabel>
 
 #include "SearchAnimator.hpp"
 #include "SortAnimator.hpp"
-#include "DynamicArrayAlgorithms.hpp"
+#include "ArrayAlgorithms.hpp"
+#include "ArrayAlgorithmFunctors.hpp"
 
 namespace ui {
 

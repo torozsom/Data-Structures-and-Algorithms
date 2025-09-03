@@ -1,5 +1,5 @@
 #include "DynamicArray.hpp"
-#include "DynamicArrayAlgorithms.hpp"
+#include "ArrayAlgorithms.hpp"
 
 #include <gtest/gtest.h>
 
