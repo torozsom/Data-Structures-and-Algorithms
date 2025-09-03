@@ -1,5 +1,5 @@
 /**
- * @file DynamicArrayAlgorithms.hpp
+ * @file ArrayAlgorithms.hpp
  *
  * This file contains sorting and searching algorithms that operate on the
  * containers::DynamicArray class, along with utility functions used by these
@@ -405,21 +405,12 @@ void QuickSort(DynamicArray<Type>& array,
  * - O(n) additional space complexity for the temporary buffer.
  *
  * @param array The array to sort.
- * @param callback Optional callback function to report each operation:
- * The callback receives events as (code, a, b):
- *  - code = 0: Compare(a, b)           — comparing indices a and b
- *  - code = 1: Swap(a, b)              — swapping indices a and b
- *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
  */
-template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
-void MergeSort(DynamicArray<Type>& array,
-               Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
+template <typename Type>
+void MergeSort(DynamicArray<Type>& array) {
     const size_t n = array.size();
-    if (n <= 1 || isSorted(array)) {
-        for (size_t i = 0; i < n; ++i)
-            callback(2, i, 0);
+    if (n <= 1 || isSorted(array))
         return;
-    }
 
     // Recursive merge sort on inclusive bounds [left, right]
     auto merge_sort = [&](auto&& self, size_t left, size_t right) -> void {
@@ -448,21 +439,93 @@ void MergeSort(DynamicArray<Type>& array,
 
         // Merge the temp arrays back into array[left..right]
         while (i < n1 && j < n2) {
-            if (Left[i] <= Right[j]) {
+            if (Left[i] <= Right[j])
                 array[k++] = Left[i++];
-            } else {
+            else
                 array[k++] = Right[j++];
-            }
         }
 
         // Copy the remaining elements of Left if there are any
-        while (i < n1) {
+        while (i < n1)
             array[k++] = Left[i++];
-        }
 
         // Copy the remaining elements of Right if there are any
-        while (j < n2) {
+        while (j < n2)
             array[k++] = Right[j++];
+    };
+
+    merge_sort(merge_sort, 0, n - 1);
+}
+
+
+/**
+ * @brief Sorts the array in ascending (non-decreasing) order using a
+ * divide-and-conquer merge-sort structure with an in-place merge.
+ *
+ * The array is recursively split into halves and each half is sorted. The
+ * merge step is performed in-place by repeatedly moving the next out-of-order
+ * element from the right half leftwards using adjacent swaps (insertion-style
+ * merging). This keeps the algorithm stable and uses O(1) auxiliary space
+ * (besides the recursion stack), but the merge can be quadratic when many
+ * elements must be moved across the boundary.
+ *
+ * Note for float/double: Arrays containing NaN are unsupported for ordering;
+ * results are unspecified.
+ *
+ * @par Complexity
+ * - Time: Θ(n^2) in the worst case and typically on average for random inputs,
+ *   due to potentially quadratic merging; best case can approach O(n log n)
+ *   when the two halves are already almost merged.
+ * - Space: O(1) auxiliary space for data (plus O(log n) recursion stack).
+ *
+ * @param array The array to sort.
+ * @param callback Optional callback function to report each operation:
+ * The callback receives events as (code, a, b):
+ *  - code = 0: Compare(a, b)           — comparing indices a and b
+ *  - code = 1: Swap(a, b)              — swapping indices a and b
+ *  - code = 2: MarkSorted(a, ignored)  — index a is now in final sorted place
+ */
+template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
+void MergeSortInPlace(DynamicArray<Type>& array,
+               Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
+    const size_t n = array.size();
+    if (n <= 1 || isSorted(array)) {
+        for (size_t i = 0; i < n; ++i)
+            callback(2, i, 0);
+        return;
+    }
+
+    // Recursive merge sort on inclusive bounds [left, right]
+    auto merge_sort = [&](auto&& self, size_t left, size_t right) -> void {
+        if (left >= right)
+            return;
+
+        size_t mid = left + (right - left) / 2;
+
+        // Sort both halves
+        self(self, left, mid);
+        self(self, mid + 1, right);
+
+        // Merge the two sorted halves in-place using adjacent swaps.
+        size_t i = left;
+        size_t j = mid + 1;
+
+        while (i <= mid && j <= right) {
+            callback(0, i, j); // compare
+            if (array[i] <= array[j]) {
+                ++i;
+            } else {
+                // Move array[j] into position i by swapping it leftwards
+                size_t index = j;
+                while (index > i) {
+                    callback(1, index, index - 1); // swap
+                    swap(array[index], array[index - 1]);
+                    --index;
+                }
+                ++i;
+                ++mid; // one more element now in left half
+                ++j;
+            }
         }
     };
 

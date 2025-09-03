@@ -61,10 +61,10 @@ struct QuickSortFn {
 };
 
 
-struct MergeSortFn {
+struct MergeSortInPlaceFn {
     template <typename Array, typename Callback>
     void operator()(Array& array, Callback&& callback) {
-        array_algorithms::MergeSort(array, callback);
+        array_algorithms::MergeSortInPlace(array, callback);
     }
 };
 

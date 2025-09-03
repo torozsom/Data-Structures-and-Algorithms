@@ -223,7 +223,7 @@ ArrayAnimation createBubbleSortAnimation() {
  */
 ArrayAnimation createImprovedBubbleSortAnimation() {
     containers::DynamicArray values{6.4, 4.3, 9.7, 3.2, 3.2,
-                                    6.5, 2.4, 1.0, 7.0, 6.6};
+                                    6.5, 2.4, 1.1, 7.2, 6.6};
     return makeSortAnimation(values, ImprovedBubbleSortFn{});
 }
 
@@ -290,7 +290,7 @@ ArrayAnimation createQuickSortAnimation() {
  */
 ArrayAnimation createMergeSortAnimation() {
     containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
-    return makeSortAnimation(values, MergeSortFn{});
+    return makeSortAnimation(values, MergeSortInPlaceFn{});
 }
 
 
