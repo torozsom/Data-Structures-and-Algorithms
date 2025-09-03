@@ -54,6 +54,85 @@ bool isSorted(const DynamicArray<Type>& array) noexcept {
 }
 
 
+// -- Searching Algorithms -- //
+
+
+/**
+ * @brief Performs a linear search in the array for the given element.
+ *
+ * Scans the array from start to end, comparing each element to the target.
+ * Returns the index of the first occurrence of the element, or array.size()
+ * if not found.
+ *
+ * @param array The array to search in.
+ * @param target The element to search for.
+ * @param callback The callback function to invoke on each index visited.
+ * @return The index of the found element, or array.size() if not found.
+ *
+ * @par Complexity
+ * - O(n) time.
+ * - O(1) space.
+ */
+template <typename Type, typename Callback = void (*)(size_t)>
+size_t LinearSearch(const DynamicArray<Type>& array, const Type& target,
+                    Callback&& callback = [](size_t) {}) {
+    for (size_t i = 0; i < array.size(); ++i) {
+        callback(i);
+        if (array[i] == target)
+            return i;
+    }
+    return array.size();
+}
+
+
+/**
+ * @brief Performs a binary search for the given element.
+ *
+ * Requires the array to be sorted in non-decreasing (ascending) order.
+ * Searches for an element equal to the given key and returns its index if
+ * present; otherwise returns array.size().
+ *
+ * Note for float/double: Arrays containing NaN are unsupported for ordering;
+ * results are unspecified.
+ *
+ * @param array The array to search in.
+ * @param target The element to search for.
+ * @param callback The callback function to invoke on each index visited.
+ * @return The index of the found element, or array.size() if not found.
+ *
+ * @par Complexity
+ * - O(log n) time.
+ * - O(1) space.
+ */
+template <typename Type, typename Callback>
+size_t BinarySearch(const DynamicArray<Type>& array, const Type& target,
+                    Callback&& callback = [](size_t) -> void {}) {
+    // left: inclusive lower bound, right: exclusive upper bound
+    size_t left = 0;
+    size_t right = array.size() - 1;
+
+    while (left < right) {
+        size_t middle = left + (right - left) / 2;
+        callback(middle);
+        if (array[middle] == target)
+            return middle;
+        if (array[middle] < target)
+            left = middle + 1;
+        else
+            right = middle;
+    }
+
+    if (left < array.size())
+        callback(left);
+
+    // left is the first index not less than element
+    if (left < array.size() && array[left] == target)
+        return left;
+
+    return array.size();
+}
+
+
 //*** Sorting Algorithms ***//
 
 
@@ -983,85 +1062,6 @@ void RadixSortMSD(DynamicArray<Type>& array) {
 
     // Start from the MSB (byte index sizeof(Type)-1), flip sign bit at MSB
     msd_rec(msd_rec, 0, n, static_cast<int>(sizeof(Type)) - 1, true);
-}
-
-
-// -- Searching Algorithms -- //
-
-
-/**
- * @brief Performs a linear search in the array for the given element.
- *
- * Scans the array from start to end, comparing each element to the target.
- * Returns the index of the first occurrence of the element, or array.size()
- * if not found.
- *
- * @param array The array to search in.
- * @param target The element to search for.
- * @param callback The callback function to invoke on each index visited.
- * @return The index of the found element, or array.size() if not found.
- *
- * @par Complexity
- * - O(n) time.
- * - O(1) space.
- */
-template <typename Type, typename Callback = void (*)(size_t)>
-size_t LinearSearch(const DynamicArray<Type>& array, const Type& target,
-                    Callback&& callback = [](size_t) {}) {
-    for (size_t i = 0; i < array.size(); ++i) {
-        callback(i);
-        if (array[i] == target)
-            return i;
-    }
-    return array.size();
-}
-
-
-/**
- * @brief Performs a binary search for the given element.
- *
- * Requires the array to be sorted in non-decreasing (ascending) order.
- * Searches for an element equal to the given key and returns its index if
- * present; otherwise returns array.size().
- *
- * Note for float/double: Arrays containing NaN are unsupported for ordering;
- * results are unspecified.
- *
- * @param array The array to search in.
- * @param target The element to search for.
- * @param callback The callback function to invoke on each index visited.
- * @return The index of the found element, or array.size() if not found.
- *
- * @par Complexity
- * - O(log n) time.
- * - O(1) space.
- */
-template <typename Type, typename Callback>
-size_t BinarySearch(const DynamicArray<Type>& array, const Type& target,
-                    Callback&& callback = [](size_t) -> void {}) {
-    // left: inclusive lower bound, right: exclusive upper bound
-    size_t left = 0;
-    size_t right = array.size() - 1;
-
-    while (left < right) {
-        size_t middle = left + (right - left) / 2;
-        callback(middle);
-        if (array[middle] == target)
-            return middle;
-        if (array[middle] < target)
-            left = middle + 1;
-        else
-            right = middle;
-    }
-
-    if (left < array.size())
-        callback(left);
-
-    // left is the first index not less than element
-    if (left < array.size() && array[left] == target)
-        return left;
-
-    return array.size();
 }
 
 

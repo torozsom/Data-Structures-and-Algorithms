@@ -34,7 +34,7 @@ TEST_F(DynamicArrayAlgorithmsUnitTest, ImprovedBubbleSortCorrectlySorts) {
 TEST_F(DynamicArrayAlgorithmsUnitTest,
        InsertionSortWithLinearSearchCorrectlySorts) {
     DynamicArray arr{6, 4, 9, 3, 3, 6, 2, 1, 7};
-    InsertionSortWithLinearSearch(arr);
+    LinearInsertionSort(arr);
     for (std::size_t i = 1; i < arr.size(); i++)
         EXPECT_LE(arr[i - 1], arr[i]);
 }
@@ -43,7 +43,7 @@ TEST_F(DynamicArrayAlgorithmsUnitTest,
 TEST_F(DynamicArrayAlgorithmsUnitTest,
        InsertionSortWithBinarySearchCorrectlySorts) {
     DynamicArray arr{6, 4, 9, 3, 3, 6, 2, 1, 7};
-    InsertionSortWithBinarySearch(arr);
+    BinaryInsertionSort(arr);
     for (std::size_t i = 1; i < arr.size(); i++)
         EXPECT_LE(arr[i - 1], arr[i]);
 }
