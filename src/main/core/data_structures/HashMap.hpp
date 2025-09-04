@@ -1,12 +1,12 @@
 #ifndef HASHMAP_HPP
 #define HASHMAP_HPP
 
+#include <functional>
 #include <new>
 #include <random>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include <functional>
 
 
 namespace containers {
@@ -21,18 +21,22 @@ using std::size_t;
  * This hash functor provides automatic compile-time dispatch to appropriate
  * hashing strategies based on the key type:
  *
- * - **Integral types** (int, char, bool, etc.): Uses SplitMix64 mixing for excellent distribution
+ * - **Integral types** (int, char, bool, etc.): Uses SplitMix64 mixing for
+ * excellent distribution
  * - **Pointer types**: Removes alignment bits and applies SplitMix64 mixing
  * - **Enumeration types**: Hashes via underlying integral type
- * - **Standard library types**: Delegates to std::hash<T> with additional mixing
+ * - **Standard library types**: Delegates to std::hash<T> with additional
+ * mixing
  * - **User-defined types**: Requires std::hash<T> specialization
  *
  * The hash function incorporates an optional random seed to provide protection
- * against hash collision attacks while maintaining deterministic behavior when needed.
+ * against hash collision attacks while maintaining deterministic behavior when
+ * needed.
  *
  * @tparam Key The type of the key to be hashed.
- * @tparam UseRandomSeed Whether to use a random seed (true) or deterministic seed (false).
- *                       Default is true for security, set to false for reproducible testing.
+ * @tparam UseRandomSeed Whether to use a random seed (true) or deterministic
+ * seed (false). Default is true for security, set to false for reproducible
+ * testing.
  *
  * @par Thread Safety:
  * This class is thread-safe. The random seed is initialized once per template
@@ -56,7 +60,8 @@ struct DefaultHash {
      * @return size_t A well-distributed hash value for the key.
      *
      * @par Complexity: O(1) for all supported types.
-     * @par Exception Safety: Strong guarantee - either returns a valid hash or fails to compile.
+     * @par Exception Safety: Strong guarantee - either returns a valid hash or
+     * fails to compile.
      */
     [[nodiscard]]
     constexpr size_t operator()(const Key& key) const noexcept {
@@ -64,7 +69,7 @@ struct DefaultHash {
     }
 
 
-private:
+  private:
     /**
      * @brief Dispatches to the appropriate hash function based on the key type.
      *
@@ -91,9 +96,10 @@ private:
         }
         else {
             static_assert(always_false_v<Key>,
-                         "No hash function available for this type. "
-                         "Please specialize std::hash<YourType> or provide a custom Hash functor. "
-                         "See documentation for examples.");
+                          "No hash function available for this type. "
+                          "Please specialize std::hash<YourType> or provide a "
+                          "custom Hash functor. "
+                          "See documentation for examples.");
         }
         return 0; // Unreachable
     }
@@ -103,12 +109,14 @@ private:
     template <typename T>
     class has_std_hash {
         template <typename U>
-        static auto test(int) -> decltype(std::hash<U>{}(std::declval<const U&>()), std::true_type{});
+        static auto test(int)
+            -> decltype(std::hash<U>{}(std::declval<const U&>()),
+                        std::true_type{});
 
         template <typename>
         static std::false_type test(...);
 
-    public:
+      public:
         static constexpr bool value = decltype(test<T>(0))::value;
     };
 
@@ -159,8 +167,8 @@ private:
     /**
      * @brief Hashes enumeration types via their underlying integral type.
      *
-     * Converts the enum to its underlying type and delegates to integral hashing.
-     * This works for both scoped (enum class) and unscoped enums.
+     * Converts the enum to its underlying type and delegates to integral
+     * hashing. This works for both scoped (enum class) and unscoped enums.
      *
      * @tparam Enum The enumeration type.
      * @param e The enumeration value to hash.
@@ -185,7 +193,7 @@ private:
      * @param value The value to hash.
      * @return size_t Well-distributed hash value.
      */
-    template<typename T>
+    template <typename T>
     [[nodiscard]]
     constexpr size_t hash_with_std_hash(const T& value) const noexcept {
         const size_t base_hash = std::hash<T>{}(value);
@@ -198,14 +206,17 @@ private:
      *
      * This is the finalizer from the SplitMix64 algorithm, known for excellent
      * avalanche properties. Each input bit influences approximately half of the
-     * output bits, providing strong mixing that eliminates patterns in input data.
+     * output bits, providing strong mixing that eliminates patterns in input
+     * data.
      *
      * The constants used are:
      * - 0x9e3779b97f4a7c15: The golden ratio * 2^64, provides good stepping
-     * - 0xbf58476d1ce4e5b9, 0x94d049bb133111eb: Large odd multipliers with good bit mixing
+     * - 0xbf58476d1ce4e5b9, 0x94d049bb133111eb: Large odd multipliers with good
+     * bit mixing
      *
      * @param x The input value to mix.
-     * @return size_t The mixed hash value with excellent distribution properties.
+     * @return size_t The mixed hash value with excellent distribution
+     * properties.
      */
     [[nodiscard]]
     static constexpr size_t splitmix64(size_t x) noexcept {
@@ -234,8 +245,9 @@ private:
     /**
      * @brief Returns the seed based on the UseRandomSeed template parameter.
      *
-     * When UseRandomSeed is true, generates a random seed for hash collision resistance.
-     * When false, uses a fixed seed for deterministic behavior (useful for testing).
+     * When UseRandomSeed is true, generates a random seed for hash collision
+     * resistance. When false, uses a fixed seed for deterministic behavior
+     * (useful for testing).
      *
      * @return size_t The seed value to use for hashing.
      */
