@@ -1,7 +1,9 @@
 #ifndef HASHMAP_HPP
 #define HASHMAP_HPP
 
+#include <cstdint>
 #include <new>
+#include <random>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -12,16 +14,16 @@ namespace containers {
 using std::size_t;
 
 
-/**
- * @struct DefaultHash
+/** @class DefaultHash
  *
- * @brief A default hash functor for integral and pointer types with improved distribution.
+ * @brief A default hash functor for integral and pointer types.
  *
- * This functor provides hash functions that work for integral types using mixing
- * functions to reduce clustering, and for pointer types by hashing the address.
- * For other types, it triggers a static assertion failure.
+ * This class provides a hash function that can be used with hash-based containers.
+ * It supports integral types and pointer types, applying a mixing function to
+ * improve the distribution of hash values. The hash function incorporates a
+ * random seed to reduce the likelihood of collisions in adversarial scenarios.
  *
- * @tparam Key The type of the key to be hashed.
+ * @tparam Key The type of the key to be hashed. Must be an integral or pointer type.
  */
 template <typename Key>
 struct DefaultHash {
@@ -45,33 +47,60 @@ struct DefaultHash {
     }
 
 private:
-    /**
-     * @brief Hash function for integral types using bit mixing.
-     *
-     * Uses a simple but effective mixing function to reduce clustering
-     * that can occur with identity hashing of sequential integers.
-     */
-    static size_t hash_integral(size_t key) {
-        // MurmurHash3 finalizer - simple but effective mixing
-        key ^= key >> 16;
-        key *= 0x85ebca6b;
-        key ^= key >> 13;
-        key *= 0xc2b2ae35;
-        key ^= key >> 16;
-        return key;
-    }
 
     /**
-     * @brief Hash function for pointer types.
+     * @brief Hashes an integral key using a mixing function.
      *
-     * Pointers often have patterns (alignment, heap structure),
-     * so we apply mixing to get better distribution.
+     * This function takes an integral key, applies a mixing function,
+     * and returns a well-distributed hash value.
+     *
+     * @param key The integral key to be hashed.
+     * @return size_t The computed hash value.
      */
-    static size_t hash_pointer(uintptr_t ptr) {
-        // Remove lower bits that are often zero due to alignment
-        ptr >>= 3;  // Assume 8-byte alignment for most allocators
-        return hash_integral(ptr);
+    static size_t hash_integral(const size_t key) {
+        return splitmix64(key ^ seed_);
     }
+
+
+    /**
+     * @brief Hashes a pointer by mixing its address.
+     *
+     * This function takes a pointer address, applies a mixing function,
+     * and returns a well-distributed hash value.
+     *
+     * @param ptr The pointer address to be hashed.
+     * @return size_t The computed hash value.
+     */
+    static size_t hash_pointer(const uintptr_t ptr) {
+        return splitmix64(ptr ^ seed_);
+    }
+
+
+    /**
+     * @brief A mixing function to improve hash distribution.
+     *
+     * This function applies a series of bitwise operations and multiplications
+     * with large constants to the input value to produce a well-distributed hash.
+     *
+     * @param x The input value to be mixed.
+     * @return size_t The mixed hash value.
+     */
+    static size_t splitmix64(size_t x) {
+        x += 0x9e3779b97f4a7c15ull; // φ * 2^64
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ull;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111ebull;
+        return x ^ (x >> 31);
+    }
+
+
+    /// Initializes a random seed using std::random_device.
+    static size_t init_seed() {
+        std::random_device rd;
+        const size_t seed = (static_cast<size_t>(rd()) << 32) ^ rd();
+        return seed;
+    }
+
+    inline static const size_t seed_ = init_seed();
 };
 
 
@@ -103,11 +132,8 @@ class HashMap {
      * construction and destruction of non-trivially constructible types.
      */
     struct Bucket {
-        alignas(Key)
-        unsigned char key_storage[sizeof(Key)]{};
-
-        alignas(Value)
-        unsigned char value_storage[sizeof(Value)]{};
+        alignas(Key) unsigned char key_storage[sizeof(Key)]{};
+        alignas(Value) unsigned char value_storage[sizeof(Value)]{};
 
         State state;
 
@@ -168,16 +194,24 @@ class HashMap {
     /// Computes the next capacity (double the current).
     size_t nextCapacity(const size_t current) { return current * 2; }
 
+    /// Rounds up to the next power of two.
+    static size_t roundUpToPowerOfTwo(const size_t n) {
+        size_t cap = 1;
+        while (cap < n)
+            cap <<= 1;
+        return cap;
+    }
+
     /// Computes the index for a given key.
-    size_t indexFor(const Key& key) const { return hasher_(key) % capacity_; }
+    size_t indexFor(const Key& key) const { return hasher_(key) & (capacity_ - 1); }
 
 
-    /** * @brief Rehashes the hash map to a new capacity.
+    /**
+     * @brief Rehashes the hash map to a new capacity.
      *
-     * This method allocates a new array of buckets with the specified new capacity,
-     * re-inserts all occupied buckets from the old array into the new array, and
-     * then deallocates the old array. It also resets the size to reflect the number
-     * of occupied buckets.
+     * This method allocates a new array of buckets with the specified
+     * capacity and reinserts all occupied buckets from the old array.
+     * It ensures that the load factor remains within acceptable limits.
      *
      * @param new_capacity The new capacity for the hash map.
      */
@@ -189,16 +223,21 @@ class HashMap {
         size_ = 0;
 
         for (size_t i = 0; i < old_capacity; ++i) {
-            if (old_buckets[i].state == State::Occupied) {
-                insert(std::move(*old_buckets[i].key()),
-                       std::move(*old_buckets[i].value()));
-                old_buckets[i].destroy();
+            if (Bucket& bucket = old_buckets[i];bucket.state == State::Occupied) {
+                size_t idx = hasher_(*bucket.key()) & (capacity_ - 1);
+                while (buckets_[idx].state == State::Occupied)
+                    idx = (idx + 1) & (capacity_ - 1);
+                buckets_[idx].construct(std::move(*bucket.key()),
+                                        std::move(*bucket.value()));
+                ++size_;
+                bucket.destroy();
             }
         }
         delete[] old_buckets;
     }
 
 
+    /// Ensures the hash map has enough capacity, resizing if necessary.
     void ensureCapacity() {
         if ((size_ + 1) > static_cast<size_t>(capacity_ * LOAD_FACTOR))
             rehash(nextCapacity(capacity_));
@@ -215,10 +254,12 @@ class HashMap {
 
     /// Constructor with specified initial capacity.
     explicit HashMap(const size_t capacity)
-        : buckets_(new Bucket[capacity]),
+        : buckets_(nullptr),
           size_(0),
-          capacity_(capacity),
-          hasher_() {}
+          capacity_(roundUpToPowerOfTwo(capacity)),
+          hasher_() {
+        buckets_ = new Bucket[capacity_];
+    }
 
     /// Copy constructor.
     HashMap(const HashMap& other)
@@ -317,7 +358,7 @@ class HashMap {
                 bucket.construct(std::forward<K>(key), std::forward<V>(value));
                 return;
             }
-            idx = (idx + 1) % capacity_;
+            idx = (idx + 1) & (capacity_ - 1);
         }
     }
 
@@ -341,7 +382,7 @@ class HashMap {
                 throw std::out_of_range("Key not found");
             if (bucket.state == State::Occupied && *bucket.key() == key)
                 return *bucket.value();
-            idx = (idx + 1) % capacity_;
+            idx = (idx + 1) & (capacity_ - 1);
         }
     }
 
@@ -365,7 +406,7 @@ class HashMap {
                 throw std::out_of_range("Key not found");
             if (bucket.state == State::Occupied && *bucket.key() == key)
                 return *bucket.value();
-            idx = (idx + 1) % capacity_;
+            idx = (idx + 1) & (capacity_ - 1);
         }
     }
 
@@ -394,7 +435,7 @@ class HashMap {
                 --size_;
                 return true;
             }
-            idx = (idx + 1) % capacity_;
+            idx = (idx + 1) & (capacity_ - 1);
         }
     }
 
@@ -417,7 +458,7 @@ class HashMap {
                 return false;
             if (bucket.state == State::Occupied && *bucket.key() == key)
                 return true;
-            idx = (idx + 1) % capacity_;
+            idx = (idx + 1) & (capacity_ - 1);
         }
     }
 
