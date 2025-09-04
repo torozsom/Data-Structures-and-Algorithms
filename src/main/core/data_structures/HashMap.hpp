@@ -18,14 +18,18 @@ using std::size_t;
  *
  * @brief A default hash functor for integral and pointer types.
  *
- * This class provides a hash function that can be used with hash-based containers.
- * It supports integral types and pointer types, applying a mixing function to
- * improve the distribution of hash values. The hash function incorporates a
- * random seed to reduce the likelihood of collisions in adversarial scenarios.
+ * This class provides a hash function that can be used with hash-based
+ * containers. It supports integral types and pointer types, applying a mixing
+ * function to improve the distribution of hash values. The hash function can
+ * optionally incorporate a random seed to reduce the likelihood of collisions
+ * in adversarial scenarios.
  *
- * @tparam Key The type of the key to be hashed. Must be an integral or pointer type.
+ * @tparam Key The type of the key to be hashed. Must be an integral or pointer
+ * type.
+ * @tparam UseRandomSeed Whether to use a random seed (true) or deterministic
+ * seed (false).
  */
-template <typename Key>
+template <typename Key, bool UseRandomSeed = true>
 struct DefaultHash {
     /**
      * @brief Computes the hash value for the given key.
@@ -41,13 +45,13 @@ struct DefaultHash {
         else if constexpr (std::is_pointer_v<Key>)
             return hash_pointer(reinterpret_cast<uintptr_t>(key));
         else
-            static_assert(std::is_integral_v<Key> || std::is_pointer_v<Key>,
-                          "DefaultHash only supports integral or pointer keys.");
+            static_assert(
+                std::is_integral_v<Key> || std::is_pointer_v<Key>,
+                "DefaultHash only supports integral or pointer keys.");
         return 0; // Unreachable, but avoids compiler warnings
     }
 
-private:
-
+  private:
     /**
      * @brief Hashes an integral key using a mixing function.
      *
@@ -80,7 +84,8 @@ private:
      * @brief A mixing function to improve hash distribution.
      *
      * This function applies a series of bitwise operations and multiplications
-     * with large constants to the input value to produce a well-distributed hash.
+     * with large constants to the input value to produce a well-distributed
+     * hash.
      *
      * @param x The input value to be mixed.
      * @return size_t The mixed hash value.
@@ -94,30 +99,48 @@ private:
 
 
     /// Initializes a random seed using std::random_device.
-    static size_t init_seed() {
+    static size_t init_random_seed() {
         std::random_device rd;
         const size_t seed = (static_cast<size_t>(rd()) << 32) ^ rd();
         return seed;
     }
 
-    inline static const size_t seed_ = init_seed();
+
+    /// Returns the seed based on the template parameter
+    static constexpr size_t get_seed() {
+        if constexpr (UseRandomSeed) {
+            return init_random_seed();
+        } else {
+            // Fixed seed for deterministic behavior (useful for testing)
+            return 0x9e3779b97f4a7c15ull;
+        }
+    }
+
+    inline static const size_t seed_ = get_seed();
 };
 
 
 /** @class HashMap
  *
- * @brief A simple hash map implementation using open addressing with linear probing.
+ * @brief A simple hash map implementation using open addressing with linear
+ * probing.
  *
  * This class provides a hash map that supports insertion, deletion, and lookup
- * operations. It uses open addressing with linear probing for collision resolution.
- * The map automatically resizes when the load factor exceeds a predefined threshold.
+ * operations. It uses open addressing with linear probing for collision
+ * resolution. The map automatically resizes when the load factor exceeds a
+ * predefined threshold.
  *
  * @tparam Key The type of the keys in the map.
  * @tparam Value The type of the values in the map.
  * @tparam Hash A hash functor for the key type. Defaults to DefaultHash<Key>.
+ * @tparam LoadFactorPercent The maximum load factor percentage before resizing.
+ * Defaults to 70.
  */
-template <typename Key, typename Value, typename Hash = DefaultHash<Key>>
+template <typename Key, typename Value, typename Hash = DefaultHash<Key>,
+          size_t LoadFactorPercent = 70>
 class HashMap {
+    static_assert(LoadFactorPercent > 0 && LoadFactorPercent < 100,
+                  "LoadFactorPercent must be between 1 and 99.");
 
     /// State of a bucket in the hash map.
     enum class State : unsigned char { Empty, Occupied, Tombstone };
@@ -144,13 +167,19 @@ class HashMap {
         Key* key() { return std::launder(reinterpret_cast<Key*>(key_storage)); }
 
         /// Returns a const pointer to the key stored in the bucket.
-        const Key* key() const { return std::launder(reinterpret_cast<const Key*>(key_storage)); }
+        const Key* key() const {
+            return std::launder(reinterpret_cast<const Key*>(key_storage));
+        }
 
         /// Returns a pointer to the value stored in the bucket.
-        Value* value() { return std::launder(reinterpret_cast<Value*>(value_storage)); }
+        Value* value() {
+            return std::launder(reinterpret_cast<Value*>(value_storage));
+        }
 
         /// Returns a const pointer to the value stored in the bucket.
-        const Value* value() const { return std::launder(reinterpret_cast<const Value*>(value_storage)); }
+        const Value* value() const {
+            return std::launder(reinterpret_cast<const Value*>(value_storage));
+        }
 
 
         /**
@@ -187,7 +216,8 @@ class HashMap {
     size_t capacity_;
     Hash hasher_;
 
-    static constexpr float LOAD_FACTOR = 0.7f;
+    static constexpr float LOAD_FACTOR =
+        static_cast<float>(LoadFactorPercent) / 100.0f;
     static constexpr size_t DEFAULT_CAPACITY = 8;
 
 
@@ -203,7 +233,9 @@ class HashMap {
     }
 
     /// Computes the index for a given key.
-    size_t indexFor(const Key& key) const { return hasher_(key) & (capacity_ - 1); }
+    size_t indexFor(const Key& key) const {
+        return hasher_(key) & (capacity_ - 1);
+    }
 
 
     /**
@@ -223,7 +255,8 @@ class HashMap {
         size_ = 0;
 
         for (size_t i = 0; i < old_capacity; ++i) {
-            if (Bucket& bucket = old_buckets[i];bucket.state == State::Occupied) {
+            if (Bucket& bucket = old_buckets[i];
+                bucket.state == State::Occupied) {
                 size_t idx = hasher_(*bucket.key()) & (capacity_ - 1);
                 while (buckets_[idx].state == State::Occupied)
                     idx = (idx + 1) & (capacity_ - 1);
@@ -247,26 +280,20 @@ class HashMap {
   public:
     /// Default constructor initializes the hash map with default capacity.
     HashMap()
-        : buckets_(new Bucket[DEFAULT_CAPACITY]),
-          size_(0),
-          capacity_(DEFAULT_CAPACITY),
-          hasher_() {}
+        : buckets_(new Bucket[DEFAULT_CAPACITY]), size_(0),
+          capacity_(DEFAULT_CAPACITY), hasher_() {}
 
     /// Constructor with specified initial capacity.
     explicit HashMap(const size_t capacity)
-        : buckets_(nullptr),
-          size_(0),
-          capacity_(roundUpToPowerOfTwo(capacity)),
+        : buckets_(nullptr), size_(0), capacity_(roundUpToPowerOfTwo(capacity)),
           hasher_() {
         buckets_ = new Bucket[capacity_];
     }
 
     /// Copy constructor.
     HashMap(const HashMap& other)
-        : buckets_(new Bucket[other.capacity_]),
-          size_(0),
-          capacity_(other.capacity_),
-          hasher_(other.hasher_) {
+        : buckets_(new Bucket[other.capacity_]), size_(0),
+          capacity_(other.capacity_), hasher_(other.hasher_) {
         for (size_t i = 0; i < other.capacity_; ++i)
             if (other.buckets_[i].state == State::Occupied)
                 insert(*other.buckets_[i].key(), *other.buckets_[i].value());
@@ -274,10 +301,8 @@ class HashMap {
 
     /// Move constructor.
     HashMap(HashMap&& other) noexcept
-        : buckets_(other.buckets_),
-          size_(other.size_),
-          capacity_(other.capacity_),
-          hasher_(std::move(other.hasher_)) {
+        : buckets_(other.buckets_), size_(other.size_),
+          capacity_(other.capacity_), hasher_(std::move(other.hasher_)) {
         other.buckets_ = nullptr;
         other.size_ = 0;
         other.capacity_ = 0;
@@ -309,11 +334,15 @@ class HashMap {
 
     /// Checks if the hash map is empty.
     [[nodiscard]]
-    bool isEmpty() const noexcept { return size_ == 0; }
+    bool isEmpty() const noexcept {
+        return size_ == 0;
+    }
 
     /// Returns the number of key-value pairs in the hash map.
     [[nodiscard]]
-    size_t size() const noexcept { return size_; }
+    size_t size() const noexcept {
+        return size_;
+    }
 
     /// Clears the hash map, removing all key-value pairs.
     void clear() {
@@ -325,9 +354,9 @@ class HashMap {
 
     /** * @brief Inserts or updates a key-value pair in the hash map.
      *
-     * If the key already exists, its value is updated. If the key does not exist,
-     * a new key-value pair is inserted. The method ensures that the hash map has
-     * enough capacity before insertion, resizing if necessary.
+     * If the key already exists, its value is updated. If the key does not
+     * exist, a new key-value pair is inserted. The method ensures that the hash
+     * map has enough capacity before insertion, resizing if necessary.
      *
      * @tparam K The type of the key (can be a reference or rvalue).
      * @tparam V The type of the value (can be a reference or rvalue).
@@ -344,9 +373,10 @@ class HashMap {
         while (true) {
             Bucket& bucket = buckets_[idx];
             if (bucket.state == State::Empty) {
-                size_t target = first_tombstone != capacity_ ? first_tombstone : idx;
+                size_t target =
+                    first_tombstone != capacity_ ? first_tombstone : idx;
                 buckets_[target].construct(std::forward<K>(key),
-                                            std::forward<V>(value));
+                                           std::forward<V>(value));
                 ++size_;
                 return;
             }
@@ -366,8 +396,9 @@ class HashMap {
     /**
      * @brief Accesses the value associated with the given key.
      *
-     * This method returns a reference to the value associated with the specified key.
-     * If the key does not exist in the hash map, it throws an std::out_of_range exception.
+     * This method returns a reference to the value associated with the
+     * specified key. If the key does not exist in the hash map, it throws an
+     * std::out_of_range exception.
      *
      * @param key The key whose associated value is to be accessed.
      * @return Value& A reference to the value associated with the key.
@@ -390,11 +421,13 @@ class HashMap {
     /**
      * @brief Accesses the value associated with the given key (const version).
      *
-     * This method returns a const reference to the value associated with the specified key.
-     * If the key does not exist in the hash map, it throws an std::out_of_range exception.
+     * This method returns a const reference to the value associated with the
+     * specified key. If the key does not exist in the hash map, it throws an
+     * std::out_of_range exception.
      *
      * @param key The key whose associated value is to be accessed.
-     * @return const Value& A const reference to the value associated with the key.
+     * @return const Value& A const reference to the value associated with the
+     * key.
      *
      * @throws std::out_of_range If the key is not found in the hash map.
      */
