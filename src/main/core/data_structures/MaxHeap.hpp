@@ -11,6 +11,8 @@
 
 namespace containers {
 
+using std::size_t;
+
 
 /**
  * @class MaxHeap

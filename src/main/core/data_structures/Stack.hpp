@@ -12,6 +12,8 @@
 
 namespace containers {
 
+using std::size_t;
+
 
 /**
  * @class Stack
