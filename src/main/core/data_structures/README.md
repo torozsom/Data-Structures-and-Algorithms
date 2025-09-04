@@ -1,6 +1,6 @@
-# 🚀 Advanced Data Structures Library
-
 <div align="center">
+
+# 🚀 Advanced Data Structures Library
 
 ![C++ Version](https://img.shields.io/badge/C++-23-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -44,8 +44,11 @@ C++23 features. Each implementation is designed with a focus on:
 | **Binary Search Tree** | [`BinarySearchTree.hpp`](BinarySearchTree.hpp) |           Insert<br>Search/Contains<br>Delete<br>Min/Max            | O(h)\*<br>O(h)\*<br>O(h)\*<br>O(h)\* |       O(n)       |
 |      **Min Heap**      |          [`MinHeap.hpp`](MinHeap.hpp)          |                  Insert<br>Extract-Min<br>Peek                      |   O(log n)<br>O(log n)<br>O(1)    |       O(n)       |
 |      **Max Heap**      |          [`MaxHeap.hpp`](MaxHeap.hpp)          |                  Insert<br>Extract-Max<br>Peek                      |   O(log n)<br>O(log n)<br>O(1)    |       O(n)       |
+|      **Hash Map**      |          [`HashMap.hpp`](HashMap.hpp)          |        Insert/Update<br>Access<br>Remove        | Avg O(1)†<br>Avg O(1)†<br>Avg O(1)† |       O(n)       |
 
-\* `h` is the tree height (worst case O(n), balanced case O(log n)).
+\* `h` is the tree height (worst case O(n), balanced case O(log n)). 
+
+† Expected average-case complexity with a well-distributed hash function; worst-case O(n).
 
 ## 🛠 Implementation Philosophy
 
@@ -136,18 +139,36 @@ Pointer-based **complete** binary heaps built on a shared abstract base (`Heap`)
 - ✅ Navigation by bit-walking the 1-based level-order index
 - ✅ Reheapification via `heapifyUp` / `heapifyDown` (data swaps, not pointer swaps)
 
+### Hash Map
+
+An open-addressing associative container with linear probing and tombstone handling.
+
+**Key Features:**
+
+- ✅ Average O(1) insertion, access, and removal
+- ✅ Configurable load factor with automatic resizing
+- ✅ Customizable hash functor with optional randomized seeding for security
+
+**Distinctive Approach:**
+
+- Buckets use aligned storage and `std::launder` to manage non-trivial types
+- Power-of-two capacities enable efficient bit-masked indexing
+- Tombstones preserve probe sequences for successful lookups after deletions
+
 ## 📈 Performance Analysis
 
 ### Time Complexity Highlights
 
-| Operation | Dynamic Array | Linked List  | BST (balanced) |   Heap   |
-|:---------:|:-------------:|:------------:|:--------------:|:--------:|
-|  Search   |     O(n)      |     O(n)     |    O(log n)    |   O(n)   |
-|  Insert   | O(1)\* / O(n) | O(1)\* / O(n)|    O(log n)    | O(log n) |
-|  Delete   | O(1)\* / O(n) | O(1)\* / O(n)|    O(log n)    | O(log n) |
-|  Min/Max  |     O(n)      |     O(n)     |    O(log n)    |   O(1)   |
+| Operation | Dynamic Array | Linked List  | BST (balanced) |   Heap   | Hash Map |
+|:---------:|:-------------:|:------------:|:--------------:|:--------:|:--------:|
+|  Search   |     O(n)      |     O(n)     |    O(log n)    |   O(n)   | Avg O(1)† |
+|  Insert   | O(1)* / O(n) | O(1)* / O(n)|    O(log n)    | O(log n) | Avg O(1)† |
+|  Delete   | O(1)* / O(n) | O(1)* / O(n)|    O(log n)    | O(log n) | Avg O(1)† |
+|  Min/Max  |     O(n)      |     O(n)     |    O(log n)    |   O(1)   |    N/A    |
 
 \* At the end/beginning of the structure.
+
+† Expected average-case complexity with a well-distributed hash function; worst-case O(n).
 
 ### Memory Usage
 
@@ -218,6 +239,13 @@ minHeap.insert(5);
 minHeap.insert(3);
 minHeap.insert(7);
 int minval = minHeap.extractRoot(); // 3
+
+// Associative storage with open addressing
+HashMap<int, std::string> map;
+map.insert(1, "one");
+map.insert(2, "two");
+std::string one = map.at(1);       // "one"
+map.remove(2);
 ```
 
 ## 🧪 Testing
@@ -232,8 +260,6 @@ Each data structure is rigorously tested with comprehensive test cases in the `s
 ## 🚧 Future Roadmap
 
 - **Balanced Trees**: Implement AVL and Red-Black tree balancing algorithms
-- **Advanced Data Structures**: Add Trie, Graph, and Hash Table implementations
-- **Iterators**: Provide STL-compatible iterators for all containers
 - **Parallelism**: Explore thread-safe variants of selected data structures
 - **Benchmarking**: Add comprehensive performance benchmarking suite
 - **Serialization**: Support for persistence and serialization operations
