@@ -57,6 +57,7 @@ add_executable(algorithms_main
         src/main/ui/controller/array/ArrayAnimations.h
         src/main/ui/viewmodel/array/SortAnimator.hpp
         src/main/ui/viewmodel/array/ArrayAlgorithmFunctors.hpp
+        src/main/core/data_structures/HashMap.hpp
 )
 
 
@@ -110,6 +111,7 @@ add_executable(data_struct_unit_tests
         # Test utilities
         src/test/data_structures/utilities/ThrowingType.hpp
         src/test/data_structures/utilities/Record.hpp
+        src/test/data_structures/unit/HashMapUnitTest.cpp
 )
 
 
