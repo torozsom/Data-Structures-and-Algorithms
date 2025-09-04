@@ -1,12 +1,12 @@
 #ifndef HASHMAP_HPP
 #define HASHMAP_HPP
 
-#include <cstdint>
 #include <new>
 #include <random>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
+#include <functional>
 
 
 namespace containers {
@@ -16,108 +16,242 @@ using std::size_t;
 
 /** @class DefaultHash
  *
- * @brief A default hash functor for integral and pointer types.
+ * @brief A universal hash functor that works with any hashable type.
  *
- * This class provides a hash function that can be used with hash-based
- * containers. It supports integral types and pointer types, applying a mixing
- * function to improve the distribution of hash values. The hash function can
- * optionally incorporate a random seed to reduce the likelihood of collisions
- * in adversarial scenarios.
+ * This hash functor provides automatic compile-time dispatch to appropriate
+ * hashing strategies based on the key type:
  *
- * @tparam Key The type of the key to be hashed. Must be an integral or pointer
- * type.
- * @tparam UseRandomSeed Whether to use a random seed (true) or deterministic
- * seed (false).
+ * - **Integral types** (int, char, bool, etc.): Uses SplitMix64 mixing for excellent distribution
+ * - **Pointer types**: Removes alignment bits and applies SplitMix64 mixing
+ * - **Enumeration types**: Hashes via underlying integral type
+ * - **Standard library types**: Delegates to std::hash<T> with additional mixing
+ * - **User-defined types**: Requires std::hash<T> specialization
+ *
+ * The hash function incorporates an optional random seed to provide protection
+ * against hash collision attacks while maintaining deterministic behavior when needed.
+ *
+ * @tparam Key The type of the key to be hashed.
+ * @tparam UseRandomSeed Whether to use a random seed (true) or deterministic seed (false).
+ *                       Default is true for security, set to false for reproducible testing.
+ *
+ * @par Thread Safety:
+ * This class is thread-safe. The random seed is initialized once per template
+ * instantiation and shared among all instances of the same type.
+ *
+ * @par Performance:
+ * - Zero runtime overhead for type dispatch (compile-time selection)
+ * - High-quality mixing prevents clustering for sequential keys
+ * - Optimal performance for all supported type categories
  */
 template <typename Key, bool UseRandomSeed = true>
 struct DefaultHash {
     /**
      * @brief Computes the hash value for the given key.
      *
-     * @param key The key to be hashed.
-     * @return size_t The computed hash value.
+     * This operator automatically selects the most appropriate hashing strategy
+     * for the key type at compile time. The hash value incorporates mixing to
+     * ensure good distribution properties.
      *
-     * @throws std::logic_error If the key type is not supported.
+     * @param key The key to be hashed.
+     * @return size_t A well-distributed hash value for the key.
+     *
+     * @par Complexity: O(1) for all supported types.
+     * @par Exception Safety: Strong guarantee - either returns a valid hash or fails to compile.
      */
-    size_t operator()(const Key& key) const {
-        if constexpr (std::is_integral_v<Key>)
-            return hash_integral(static_cast<size_t>(key));
-        else if constexpr (std::is_pointer_v<Key>)
-            return hash_pointer(reinterpret_cast<uintptr_t>(key));
-        else
-            static_assert(
-                std::is_integral_v<Key> || std::is_pointer_v<Key>,
-                "DefaultHash only supports integral or pointer keys.");
-        return 0; // Unreachable, but avoids compiler warnings
+    [[nodiscard]]
+    constexpr size_t operator()(const Key& key) const noexcept {
+        return hash_dispatch(key);
     }
 
-  private:
+
+private:
     /**
-     * @brief Hashes an integral key using a mixing function.
+     * @brief Dispatches to the appropriate hash function based on the key type.
      *
-     * This function takes an integral key, applies a mixing function,
-     * and returns a well-distributed hash value.
+     * This method uses compile-time type traits and constexpr if to select
+     * the optimal hashing strategy for each type category. The dispatch is
+     * resolved at compile time with zero runtime overhead.
      *
-     * @param key The integral key to be hashed.
+     * @param key The key to be hashed.
      * @return size_t The computed hash value.
      */
-    static size_t hash_integral(const size_t key) {
+    [[nodiscard]]
+    constexpr size_t hash_dispatch(const Key& key) const noexcept {
+        if constexpr (std::is_integral_v<Key>) {
+            return hash_integral(static_cast<size_t>(key));
+        }
+        else if constexpr (std::is_pointer_v<Key>) {
+            return hash_pointer(reinterpret_cast<uintptr_t>(key));
+        }
+        else if constexpr (std::is_enum_v<Key>) {
+            return hash_enum(key);
+        }
+        else if constexpr (has_std_hash_v<Key>) {
+            return hash_with_std_hash(key);
+        }
+        else {
+            static_assert(always_false_v<Key>,
+                         "No hash function available for this type. "
+                         "Please specialize std::hash<YourType> or provide a custom Hash functor. "
+                         "See documentation for examples.");
+        }
+        return 0; // Unreachable
+    }
+
+
+    /// SFINAE-based detection of std::hash availability
+    template <typename T>
+    class has_std_hash {
+        template <typename U>
+        static auto test(int) -> decltype(std::hash<U>{}(std::declval<const U&>()), std::true_type{});
+
+        template <typename>
+        static std::false_type test(...);
+
+    public:
+        static constexpr bool value = decltype(test<T>(0))::value;
+    };
+
+
+    /// Helper variable template for std::hash detection
+    template <typename T>
+    static constexpr bool has_std_hash_v = has_std_hash<T>::value;
+
+    /// Helper for static_assert in template else branch
+    template <typename T>
+    static constexpr bool always_false_v = false;
+
+
+    /**
+     * @brief Hashes integral types using SplitMix64 mixing.
+     *
+     * Applies high-quality bit mixing to prevent clustering that occurs
+     * with identity hashing of sequential integers. Uses the SplitMix64
+     * finalizer which provides excellent avalanche properties.
+     *
+     * @param key The integral key cast to size_t.
+     * @return size_t Well-distributed hash value.
+     */
+    [[nodiscard]]
+    static constexpr size_t hash_integral(size_t key) noexcept {
         return splitmix64(key ^ seed_);
     }
 
 
     /**
-     * @brief Hashes a pointer by mixing its address.
+     * @brief Hashes pointer types with alignment-aware processing.
      *
-     * This function takes a pointer address, applies a mixing function,
-     * and returns a well-distributed hash value.
+     * Removes the lower bits that are typically zero due to memory alignment,
+     * then applies SplitMix64 mixing. This approach works well for both
+     * heap pointers and stack pointers.
      *
-     * @param ptr The pointer address to be hashed.
-     * @return size_t The computed hash value.
+     * @param ptr The pointer address as uintptr_t.
+     * @return size_t Well-distributed hash value.
      */
-    static size_t hash_pointer(const uintptr_t ptr) {
+    [[nodiscard]]
+    static constexpr size_t hash_pointer(uintptr_t ptr) noexcept {
+        // Remove lower 3 bits (assumes 8-byte alignment)
+        ptr >>= 3;
         return splitmix64(ptr ^ seed_);
     }
 
 
     /**
-     * @brief A mixing function to improve hash distribution.
+     * @brief Hashes enumeration types via their underlying integral type.
      *
-     * This function applies a series of bitwise operations and multiplications
-     * with large constants to the input value to produce a well-distributed
-     * hash.
+     * Converts the enum to its underlying type and delegates to integral hashing.
+     * This works for both scoped (enum class) and unscoped enums.
      *
-     * @param x The input value to be mixed.
-     * @return size_t The mixed hash value.
+     * @tparam Enum The enumeration type.
+     * @param e The enumeration value to hash.
+     * @return size_t Well-distributed hash value.
      */
-    static size_t splitmix64(size_t x) {
-        x += 0x9e3779b97f4a7c15ull; // φ * 2^64
+    template <typename Enum>
+    [[nodiscard]]
+    constexpr size_t hash_enum(const Enum& e) const noexcept {
+        using underlying_t = std::underlying_type_t<Enum>;
+        return hash_integral(static_cast<size_t>(static_cast<underlying_t>(e)));
+    }
+
+
+    /**
+     * @brief Hashes types with std::hash specialization.
+     *
+     * Delegates to std::hash<T> and then applies additional SplitMix64 mixing
+     * to ensure consistent quality across different std::hash implementations.
+     * This handles std::string, std::vector, and other standard library types.
+     *
+     * @tparam T The type to hash (must have std::hash specialization).
+     * @param value The value to hash.
+     * @return size_t Well-distributed hash value.
+     */
+    template<typename T>
+    [[nodiscard]]
+    constexpr size_t hash_with_std_hash(const T& value) const noexcept {
+        const size_t base_hash = std::hash<T>{}(value);
+        return splitmix64(base_hash ^ seed_);
+    }
+
+
+    /**
+     * @brief SplitMix64 mixing function for high-quality hash distribution.
+     *
+     * This is the finalizer from the SplitMix64 algorithm, known for excellent
+     * avalanche properties. Each input bit influences approximately half of the
+     * output bits, providing strong mixing that eliminates patterns in input data.
+     *
+     * The constants used are:
+     * - 0x9e3779b97f4a7c15: The golden ratio * 2^64, provides good stepping
+     * - 0xbf58476d1ce4e5b9, 0x94d049bb133111eb: Large odd multipliers with good bit mixing
+     *
+     * @param x The input value to mix.
+     * @return size_t The mixed hash value with excellent distribution properties.
+     */
+    [[nodiscard]]
+    static constexpr size_t splitmix64(size_t x) noexcept {
+        x += 0x9e3779b97f4a7c15ull; // Golden ratio * 2^64
         x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ull;
         x = (x ^ (x >> 27)) * 0x94d049bb133111ebull;
         return x ^ (x >> 31);
     }
 
 
-    /// Initializes a random seed using std::random_device.
+    /**
+     * @brief Initializes a cryptographically random seed.
+     *
+     * Uses std::random_device to generate a high-quality random seed.
+     * The seed is combined from two 32-bit values to ensure full 64-bit entropy
+     * even on platforms where std::random_device returns 32-bit values.
+     *
+     * @return size_t A random seed value.
+     */
     static size_t init_random_seed() {
         std::random_device rd;
-        const size_t seed = (static_cast<size_t>(rd()) << 32) ^ rd();
-        return seed;
+        return (static_cast<size_t>(rd()) << 32) ^ static_cast<size_t>(rd());
     }
 
 
-    /// Returns the seed based on the template parameter
+    /**
+     * @brief Returns the seed based on the UseRandomSeed template parameter.
+     *
+     * When UseRandomSeed is true, generates a random seed for hash collision resistance.
+     * When false, uses a fixed seed for deterministic behavior (useful for testing).
+     *
+     * @return size_t The seed value to use for hashing.
+     */
     static constexpr size_t get_seed() {
         if constexpr (UseRandomSeed) {
             return init_random_seed();
         } else {
-            // Fixed seed for deterministic behavior (useful for testing)
+            // Fixed seed derived from golden ratio for deterministic behavior
             return 0x9e3779b97f4a7c15ull;
         }
     }
 
+    /// Static seed shared by all instances of this hash specialization
     inline static const size_t seed_ = get_seed();
 };
+
 
 
 /** @class HashMap
