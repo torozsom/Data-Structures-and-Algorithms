@@ -135,6 +135,39 @@ add_custom_target(run_data_struct_unit_tests
 )
 
 
+# Data structures' integration tests executable (Google Test based)
+add_executable(data_struct_integration_tests
+        # Integration test files
+        src/test/data_structures/integration/DataStructuresIntegrationTest.cpp
+        # Header files (for IDE support)
+        src/main/core/data_structures/DynamicArray.hpp
+        src/main/core/data_structures/LinkedList.hpp
+        src/main/core/data_structures/Stack.hpp
+        src/main/core/data_structures/BinaryTree.hpp
+        src/main/core/data_structures/BinarySearchTree.hpp
+        src/main/core/data_structures/MinHeap.hpp
+        src/main/core/data_structures/Heap.hpp
+        src/main/core/data_structures/MaxHeap.hpp
+        src/main/core/data_structures/Queue.hpp
+)
+
+target_include_directories(data_struct_integration_tests PRIVATE
+        src/main/core/data_structures
+        src/test/data_structures/integration
+        src/test/data_structures/utilities
+)
+
+target_link_libraries(data_struct_integration_tests
+        GTest::gtest
+        GTest::gtest_main
+)
+
+add_custom_target(run_data_struct_integration_tests
+        COMMAND data_struct_integration_tests
+        DEPENDS data_struct_integration_tests
+        COMMENT "Running integration tests"
+)
+
 
 # Algorithms' unit tests executable (Google Test based)
 add_executable(algorithms_unit_tests
@@ -178,6 +211,7 @@ add_custom_target(run_algorithms_unit_tests
 include(GoogleTest)
 gtest_discover_tests(
         data_struct_unit_tests
+        data_struct_integration_tests
         algorithms_unit_tests
 )
 
@@ -192,10 +226,12 @@ message(STATUS "Current build type: ${CMAKE_BUILD_TYPE}")
 # Compiler-specific options for better testing
 if (MSVC)
     target_compile_options(data_struct_unit_tests PRIVATE /W4)
+    target_compile_options(data_struct_integration_tests PRIVATE /W4)
     target_compile_options(algorithms_unit_tests PRIVATE /W4)
     target_compile_options(algorithms_main PRIVATE /W4)
 else ()
     target_compile_options(data_struct_unit_tests PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(data_struct_integration_tests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(algorithms_unit_tests PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(algorithms_main PRIVATE -Wall -Wextra -Wpedantic)
 endif ()
@@ -206,5 +242,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug AND NOT MSVC)
     if (ENABLE_COVERAGE)
         target_compile_options(data_struct_unit_tests PRIVATE --coverage)
         target_link_libraries(data_struct_unit_tests --coverage)
+        target_compile_options(data_struct_integration_tests PRIVATE --coverage)
+        target_link_libraries(data_struct_integration_tests --coverage)
     endif ()
 endif ()
