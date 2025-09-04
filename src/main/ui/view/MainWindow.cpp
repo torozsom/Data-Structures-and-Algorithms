@@ -46,6 +46,7 @@ void MainWindow::connectButtonActions() {
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), uiForm_(new Ui::MainWindow) {
     uiForm_->setupUi(this);
+    QApplication::setWindowIcon(QIcon(":/icon.jpg"));
     connectButtonActions();
 }
 

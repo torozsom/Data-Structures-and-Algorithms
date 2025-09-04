@@ -83,6 +83,10 @@ set_target_properties(algorithms_main PROPERTIES
 )
 
 
+qt_add_resources(RESOURCES src/main/ui/common/resources.qrc)
+target_sources(algorithms_main PRIVATE ${RESOURCES})
+
+
 target_link_libraries(algorithms_main PRIVATE Qt6::Widgets)
 
 
