@@ -437,7 +437,7 @@ class DynamicArray {
      * - Strong during the relocation loop: partial progress is rolled back on
      * throw.
      */
-    void shiftLeftNonassignables(size_t from_idx) {
+    void shiftLeftNonassignables(const size_t from_idx) {
         data_[from_idx].~Type();
         size_t j = from_idx;
         try {
@@ -797,6 +797,48 @@ class DynamicArray {
 
 
     /**
+     * @brief Emplace-construct an element at the end and return a reference to
+     * it.
+     *
+     * Delegates to emplaceAt(size(), args...) and then returns a reference to
+     * the newly constructed element.
+     *
+     * @tparam Args Argument types forwarded to Type's constructor.
+     * @param args Constructor arguments.
+     * @return Reference to the newly constructed element.
+     *
+     * @par Complexity
+     * - Amortized O(1); O(n) when growth occurs.
+     */
+    template <typename... Args>
+    Type& emplace_back(Args&&... args) {
+        emplaceAt(size_, std::forward<Args>(args)...);
+        return back();
+    }
+
+
+    /**
+     * @brief Emplace-construct an element at the front and return a reference
+     * to it.
+     *
+     * Delegates to emplaceAt(0, args...) and then returns a reference to the
+     * newly constructed element.
+     *
+     * @tparam Args Argument types forwarded to Type's constructor.
+     * @param args Constructor arguments.
+     * @return Reference to the newly constructed element.
+     *
+     * @par Complexity
+     * - O(n) due to shifting.
+     */
+    template <typename... Args>
+    Type& emplace_front(Args&&... args) {
+        emplaceAt(0, std::forward<Args>(args)...);
+        return front();
+    }
+
+
+    /**
      * @brief Removes the element from the array.
      *
      * First it checks if the array contains the given element
@@ -1011,6 +1053,49 @@ class DynamicArray {
 
 
     /**
+     * @brief Bounds-checked access with at().
+     *
+     * Returns a reference to the element at index i.
+     *
+     * @param i Index in [0, size()).
+     * @return Reference to the element at index i.
+     * @throws std::out_of_range If i >= size().
+     */
+    Type& at(const size_t i) {
+        if(i >= size_)
+            throw std::out_of_range("Index out of range");
+        return data_[i];
+    }
+
+
+    /**
+     * @brief Bounds-checked access with at() (const).
+     *
+     * Returns a const reference to the element at index i.
+     *
+     * @param i Index in [0, size()).
+     * @return Const reference to the element at index i.
+     * @throws std::out_of_range If i >= size().
+     */
+    const Type& at(const size_t i) const {
+        if(i >= size_)
+            throw std::out_of_range("Index out of range");
+        return data_[i];
+    }
+
+
+    /// First element (mutable).
+    Type& front() { return at(0); }
+    /// First element (const).
+    const Type& front() const { return at(0); }
+
+    /// Last element (mutable).
+    Type& back() { return at(size_ - 1); }
+    /// Last element (const).
+    const Type& back() const { return at(size_ - 1); }
+
+
+    /**
      * @brief Ensure capacity() >= new_capacity (size unchanged).
      *
      * If new_capacity > capacity(), reallocate to exactly new_capacity and
@@ -1133,6 +1218,83 @@ class DynamicArray {
 
     // Note: All insert/remove/resize operations invalidate pointers/iterators.
     // A moved-from array has begin()==end() and yields zero elements.
+
+
+    /**
+     * @brief Erase element at the given position.
+     *
+     * Removes the element at pos. Returns an iterator to
+     * the element following the  removed element (or end() if
+     * none). Invalidates all iterators.
+     *
+     * @param pos Iterator pointing to the element to remove.
+     * @return Iterator to the element following the removed one.
+     * @throws std::out_of_range If pos is not in [begin(), end()].
+     */
+    iterator erase(iterator pos) {
+        auto idx = pos - begin();
+        removeAt(idx);
+        return begin() + idx;
+    }
+
+
+    /**
+     * @brief Erase a range of elements [first, last).
+     *
+     * Removes all elements in the range [first, last). Returns an iterator to
+     * the element following the last removed element (or end() if none).
+     * Invalidates all iterators.
+     *
+     * @param first Iterator to the first element to remove.
+     * @param last Iterator one past the last element to remove.
+     * @return Iterator to the element following the last removed one.
+     * @throws std::out_of_range If [first, last) is not a valid range within
+     * [begin(), end()].
+     */
+    iterator erase(iterator first, iterator last) {
+        auto idx = first-begin(), n = last - first;
+        while (n--) removeAt(idx);
+        return begin() + idx;
+    }
+
+
+    /**
+     * @brief Erase all elements satisfying a predicate.
+     *
+     * Removes all elements e for which pred(e) returns true. The order of
+     * remaining elements is preserved. Invalidates all iterators.
+     *
+     * @tparam Pred A callable type accepting a const Type& and returning
+     * bool.
+     * @param pred The predicate to apply to each element.
+     * @return The number of elements removed.
+     *
+     * @par Complexity
+     * - O(size()) applications of pred, plus O(size()) move/copy assignments
+     * or O(size()) constructions/destructions depending on Type's
+     * assignability.
+     *
+     * @par Exception Safety
+     * - Basic: if pred or an assignment throws, the invariant size() is left
+     * unchanged and all elements remain valid (the container can be cleared).
+     */
+    template<class Pred>
+    size_t erase_if(Pred pred){
+        size_t write = 0;
+        for (size_t read = 0; read < size_; ++read){
+            if (!pred(data_[read])){
+                if (write!=read)
+                    data_[write] = std::move_if_noexcept(data_[read]);
+                ++write;
+            } else {
+                data_[read].~Type();
+            }
+        }
+        const size_t removed = size_ - write;
+        size_ = write;
+        shrinkIfNecessary();
+        return removed;
+    }
 
 
     /**

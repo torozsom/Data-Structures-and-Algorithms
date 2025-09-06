@@ -81,7 +81,7 @@ struct DefaultHash {
      * @return size_t The computed hash value.
      */
     [[nodiscard]]
-    constexpr size_t hash_dispatch(const Key& key) const noexcept {
+    static constexpr size_t hash_dispatch(const Key& key) noexcept {
         if constexpr (std::is_integral_v<Key>) {
             return hash_integral(static_cast<size_t>(key));
         }
@@ -95,7 +95,7 @@ struct DefaultHash {
             return hash_with_std_hash(key);
         }
         else {
-            static_assert(always_false_v<Key>,
+            static_assert(always_false_v,
                           "No hash function available for this type. "
                           "Please specialize std::hash<YourType> or provide a "
                           "custom Hash functor. "
@@ -108,11 +108,13 @@ struct DefaultHash {
     /// SFINAE-based detection of std::hash availability
     template <typename T>
     class has_std_hash {
+        /// Test function that checks if std::hash<T> is valid
         template <typename U>
         static auto test(int)
             -> decltype(std::hash<U>{}(std::declval<const U&>()),
                         std::true_type{});
 
+        /// Fallback if std::hash<T> is not valid
         template <typename>
         static std::false_type test(...);
 
@@ -126,7 +128,6 @@ struct DefaultHash {
     static constexpr bool has_std_hash_v = has_std_hash<T>::value;
 
     /// Helper for static_assert in template else branch
-    template <typename T>
     static constexpr bool always_false_v = false;
 
 
@@ -141,7 +142,7 @@ struct DefaultHash {
      * @return size_t Well-distributed hash value.
      */
     [[nodiscard]]
-    static constexpr size_t hash_integral(size_t key) noexcept {
+    static constexpr size_t hash_integral(const size_t key) noexcept {
         return splitmix64(key ^ seed_);
     }
 
@@ -176,7 +177,7 @@ struct DefaultHash {
      */
     template <typename Enum>
     [[nodiscard]]
-    constexpr size_t hash_enum(const Enum& e) const noexcept {
+    static constexpr size_t hash_enum(const Enum& e) noexcept {
         using underlying_t = std::underlying_type_t<Enum>;
         return hash_integral(static_cast<size_t>(static_cast<underlying_t>(e)));
     }
@@ -195,7 +196,7 @@ struct DefaultHash {
      */
     template <typename T>
     [[nodiscard]]
-    constexpr size_t hash_with_std_hash(const T& value) const noexcept {
+    static constexpr size_t hash_with_std_hash(const T& value) noexcept {
         const size_t base_hash = std::hash<T>{}(value);
         return splitmix64(base_hash ^ seed_);
     }
@@ -267,7 +268,6 @@ struct DefaultHash {
 
 
 /** @class HashMap
- *
  * @brief A simple hash map implementation using open addressing with linear
  * probing.
  *
