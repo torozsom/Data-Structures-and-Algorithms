@@ -1,6 +1,5 @@
-# Data Structures & Algorithms Visualization
-
 <div align="center">
+<h1>Data Structures and Algorithms</h1>
 
 ![C++23](https://img.shields.io/badge/C++-23-blue.svg)
 ![Qt6](https://img.shields.io/badge/Qt-6-brightgreen.svg)
@@ -15,6 +14,18 @@ This project provides a modern C++23 playground for fundamental data structures 
 
 * **Language & Tooling** – C++23, CMake, Qt6, Google Test
 * **Design Goals** – efficiency, clarity, and ease of extension
+
+---
+
+## Screenshots
+
+<p align="center">
+    <img src="assets/algovisual.png" width="600">
+    <img src="assets/mainwindow.png" width="600">
+    <img src="assets/chosenstruct.png" width="600">
+</p>
+
+---
 
 ## Data Structure Efficiency
 
@@ -79,7 +90,3 @@ ctest --test-dir build
 ```
 
 Unit tests use Google Test and cover both algorithms and data structures.  The Qt6 GUI target demonstrates the structures visually.
-
----
-
-Enjoy exploring and extending this foundation for data structures and algorithms!  Contributions and feedback are welcome.
