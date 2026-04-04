@@ -5,6 +5,7 @@
 #include <limits>
 #include <stdexcept>
 #include <utility>
+#include <bit>
 
 #include "BinaryTree.hpp"
 
@@ -60,7 +61,7 @@ using std::size_t;
  * be partially moved if a `Type` operation throws.
  */
 template <typename Type>
-class Heap : public BinaryTree<Type> {
+class Heap : protected BinaryTree<Type> {
 
   protected:
     virtual void heapifyUp(Node<Type>* node) = 0;
@@ -89,11 +90,7 @@ class Heap : public BinaryTree<Type> {
         if (idx == 1)
             return this->root_;
 
-        size_t msb = static_cast<size_t>(1)
-                     << (std::numeric_limits<size_t>::digits - 1);
-        while (msb > 0 && !(idx & msb))
-            msb >>= 1;
-
+        size_t msb = std::bit_floor(idx);
         Node<Type>* current = this->root_;
         msb >>= 1;
 
@@ -144,6 +141,11 @@ class Heap : public BinaryTree<Type> {
 
 
   public:
+    using BinaryTree<Type>::isEmpty;
+    using BinaryTree<Type>::size;
+    using BinaryTree<Type>::clear;
+    using BinaryTree<Type>::getHeight;
+
     /// Default constructor
     Heap() noexcept : BinaryTree<Type>() {}
 
@@ -164,10 +166,6 @@ class Heap : public BinaryTree<Type> {
         BinaryTree<Type>::operator=(std::move(other));
         return *this;
     }
-
-
-    template <typename U> void insertLeft(U&&) = delete;
-    template <typename U> void insertRight(U&&) = delete;
 
 
     [[nodiscard]]

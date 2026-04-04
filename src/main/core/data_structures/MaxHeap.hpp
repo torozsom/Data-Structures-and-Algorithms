@@ -67,7 +67,7 @@ class MaxHeap final : public Heap<Type> {
      * @complexity Time: O(log n); Space: O(1).
      */
     void heapifyUp(Node<Type>* node) override {
-        while (node && node->parent && node->data > node->parent->data) {
+        while (node && node->parent && node->parent->data < node->data) {
             this->swapData(node, node->parent);
             node = node->parent;
         }
@@ -90,10 +90,10 @@ class MaxHeap final : public Heap<Type> {
         while (node) {
             Node<Type>* largest = node;
 
-            if (node->left && node->left->data > largest->data)
+            if (node->left && largest->data < node->left->data)
                 largest = node->left;
 
-            if (node->right && node->right->data > largest->data)
+            if (node->right && largest->data < node->right->data)
                 largest = node->right;
 
             if (largest == node)
@@ -110,9 +110,9 @@ class MaxHeap final : public Heap<Type> {
         if (node == nullptr)
             return true;
 
-        if (node->left && node->left->data > node->data)
+        if (node->left && node->data < node->left->data)
             return false;
-        if (node->right && node->right->data > node->data)
+        if (node->right && node->data < node->right->data)
             return false;
 
         return isValidMaxHeap(node->left) && isValidMaxHeap(node->right);
