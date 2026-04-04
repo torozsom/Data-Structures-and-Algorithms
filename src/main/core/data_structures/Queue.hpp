@@ -315,7 +315,9 @@ class Queue {
 
     /// Copy constructor
     Queue(const Queue& other) : array_(), front_idx_(0), size_(0) {
-        array_.reserve(other.size_);
+        size_t cap = std::bit_ceil(other.size_);
+        if (cap < 16) cap = 16;
+        array_.reserve(cap);
         for (size_t i = 0; i < other.size_; ++i) {
             size_t src_idx = other.getCircularIndex(i);
             array_.addLast(other.array_[src_idx]);
@@ -338,7 +340,9 @@ class Queue {
             return *this;
 
         DynamicArray<Type> new_array;
-        new_array.reserve(other.size_);
+        size_t cap = std::bit_ceil(other.size_);
+        if (cap < 16) cap = 16;
+        new_array.reserve(cap);
 
         for (size_t i = 0; i < other.size_; ++i) {
             const size_t src_idx = other.getCircularIndex(i);
