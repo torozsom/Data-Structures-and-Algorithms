@@ -46,11 +46,15 @@ TEST(DataStructuresIntegrationTest, QueueToStackRoundTrip) {
     Stack<int> stack;
     DynamicArray<int> array;
 
-    while (!queue.isEmpty())
-        stack.push(queue.dequeue());
+    while (!queue.isEmpty()) {
+        stack.push(queue.front());
+        queue.dequeue();
+    }
 
-    while (!stack.isEmpty())
-        array.addLast(stack.pop());
+    while (!stack.isEmpty()) {
+        array.addLast(stack.top());
+        stack.pop();
+    }
 
     ASSERT_EQ(array.size(), 5u);
     for (size_t i = 0; i < array.size(); ++i)
@@ -59,7 +63,7 @@ TEST(DataStructuresIntegrationTest, QueueToStackRoundTrip) {
 
 
 TEST(DataStructuresIntegrationTest, BinarySearchTreeExtractsToLinkedListInOrder) {
-    std::vector<int> values = {50, 30, 70, 20, 40, 60, 80, 10, 35, 45, 55, 65, 75, 85};
+    const std::vector values = {50, 30, 70, 20, 40, 60, 80, 10, 35, 45, 55, 65, 75, 85};
     BinarySearchTree<int> tree;
     for (int v : values)
         tree.insert(v);
@@ -99,7 +103,8 @@ TEST(DataStructuresIntegrationTest, HashMapQueueStackDynamicArrayWorkflow) {
 
     Stack<std::string> values;
     while (!keys.isEmpty()) {
-        int key = keys.dequeue();
+        int key = keys.front();
+        keys.dequeue();
         ASSERT_TRUE(map.contains(key));
         values.push(map.at(key));
         EXPECT_TRUE(map.remove(key));
@@ -108,8 +113,10 @@ TEST(DataStructuresIntegrationTest, HashMapQueueStackDynamicArrayWorkflow) {
     EXPECT_TRUE(map.isEmpty());
 
     DynamicArray<std::string> array;
-    while (!values.isEmpty())
-        array.addLast(values.pop());
+    while (!values.isEmpty()) {
+        array.addLast(values.top());
+        values.pop();
+    }
 
     ASSERT_EQ(array.size(), pairs.size());
     for (size_t i = 0; i < array.size(); ++i) {
@@ -136,7 +143,8 @@ TEST(DataStructuresIntegrationTest, HeapsQueueAndLinkedListRoundTrip) {
 
     MinHeap<int> minHeap;
     while (!queue.isEmpty()) {
-        int value = queue.dequeue();
+        int value = queue.front();
+        queue.dequeue();
         minHeap.insert(value);
         ASSERT_TRUE(minHeap.isValidHeap());
     }
@@ -162,12 +170,16 @@ TEST(DataStructuresIntegrationTest, LinkedListThroughAllStructuresRoundTrip) {
     EXPECT_EQ(queue.size(), originalList.size());
 
     Stack<int> stack;
-    while (!queue.isEmpty())
-        stack.push(queue.dequeue());
+    while (!queue.isEmpty()) {
+        stack.push(queue.front());
+        queue.dequeue();
+    }
 
     DynamicArray<int> array;
-    while (!stack.isEmpty())
-        array.addLast(stack.pop());
+    while (!stack.isEmpty()) {
+        array.addLast(stack.top());
+        stack.pop();
+    }
     ASSERT_EQ(array.size(), originalList.size());
 
     MaxHeap<int> maxHeap;
@@ -181,7 +193,8 @@ TEST(DataStructuresIntegrationTest, LinkedListThroughAllStructuresRoundTrip) {
 
     MinHeap<int> minHeap;
     while (!secondQueue.isEmpty()) {
-        minHeap.insert(secondQueue.dequeue());
+        minHeap.insert(secondQueue.front());
+        secondQueue.dequeue();
         ASSERT_TRUE(minHeap.isValidHeap());
     }
 
@@ -229,7 +242,8 @@ TEST(DataStructuresIntegrationTest, HashMapRebuildFromBinarySearchTreeTraversal)
     EXPECT_EQ(keys.size(), entries.size());
 
     while (!keys.isEmpty()) {
-        std::string key = keys.dequeue();
+        std::string key = keys.front();
+        keys.dequeue();
         int base = key[0] - 'a' + 1;
         map.insert(key, base * base);
     }

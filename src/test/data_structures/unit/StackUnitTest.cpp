@@ -171,7 +171,8 @@ TEST_F(StackUnitTest, PopSingleElement) {
     Stack<int> stack;
     stack.push(42);
 
-    const int popped = stack.pop();
+    const int popped = stack.top();
+    stack.pop();
 
     EXPECT_EQ(popped, 42);
     EXPECT_TRUE(stack.isEmpty());
@@ -186,13 +187,16 @@ TEST_F(StackUnitTest, PopMultipleElements) {
     stack.push(30);
 
     // Pop elements should follow LIFO order
-    EXPECT_EQ(stack.pop(), 30);
+    EXPECT_EQ(stack.top(), 30);
+    stack.pop();
     EXPECT_EQ(stack.size(), 2);
 
-    EXPECT_EQ(stack.pop(), 20);
+    EXPECT_EQ(stack.top(), 20);
+    stack.pop();
     EXPECT_EQ(stack.size(), 1);
 
-    EXPECT_EQ(stack.pop(), 10);
+    EXPECT_EQ(stack.top(), 10);
+    stack.pop();
     EXPECT_TRUE(stack.isEmpty());
 }
 
@@ -338,9 +342,12 @@ TEST_F(StackUnitTest, StringType) {
     EXPECT_EQ(stack.size(), 3);
     EXPECT_EQ(stack.top(), "Third");
 
-    EXPECT_EQ(stack.pop(), "Third");
-    EXPECT_EQ(stack.pop(), "Second");
-    EXPECT_EQ(stack.pop(), "First");
+    EXPECT_EQ(stack.top(), "Third");
+    stack.pop();
+    EXPECT_EQ(stack.top(), "Second");
+    stack.pop();
+    EXPECT_EQ(stack.top(), "First");
+    stack.pop();
 }
 
 
@@ -360,7 +367,8 @@ TEST_F(StackUnitTest, CustomObjectType) {
     EXPECT_EQ(stack.size(), 2);
     EXPECT_EQ(stack.top(), Point(3, 4));
 
-    const Point popped = stack.pop();
+    const Point popped = stack.top();
+    stack.pop();
     EXPECT_EQ(popped, Point(3, 4));
     EXPECT_EQ(stack.top(), Point(1, 2));
 }
@@ -374,8 +382,10 @@ TEST_F(StackUnitTest, LIFOBehavior) {
         stack.push(i * 10);
 
     // Pop elements should be in reverse order (LIFO)
-    for (int i = 5; i >= 1; --i)
-        EXPECT_EQ(stack.pop(), i * 10);
+    for (int i = 5; i >= 1; --i) {
+        EXPECT_EQ(stack.top(), i * 10);
+        stack.pop();
+    }
 
     EXPECT_TRUE(stack.isEmpty());
 }
@@ -386,13 +396,17 @@ TEST_F(StackUnitTest, InterleavedPushPop) {
 
     stack.push(10);
     stack.push(20);
-    EXPECT_EQ(stack.pop(), 20);
+    EXPECT_EQ(stack.top(), 20);
+    stack.pop();
 
     stack.push(30);
     stack.push(40);
-    EXPECT_EQ(stack.pop(), 40);
-    EXPECT_EQ(stack.pop(), 30);
-    EXPECT_EQ(stack.pop(), 10);
+    EXPECT_EQ(stack.top(), 40);
+    stack.pop();
+    EXPECT_EQ(stack.top(), 30);
+    stack.pop();
+    EXPECT_EQ(stack.top(), 10);
+    stack.pop();
 
     EXPECT_TRUE(stack.isEmpty());
 }
@@ -409,8 +423,10 @@ TEST_F(StackUnitTest, LargeNumberOfOperations) {
     EXPECT_EQ(stack.size(), num_operations);
 
     // Pop all elements and verify LIFO order
-    for (int i = num_operations - 1; i >= 0; --i)
-        EXPECT_EQ(stack.pop(), i);
+    for (int i = num_operations - 1; i >= 0; --i) {
+        EXPECT_EQ(stack.top(), i);
+        stack.pop();
+    }
 
     EXPECT_TRUE(stack.isEmpty());
 }
@@ -430,9 +446,11 @@ TEST_F(StackUnitTest, AlternatingPushPop) {
     EXPECT_GT(stack.size(), 0);
 
     // Verify stack is still in valid state
-    int previous = stack.pop();
+    int previous = stack.top();
+    stack.pop();
     while (!stack.isEmpty()) {
-        int current = stack.pop();
+        int current = stack.top();
+        stack.pop();
         EXPECT_LT(current, previous);
         previous = current;
     }
@@ -474,11 +492,13 @@ TEST_F(StackUnitTest, BasicThrowingTypeUsage) {
     EXPECT_EQ(stack.top().value, 2);
 
     // Test pop operations
-    ThrowingType popped = stack.pop();
+    ThrowingType popped = stack.top();
+    stack.pop();
     EXPECT_EQ(popped.value, 2);
     EXPECT_EQ(stack.size(), 1);
 
-    popped = stack.pop();
+    popped = stack.top();
+    stack.pop();
     EXPECT_EQ(popped.value, 1);
     EXPECT_TRUE(stack.isEmpty());
 
@@ -492,7 +512,7 @@ TEST_F(StackUnitTest, PushPopSingleElementMultipleTimes) {
     for (int i = 0; i < 10; ++i) {
         stack.push(i);
         EXPECT_EQ(stack.top(), i);
-        EXPECT_EQ(stack.pop(), i);
+        stack.pop();
         EXPECT_TRUE(stack.isEmpty());
     }
 }
@@ -510,7 +530,8 @@ TEST_F(StackUnitTest, TopDoesNotModifyStack) {
     EXPECT_EQ(stack.size(), 2);
 
     // Stack should still work normally
-    EXPECT_EQ(stack.pop(), 20);
+    EXPECT_EQ(stack.top(), 20);
+    stack.pop();
     EXPECT_EQ(stack.top(), 10);
 }
 
@@ -524,8 +545,10 @@ TEST_F(StackUnitTest, CopyConstructorPreservesOrder) {
 
     // Both stacks should pop elements in the same order
     for (int i = 5; i >= 1; --i) {
-        EXPECT_EQ(original.pop(), i);
-        EXPECT_EQ(copy.pop(), i);
+        EXPECT_EQ(original.top(), i);
+        original.pop();
+        EXPECT_EQ(copy.top(), i);
+        copy.pop();
     }
 }
 

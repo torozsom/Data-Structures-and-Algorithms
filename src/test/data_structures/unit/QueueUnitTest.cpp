@@ -230,7 +230,8 @@ TEST_F(QueueUnitTest, DequeueSingleElement) {
     Queue<int> queue;
     queue.enqueue(42);
 
-    const int dequeued = queue.dequeue();
+    const int dequeued = queue.front();
+    queue.dequeue();
 
     EXPECT_EQ(dequeued, 42);
     EXPECT_TRUE(queue.isEmpty());
@@ -245,15 +246,18 @@ TEST_F(QueueUnitTest, DequeueMultipleElements) {
     queue.enqueue(30);
 
     // Dequeue elements should follow FIFO order
-    EXPECT_EQ(queue.dequeue(), 10);
+    EXPECT_EQ(queue.front(), 10);
+    queue.dequeue();
     EXPECT_EQ(queue.size(), 2);
     EXPECT_EQ(queue.front(), 20);
 
-    EXPECT_EQ(queue.dequeue(), 20);
+    EXPECT_EQ(queue.front(), 20);
+    queue.dequeue();
     EXPECT_EQ(queue.size(), 1);
     EXPECT_EQ(queue.front(), 30);
 
-    EXPECT_EQ(queue.dequeue(), 30);
+    EXPECT_EQ(queue.front(), 30);
+    queue.dequeue();
     EXPECT_TRUE(queue.isEmpty());
 }
 
@@ -472,9 +476,12 @@ TEST_F(QueueUnitTest, StringType) {
     EXPECT_EQ(queue.front(), "First");
     EXPECT_EQ(queue.back(), "Third");
 
-    EXPECT_EQ(queue.dequeue(), "First");
-    EXPECT_EQ(queue.dequeue(), "Second");
-    EXPECT_EQ(queue.dequeue(), "Third");
+    EXPECT_EQ(queue.front(), "First");
+    queue.dequeue();
+    EXPECT_EQ(queue.front(), "Second");
+    queue.dequeue();
+    EXPECT_EQ(queue.front(), "Third");
+    queue.dequeue();
 }
 
 
@@ -495,7 +502,8 @@ TEST_F(QueueUnitTest, CustomObjectType) {
     EXPECT_EQ(queue.front(), Point(1, 2));
     EXPECT_EQ(queue.back(), Point(3, 4));
 
-    const Point dequeued = queue.dequeue();
+    const Point dequeued = queue.front();
+    queue.dequeue();
     EXPECT_EQ(dequeued, Point(1, 2));
     EXPECT_EQ(queue.front(), Point(3, 4));
 }
@@ -509,8 +517,10 @@ TEST_F(QueueUnitTest, WrapAroundDoesNotAllocate) {
         queue.enqueue(static_cast<int>(i));
 
     constexpr size_t num_dequeues = 2;
-    for (size_t i = 0; i < num_dequeues; ++i)
-        EXPECT_EQ(queue.dequeue(), static_cast<int>(i));
+    for (size_t i = 0; i < num_dequeues; ++i) {
+        EXPECT_EQ(queue.front(), static_cast<int>(i));
+        queue.dequeue();
+    }
 
     for (size_t i = 0; i < num_dequeues; ++i)
         queue.enqueue(static_cast<int>(initial_capacity + i));
@@ -524,8 +534,10 @@ TEST_F(QueueUnitTest, WrapAroundDoesNotAllocate) {
 
     for (int expected = num_dequeues;
          expected < static_cast<int>(num_dequeues + initial_capacity);
-         ++expected)
-        EXPECT_EQ(queue.dequeue(), expected);
+         ++expected) {
+        EXPECT_EQ(queue.front(), expected);
+        queue.dequeue();
+    }
 }
 
 
@@ -537,8 +549,10 @@ TEST_F(QueueUnitTest, FIFOBehavior) {
         queue.enqueue(i * 10);
 
     // Dequeue elements should be in same order (FIFO)
-    for (int i = 1; i <= 5; ++i)
-        EXPECT_EQ(queue.dequeue(), i * 10);
+    for (int i = 1; i <= 5; ++i) {
+        EXPECT_EQ(queue.front(), i * 10);
+        queue.dequeue();
+    }
 
     EXPECT_TRUE(queue.isEmpty());
 }
@@ -549,13 +563,17 @@ TEST_F(QueueUnitTest, InterleavedEnqueueDequeue) {
 
     queue.enqueue(10);
     queue.enqueue(20);
-    EXPECT_EQ(queue.dequeue(), 10);
+    EXPECT_EQ(queue.front(), 10);
+    queue.dequeue();
 
     queue.enqueue(30);
     queue.enqueue(40);
-    EXPECT_EQ(queue.dequeue(), 20);
-    EXPECT_EQ(queue.dequeue(), 30);
-    EXPECT_EQ(queue.dequeue(), 40);
+    EXPECT_EQ(queue.front(), 20);
+    queue.dequeue();
+    EXPECT_EQ(queue.front(), 30);
+    queue.dequeue();
+    EXPECT_EQ(queue.front(), 40);
+    queue.dequeue();
 
     EXPECT_TRUE(queue.isEmpty());
 }
@@ -572,8 +590,10 @@ TEST_F(QueueUnitTest, LargeNumberOfOperations) {
     EXPECT_EQ(queue.size(), num_operations);
 
     // Dequeue all elements and verify FIFO order
-    for (int i = 0; i < num_operations; ++i)
-        EXPECT_EQ(queue.dequeue(), i);
+    for (int i = 0; i < num_operations; ++i) {
+        EXPECT_EQ(queue.front(), i);
+        queue.dequeue();
+    }
 
     EXPECT_TRUE(queue.isEmpty());
 }
@@ -593,9 +613,11 @@ TEST_F(QueueUnitTest, AlternatingEnqueueDequeue) {
     EXPECT_GT(queue.size(), 0);
 
     // Verify queue is still in valid state
-    int previous = queue.dequeue();
+    int previous = queue.front();
+    queue.dequeue();
     while (!queue.isEmpty()) {
-        int current = queue.dequeue();
+        int current = queue.front();
+        queue.dequeue();
         EXPECT_GT(current, previous);
         previous = current;
     }
@@ -642,12 +664,14 @@ TEST_F(QueueUnitTest, BasicThrowingTypeUsage) {
     EXPECT_EQ(queue.back().value, 2);
 
     // Test dequeue operations
-    ThrowingType dequeued = queue.dequeue();
+    ThrowingType dequeued = queue.front();
+    queue.dequeue();
     EXPECT_EQ(dequeued.value, 1);
     EXPECT_EQ(queue.size(), 1);
     EXPECT_EQ(queue.front().value, 2);
 
-    dequeued = queue.dequeue();
+    dequeued = queue.front();
+    queue.dequeue();
     EXPECT_EQ(dequeued.value, 2);
     EXPECT_TRUE(queue.isEmpty());
 
@@ -662,7 +686,8 @@ TEST_F(QueueUnitTest, EnqueueDequeueSingleElementMultipleTimes) {
         queue.enqueue(i);
         EXPECT_EQ(queue.front(), i);
         EXPECT_EQ(queue.back(), i);
-        EXPECT_EQ(queue.dequeue(), i);
+        EXPECT_EQ(queue.front(), i);
+        queue.dequeue();
         EXPECT_TRUE(queue.isEmpty());
     }
 }
@@ -681,7 +706,8 @@ TEST_F(QueueUnitTest, FrontBackDoNotModifyQueue) {
     EXPECT_EQ(queue.size(), 2);
 
     // Queue should still work normally
-    EXPECT_EQ(queue.dequeue(), 10);
+    EXPECT_EQ(queue.front(), 10);
+    queue.dequeue();
     EXPECT_EQ(queue.front(), 20);
     EXPECT_EQ(queue.back(), 20);
 }
@@ -696,8 +722,10 @@ TEST_F(QueueUnitTest, CopyConstructorPreservesOrder) {
 
     // Both queues should dequeue elements in the same order
     for (int i = 1; i <= 5; ++i) {
-        EXPECT_EQ(original.dequeue(), i);
-        EXPECT_EQ(copy.dequeue(), i);
+        EXPECT_EQ(original.front(), i);
+        original.dequeue();
+        EXPECT_EQ(copy.front(), i);
+        copy.dequeue();
     }
 }
 
@@ -722,19 +750,13 @@ TEST_F(QueueUnitTest, HandlesMoveOnlyTypes) {
     queue.enqueue(std::make_unique<int>(2));
     queue.enqueue(std::make_unique<int>(3));
 
-    int expected = 1;
-    for (const auto& ptr : queue)
-        EXPECT_EQ(*ptr, expected++);
-
-    const auto first = queue.dequeue();
+    const auto first = std::move(queue.front());
+    queue.dequeue();
     EXPECT_EQ(*first, 1);
     EXPECT_EQ(queue.size(), 2);
     EXPECT_EQ(*queue.front(), 2);
     EXPECT_EQ(*queue.back(), 3);
 
-    expected = 2;
-    for (const auto& ptr : queue)
-        EXPECT_EQ(*ptr, expected++);
 
     queue.dequeue();
     queue.dequeue();
@@ -798,54 +820,6 @@ TEST_F(QueueUnitTest, EmplaceBackWithCustomType) {
 }
 
 
-TEST_F(QueueUnitTest, RangeBasedTraversalHandlesEmpty) {
-    Queue<int> queue;
-    queue.enqueue(1);
-    queue.enqueue(2);
-    queue.enqueue(3);
-
-    int expected = 1;
-    for (int value : queue)
-        EXPECT_EQ(value, expected++);
-    EXPECT_EQ(expected, 4);
-
-    int count = 0;
-    for (Queue<int> empty; const int value : empty) {
-        (void)value;
-        ++count;
-    }
-    EXPECT_EQ(count, 0);
-}
-
-
-TEST_F(QueueUnitTest, ManualIteratorTraversal) {
-    Queue<int> queue;
-    queue.enqueue(1);
-    queue.enqueue(2);
-    queue.enqueue(3);
-
-    auto it = queue.begin();
-    EXPECT_EQ(*it, 1);
-
-    ++it;
-    EXPECT_EQ(*it, 2);
-
-    auto post_inc = it++;
-    EXPECT_EQ(*post_inc, 2);
-    EXPECT_EQ(*it, 3);
-
-    auto post_dec = it--;
-    EXPECT_EQ(*post_dec, 3);
-    EXPECT_EQ(*it, 2);
-
-    --it;
-    EXPECT_EQ(*it, 1);
-
-    Queue<int> empty;
-    EXPECT_EQ(empty.begin(), empty.end());
-}
-
-
 struct EmplaceTest {
     int x, y;
     EmplaceTest(const int a, const int b) : x(a), y(b) {}
@@ -860,7 +834,8 @@ TEST_F(QueueUnitTest, EmplaceLastConstructsInPlace) {
     EXPECT_EQ(queue.size(), 10);
 
     for (int i = 0; i < 10; ++i) {
-        EmplaceTest item = queue.dequeue();
+        EmplaceTest item = queue.front();
+        queue.dequeue();
         EXPECT_EQ(item.x, i);
         EXPECT_EQ(item.y, i + 1);
     }
