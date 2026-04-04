@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <type_traits>
 #include <utility>
+#include <stdexcept>
 
 #include "BinaryTree.hpp"
 
@@ -45,7 +46,7 @@ using std::size_t;
  *   unchanged on failure).
  */
 template <typename Type>
-class BinarySearchTree : public BinaryTree<Type> {
+class BinarySearchTree : private BinaryTree<Type> {
 
     /**
      * Recursively inserts an element into a binary search tree.
@@ -116,6 +117,8 @@ class BinarySearchTree : public BinaryTree<Type> {
                 node = node->right;
                 if (node)
                     node->parent = temp->parent;
+                temp->left = nullptr;
+                temp->right = nullptr;
                 delete temp;
             } else if (node->right == nullptr) {
                 --this->size_;
@@ -123,11 +126,13 @@ class BinarySearchTree : public BinaryTree<Type> {
                 node = node->left;
                 if (node)
                     node->parent = temp->parent;
+                temp->left = nullptr;
+                temp->right = nullptr;
                 delete temp;
             } else {
                 Node<Type>* temp = findMinNode(node->right);
-                node->data = std::move(temp->data);
-                recursiveRemove(node->right, node->data);
+                std::swap(node->data, temp->data);
+                recursiveRemove(node->right, temp->data);
             }
         }
     }
@@ -249,6 +254,15 @@ class BinarySearchTree : public BinaryTree<Type> {
 
 
   public:
+    /// Expose base class methods that are still valid for BSTs.
+    using BinaryTree<Type>::isEmpty;
+    using BinaryTree<Type>::size;
+    using BinaryTree<Type>::getRoot;
+    using BinaryTree<Type>::getHeight;
+    using BinaryTree<Type>::clear;
+    using BinaryTree<Type>::levelOrder;
+
+
     /// Default constructor
     BinarySearchTree() noexcept : BinaryTree<Type>() {}
 
@@ -340,10 +354,6 @@ class BinarySearchTree : public BinaryTree<Type> {
     }
 
 
-    template <typename U> void insertLeft(U&&) = delete;
-    template <typename U> void insertRight(U&&) = delete;
-
-
     /**
      * @brief Remove a value if present, maintaining the BST invariant.
      *
@@ -375,7 +385,8 @@ class BinarySearchTree : public BinaryTree<Type> {
      * - Time: O(h) (average ≈ O(log n), worst O(n)).
      * - Space: O(1).
      */
-    bool contains(const Type& element) const override {
+    [[nodiscard]]
+    bool contains(const Type& element) const {
         Node<Type>* current = this->root_;
         while (current) {
             if (element < current->data)
@@ -386,6 +397,30 @@ class BinarySearchTree : public BinaryTree<Type> {
                 return true;
         }
         return false;
+    }
+
+
+    /**
+     * @brief Find a node containing a value.
+     * @param element The value to search for.
+     * @return Pointer to the node if found, nullptr otherwise.
+     *
+     * @par Complexity
+     * - Time: O(h) (average ≈ O(log n), worst O(n)).
+     * - Space: O(1).
+     */
+    [[nodiscard]]
+    const Node<Type>* findNode(const Type& element) const {
+        Node<Type>* current = this->root_;
+        while (current) {
+            if (element < current->data)
+                current = current->left;
+            else if (current->data < element)
+                current = current->right;
+            else
+                return current;
+        }
+        return nullptr;
     }
 
 

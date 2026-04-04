@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
+#include <memory>
 
 #include "Queue.hpp"
 
@@ -39,7 +40,18 @@ struct Node {
         requires(std::is_constructible_v<Type, U &&> &&
                  !std::is_same_v<std::remove_cvref_t<U>, Node>)
     explicit Node(U&& data)
-        : data(std::forward<U>(data)), parent(), left(), right() {}
+        : data(std::forward<U>(data)), parent(nullptr), left(nullptr), right(nullptr) {}
+
+    ~Node() {
+        delete left;
+        delete right;
+    }
+
+    Node(const Node&) = delete;
+    Node& operator=(const Node&) = delete;
+
+    Node(Node&&) = delete;
+    Node& operator=(Node&&) = delete;
 };
 
 
@@ -80,34 +92,31 @@ class BinaryTree {
 
 
     /**
-     * Recursively copies a node and its subtree.
+     * Recursively copies a subtree rooted at `otherNode`, creating new nodes
+     * with the same data and structure. The `parent` parameter is used to set
+     * the parent pointer of the newly created node.
      *
-     * @param otherNode Pointer to the subtree root to copy (may be nullptr).
-     * @param parent    Parent to set on the newly created node (may be
-     * nullptr).
-     * @return Pointer to the new subtree root (or nullptr if `otherNode` is
-     * nullptr).
+     * @param otherNode Pointer to the root of the subtree to copy.
+     * @param parent Pointer to the parent node for the new subtree (default nullptr).
+     * @return Pointer to the root of the newly copied subtree.
      *
-     * Complexity: O(k) where k is the number of nodes in the copied subtree.
-     *
-     * @par Exception safety
-     * This implementation propagates exceptions from allocations and `Type`
-     * construction. If an exception is thrown mid-copy, already-allocated nodes
-     * in the partially built subtree are not reclaimed here (leak risk).
-     * For a strong guarantee, switch to an RAII/commit pattern (build the
-     * subtree with smart pointers and only release ownership on success).
+     * Complexity: O(n) where n is the number of nodes in the subtree.
+     * Exception safety: Strong guarantee; if an exception occurs, no changes are
+     * made to the current tree. Propagates exceptions from `Type` copy/move
+     * constructors and allocations.
      */
     Node<Type>* recursiveCopyNode(const Node<Type>* otherNode,
                                   Node<Type>* parent = nullptr) {
         if (otherNode == nullptr)
             return nullptr;
 
-        auto* newNode = new Node<Type>(otherNode->data);
+        std::unique_ptr<Node<Type>> newNode(new Node<Type>(otherNode->data));
         newNode->parent = parent;
 
-        newNode->left = recursiveCopyNode(otherNode->left, newNode);
-        newNode->right = recursiveCopyNode(otherNode->right, newNode);
-        return newNode;
+        newNode->left = recursiveCopyNode(otherNode->left, newNode.get());
+        newNode->right = recursiveCopyNode(otherNode->right, newNode.get());
+
+        return newNode.release();
     }
 
 
@@ -139,23 +148,6 @@ class BinaryTree {
         const size_t leftHeight = recursiveHeight(node->left);
         const size_t rightHeight = recursiveHeight(node->right);
         return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
-    }
-
-
-    /**
-     * Recursively clears the binary tree by deallocating memory occupied by all
-     * nodes.
-     *
-     * @param node Pointer to the current node in the binary tree that is being
-     * cleared.
-     */
-    void recursiveClear(Node<Type>* node) {
-        if (node == nullptr)
-            return;
-
-        recursiveClear(node->left);
-        recursiveClear(node->right);
-        delete node;
     }
 
 
@@ -224,11 +216,11 @@ class BinaryTree {
 
         Queue<Node<Type>*> queue;
         queue.enqueue(root_);
-
         Queue<Type> result;
 
         while (!queue.isEmpty()) {
-            Node<Type>* current = queue.dequeue();
+            Node<Type>* current = queue.front();
+            queue.dequeue();
             result.enqueue(current->data);
 
             if (current->left != nullptr)
@@ -282,8 +274,9 @@ class BinaryTree {
         if (this == &other)
             return *this;
 
+        Node<Type>* new_root = recursiveCopyNode(other.root_);
         clear();
-        recursiveCopy(other);
+        root_ = new_root;
         size_ = other.size_;
         return *this;
     }
@@ -348,18 +341,24 @@ class BinaryTree {
 
         Queue<Node<Type>*> queue;
         queue.enqueue(this->root_);
-        bool foundNull = false;
+        bool foundMissingChild = false;
 
         while (!queue.isEmpty()) {
-            Node<Type>* current = queue.dequeue();
+            Node<Type>* current = queue.front();
+            queue.dequeue();
 
-            if (current == nullptr) {
-                foundNull = true;
-            } else {
-                if (foundNull) // Found non-null after null
-                    return false;
+            if (current->left != nullptr) {
+                if (foundMissingChild) return false;
                 queue.enqueue(current->left);
+            } else {
+                foundMissingChild = true;
+            }
+
+            if (current->right != nullptr) {
+                if (foundMissingChild) return false;
                 queue.enqueue(current->right);
+            } else {
+                foundMissingChild = true;
             }
         }
         return true;
@@ -508,7 +507,8 @@ class BinaryTree {
         queue.enqueue(root_);
 
         while (!queue.isEmpty()) {
-            Node<Type>* current = queue.dequeue();
+            Node<Type>* current = queue.front();
+            queue.dequeue();
 
             // Check if left child is available
             if (current->left == nullptr) {
@@ -593,7 +593,8 @@ class BinaryTree {
         queue.enqueue(root_);
 
         while (!queue.isEmpty()) {
-            Node<Type>* current = queue.dequeue();
+            Node<Type>* current = queue.front();
+            queue.dequeue();
 
             if (current->data == value)
                 return current;
@@ -630,7 +631,7 @@ class BinaryTree {
      * Exception safety: No-throw.
      */
     void clear() noexcept {
-        recursiveClear(root_);
+        delete root_;
         root_ = nullptr;
         size_ = 0;
     }
