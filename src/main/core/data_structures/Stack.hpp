@@ -136,7 +136,7 @@ class Stack {
     }
 
     /// Clears the stack, removing all elements.
-    void clear() { array_.clear(); }
+    void clear() noexcept { array_.clear(); }
 
     /// Shrinks the underlying array to fit the current size.
     void shrinkToFit() { array_.shrinkToFit(); }
@@ -181,22 +181,24 @@ class Stack {
 
 
     /**
-     * Pop and return the top element by value.
+     * Pop the top element from the stack.
      *
-     * @return The removed element (moved).
+     * Removes the element at the top of the stack. To inspect the value,
+     * use top() before calling pop().
+     *
      * @throws std::out_of_range if the stack is empty.
      *
      * @par Complexity
      * O(1); may become O(n) if the underlying array shrinks.
      *
-     * @par Invalidation
-     * A shrink (triggered by the underlying array) invalidates
-     * references/pointers/iterators.
+     * @par Exception Safety
+     * Strong guarantee. Returns void to avoid exception safety pitfalls
+     * associated with returning by value.
      */
-    Type pop() {
+    void pop() {
         if (array_.isEmpty())
             throw std::out_of_range("Stack is empty");
-        return array_.removeLast();
+        array_.popBack();
     }
 
 
@@ -249,58 +251,6 @@ class Stack {
     void emplace(Args&&... args) {
         array_.emplaceLast(std::forward<Args>(args)...);
     }
-
-
-    // --- Iterator support for range-based for loops ---
-
-    using value_type = Type;
-    using reference = Type&;
-    using const_reference = const Type&;
-    using pointer = Type*;
-    using const_pointer = const Type*;
-
-    using iterator = Type*;
-    using const_iterator = const Type*;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    using difference_type = std::ptrdiff_t;
-    using size_type = size_t;
-
-
-    iterator begin() noexcept { return array_.begin(); }
-    const_iterator begin() const noexcept { return array_.begin(); }
-
-    iterator end() noexcept { return array_.end(); }
-    const_iterator end() const noexcept { return array_.end(); }
-
-    // --- C++11 range-based for loop support ---
-
-    const_iterator cbegin() const noexcept { return array_.cbegin(); }
-    const_iterator cend() const noexcept { return array_.cend(); }
-
-    // Reverse iterators
-
-    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-
-    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-    const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-
-    const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-    const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-
-
-    // Note: All insert/remove/resize operations invalidate pointers/iterators.
-    // A moved-from array has begin()==end() and yields zero elements.
 
 
     ~Stack() = default;

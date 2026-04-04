@@ -954,6 +954,28 @@ class DynamicArray {
 
 
     /**
+     * @brief Remove the last element without returning it.
+     *
+     * Destroys the element at the end of the array and decrements the size.
+     * This is the exception-safe way to remove an element, as it avoids
+     * the potential throw from a copy/move constructor during a return statement.
+     *
+     * @par Complexity
+     * - O(1) for the removal; may trigger a shrink which is O(size()).
+     *
+     * @par Exception Safety
+     * - Strong: Destructors should be noexcept.
+     *
+     * @throws std::out_of_range If the array is empty.
+     */
+    void popBack() {
+        if (isEmpty())
+            throw std::out_of_range("Array is empty");
+        eraseInternal(size_ - 1);
+    }
+
+
+    /**
      * @brief Destroy all elements (capacity unchanged).
      *
      * Ends the lifetime of each constructed element and sets size() to zero.
