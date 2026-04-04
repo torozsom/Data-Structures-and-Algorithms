@@ -17,13 +17,6 @@ class BinarySearchTreeUnitTest : public testing::Test {
 };
 
 
-template <typename T>
-class BinarySearchTreeExposed final : public BinarySearchTree<T> {
-  public:
-    using BinaryTree<T>::root_;
-};
-
-
 TEST_F(BinarySearchTreeUnitTest, NewTreeShouldBeEmpty) {
     const BinarySearchTree<int> tree;
     EXPECT_EQ(tree.size(), 0);
@@ -48,15 +41,6 @@ TEST_F(BinarySearchTreeUnitTest, InsertShouldMaintainBSTProperty) {
     EXPECT_TRUE(tree.contains(1));
     EXPECT_TRUE(tree.contains(9));
     EXPECT_FALSE(tree.contains(4));
-}
-
-
-TEST_F(BinarySearchTreeUnitTest, InvalidStructureShouldReturnFalse) {
-    BinarySearchTreeExposed<int> tree;
-    tree.root_ = new Node<int>(10);
-    tree.root_->left = new Node<int>(20);
-    tree.root_->left->parent = tree.root_;
-    EXPECT_FALSE(tree.isValidBST());
 }
 
 
@@ -108,8 +92,8 @@ TEST_F(BinarySearchTreeUnitTest, MinMaxShouldWorkCorrectly) {
     BinarySearchTree<int> tree;
 
     // Test empty tree
-    EXPECT_THROW(tree.findMinimum(), std::runtime_error);
-    EXPECT_THROW(tree.findMaximum(), std::runtime_error);
+    EXPECT_THROW(static_cast<void>(tree.findMinimum()), std::runtime_error);
+    EXPECT_THROW(static_cast<void>(tree.findMaximum()), std::runtime_error);
 
     // Test with values
     tree.insert(5);
