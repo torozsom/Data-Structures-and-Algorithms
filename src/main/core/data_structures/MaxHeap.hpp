@@ -20,36 +20,9 @@ using std::size_t;
  *
  * Maintains the max-heap property: for every node `N`, `N->data` is **>=** each
  * child’s value (ties allowed). The physical structure is a complete binary
- * tree built with linked nodes (parent/left/right), not an array. New nodes are
- * placed by their 1-based level-order index; restoration uses upward/downward
- * heapify.
+ * tree built with linked nodes (parent/left/right), not an array.
  *
  * @tparam Type Element type.
- *
- * @par Type requirements
- * - `Type` must be MoveConstructible or CopyConstructible (node storage/moves).
- * - A strict weak ordering must be available; this implementation uses
- *   `operator>` comparisons internally.
- *
- * @par Duplicate policy
- * - Duplicates are **allowed** (equality does not trigger reordering).
- *
- * @par Operations (time / space)
- * - `insert(U&&)`: O(log n) / O(1) — insert at the end, then heapify up.
- * - `extractRoot()` (inherited): O(log n) / O(1) — swap with last, remove last,
- * heapify down.
- * - `peekRoot()` (inherited): O(1) / O(1) — access max without removal.
- * - `isValidHeap()`: O(n) / O(h) recursion depth.
- * - `size()` / `isEmpty()`: O(1).
- *
- * @par Storage model
- * - Linked nodes with `parent` pointers; placement found via bit-walking the
- *   level-order index (1-based).
- *
- * @par Exception safety
- * - Operations propagate exceptions from allocations and `Type` move/compare.
- *   Provides the **basic** guarantee (structure remains valid; values may be
- *   partially moved if `Type` move/assign throws).
  */
 template <typename Type>
 class MaxHeap final : public Heap<Type> {
@@ -165,9 +138,6 @@ class MaxHeap final : public Heap<Type> {
      * Inserts an element into the max-heap. The element is added as a new node
      * at the end of the heap, and then the heap property is restored by moving
      * the new node upwards if necessary.
-     *
-     * @par Complexity
-     * Time: O(log n), Space: O(1).
      *
      * @par Exceptions
      * Basic guarantee: structure remains valid;

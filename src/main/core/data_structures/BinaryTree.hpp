@@ -59,29 +59,7 @@ struct Node {
  * @class BinaryTree
  * @brief A generic binary tree storing elements of type `Type`.
  *
- * Each node has up to two children (`left`, `right`). Insertion via `insert()`
- * follows level-order (breadth-first) rules, which keeps the tree as compact
- * as possible without being a heap or a search tree.
- *
  * @tparam Type Element type stored by the tree.
- *
- * @par Semantics
- * - Equality/ordering between nodes is not defined by the tree; search APIs
- *   (`findNode*`, `containsNode`) rely on `operator==` for `Type`.
- *
- * @par Height definition
- * - `getHeight()` returns 0 for an empty tree; otherwise it is
- *   `1 + max(height(left), height(right))`.
- *
- * @par Complexity (selected)
- * - `insert` (level-order): O(n) in the worst case (queue traversal).
- * - `findNode` (DFS) / `findNodeLevelOrder` (BFS): O(n).
- * - `isCompleteTree`: O(n).
- * - `clear`: O(n).
- *
- * @par Exception safety
- * - Most public operations propagate exceptions from `Type` (copy/move/compare)
- *   and allocations. See `recursiveCopyNode` for copy semantics.
  */
 template <typename Type>
 class BinaryTree {
@@ -99,11 +77,6 @@ class BinaryTree {
      * @param otherNode Pointer to the root of the subtree to copy.
      * @param parent Pointer to the parent node for the new subtree (default nullptr).
      * @return Pointer to the root of the newly copied subtree.
-     *
-     * Complexity: O(n) where n is the number of nodes in the subtree.
-     * Exception safety: Strong guarantee; if an exception occurs, no changes are
-     * made to the current tree. Propagates exceptions from `Type` copy/move
-     * constructors and allocations.
      */
     Node<Type>* recursiveCopyNode(const Node<Type>* otherNode,
                                   Node<Type>* parent = nullptr) {
@@ -137,9 +110,6 @@ class BinaryTree {
      *
      * @param node Pointer to the current node being visited.
      * @return Height using the convention: empty subtree => 0; leaf => 1.
-     *
-     * Complexity: O(n) over the size of the subtree.
-     * Exception safety: No-throw (assuming `node` pointers are valid).
      */
     size_t recursiveHeight(Node<Type>* node) const {
         if (node == nullptr)
@@ -203,10 +173,6 @@ class BinaryTree {
      *
      * @return A `Queue<Type>` containing a snapshot of the tree's values from
      *         the current root, level by level, left-to-right.
-     *
-     * Complexity: O(n) time, O(n) additional space for the queue and result.
-     * Exception safety: Propagates exceptions from `Type` move/copy and
-     * allocations.
      *
      * @note The returned queue is a copy of values, not a live view.
      */
@@ -330,9 +296,6 @@ class BinaryTree {
      * the last, and all nodes at the last level are as far left as possible.
      *
      * @return true if the tree is complete, false otherwise.
-     *
-     * Complexity: O(n) time, O(n) auxiliary space for the queue.
-     * Exception safety: Propagates allocation exceptions (from the queue).
      */
     [[nodiscard]]
     bool isCompleteTree() const {
@@ -374,22 +337,6 @@ class BinaryTree {
      *
      * @tparam U  A type that can construct `Type` (perfect-forwarded).
      * @param element  The value to insert.
-     *
-     * @par Notes
-     * - This operation can skew the tree and does **not** preserve
-     * completeness.
-     * - Duplicates are allowed; not a BST insert.
-     * - Existing node addresses remain stable.
-     *
-     * @par Complexity
-     * - Time: O(h), where h is the tree height.
-     * - Space: O(1) auxiliary.
-     *
-     * @par Exception safety
-     * - Strong: if allocation or `Type` construction throws, no changes occur.
-     *
-     * @par Postconditions
-     * - `size()` increased by 1; `parent` of the new node points to its parent.
      */
     template <typename U>
     void insertRight(U&& element) {
@@ -422,22 +369,6 @@ class BinaryTree {
      *
      * @tparam U  A type that can construct `Type` (perfect-forwarded).
      * @param element  The value to insert.
-     *
-     * @par Notes
-     * - This operation can skew the tree and does **not** preserve
-     * completeness.
-     * - Duplicates are allowed; not a BST insert.
-     * - Existing node addresses remain stable.
-     *
-     * @par Complexity
-     * - Time: O(h), where h is the tree height.
-     * - Space: O(1) auxiliary.
-     *
-     * @par Exception safety
-     * - Strong: if allocation or `Type` construction throws, no changes occur.
-     *
-     * @par Postconditions
-     * - `size()` increased by 1; `parent` of the new node points to its parent.
      */
     template <typename U>
     void insertLeft(U&& element) {
@@ -471,26 +402,6 @@ class BinaryTree {
      *
      * @tparam U  A type that can construct `Type` (perfect-forwarded).
      * @param element  The value to insert.
-     *
-     * @par Behavior
-     * - Preserves a “compact” shape; repeated calls (without removals) keep the
-     *   tree complete at the moment of insertion. This is **not** a BST insert.
-     * - Duplicates are allowed (equality has no structural effect).
-     * - Addresses of existing nodes remain stable.
-     *
-     * @par Complexity
-     * - Time: O(n) in the worst case (must scan a full level to find a hole).
-     * - Space: O(w) auxiliary for the queue, where w is the maximum level
-     * width.
-     *
-     * @par Exception safety
-     * - Strong: if allocation or `Type` construction throws, the tree is
-     * unchanged. Possible throws: `std::bad_alloc`, exceptions from `Type`’s
-     * constructor.
-     *
-     * @par Postconditions
-     * - `size()` increased by 1; parent/child pointers set; `parent` of the new
-     *   node points to its parent (or nullptr if it became root).
      */
     template <typename U>
     void insert(U&& element) {
@@ -553,9 +464,6 @@ class BinaryTree {
      * @param value The value to search for in the binary tree.
      * @return A const pointer to the first matching node found, or nullptr if
      * none.
-     *
-     * Complexity: O(n).
-     * Exception safety: Propagates exceptions from `operator==` on `Type`.
      */
     [[nodiscard]]
     const Node<Type>* findNode(const Type& value) const {
@@ -627,7 +535,6 @@ class BinaryTree {
     /**
      * Clears the binary tree by deallocating all nodes and resetting to empty.
      *
-     * Complexity: O(n) deleting every node exactly once.
      * Exception safety: No-throw.
      */
     void clear() noexcept {

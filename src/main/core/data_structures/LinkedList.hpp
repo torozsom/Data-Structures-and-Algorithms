@@ -19,23 +19,7 @@ using std::size_t;
  * @brief Doubly linked list offering constant-time insert/erase at the ends
  *        and bidirectional traversal.
  *
- * Stores elements in individual nodes linked through `next`/`prev` pointers and
- * keeps `head_`/`tail_` pointers for quick access to both ends. Index-based
- * operations walk from the nearer end for efficiency and iterators satisfy the
- * bidirectional iterator requirements.
- *
  * @tparam Type Element type held by the list.
- *
- * @par Complexity highlights
- * - `addFirst`/`addLast`/`removeFirst`/`removeLast`: O(1)
- * - `insert`/`removeAt`/`get`: O(min(idx, size-idx))
- *
- * @par Exception safety
- * - Insertion and removal operations provide the strong guarantee: if an
- *   allocation or element construction throws, the list remains unchanged.
- *
- * @par Iterator invalidation
- * - Only iterators to erased nodes are invalidated; others remain valid.
  */
 template <typename Type>
 class LinkedList {
@@ -64,12 +48,6 @@ class LinkedList {
      * @param idx Zero-based index in [0, size()).
      * @return A pointer to the node at the specified index.
      * @throws std::out_of_range If idx >= size().
-     *
-     * @par Complexity
-     * O(min(idx, size()-idx)) due to bidirectional traversal.
-     *
-     * @par Exception Safety
-     * Strong: throws only before modifying any state.
      */
     Node* getNodeAt(const size_t idx) {
         if (idx >= size_)
@@ -96,12 +74,6 @@ class LinkedList {
      * @param idx Zero-based index in [0, size()).
      * @return A const pointer to the node at the specified index.
      * @throws std::out_of_range If idx >= size().
-     *
-     * @par Complexity
-     * O(min(idx, size()-idx)).
-     *
-     * @par Exception Safety
-     * Strong: throws only before modifying any state.
      */
     const Node* getNodeAt(const size_t idx) const {
         if (idx >= size_)
@@ -270,13 +242,6 @@ class LinkedList {
      *
      * @tparam U A type that can construct `Type` (enforced at compile time).
      * @param element Value to insert at the front (perfect-forwarded).
-     *
-     * @par Complexity
-     * O(1).
-     *
-     * @par Exception Safety
-     * Strong: if allocation or element construction throws, the list is
-     * unchanged.
      */
     template <typename U>
     void addFirst(U&& element) {
@@ -304,13 +269,6 @@ class LinkedList {
      *
      * @tparam U A type that can construct `Type` (enforced at compile time).
      * @param element Value to insert at the back (perfect-forwarded).
-     *
-     * @par Complexity
-     * O(1).
-     *
-     * @par Exception Safety
-     * Strong: if allocation or element construction throws, the list is
-     * unchanged.
      */
     template <typename U>
     void addLast(U&& element) {
@@ -341,13 +299,6 @@ class LinkedList {
      * @param element Value to insert (perfect-forwarded).
      * @param idx Insertion position in [0, size()].
      * @throws std::out_of_range If idx > size().
-     *
-     * @par Complexity
-     * O(min(idx, size()-idx)) to locate the position; link/unlink is O(1).
-     *
-     * @par Exception Safety
-     * Strong: allocation/element construction may throw; on failure the list is
-     * unchanged.
      */
     template <typename U>
     void insert(U&& element, const size_t idx) {
@@ -386,12 +337,6 @@ class LinkedList {
      * @brief Remove the first element if present.
      *
      * If the list is empty, no action is taken.
-     *
-     * @par Complexity
-     * O(1).
-     *
-     * @par Exception Safety
-     * No-throw.
      */
     void removeFirst() noexcept {
         if (head_ == nullptr)
@@ -414,12 +359,6 @@ class LinkedList {
      * @brief Remove the last element if present.
      *
      * If the list is empty, no action is taken.
-     *
-     * @par Complexity
-     * O(1).
-     *
-     * @par Exception Safety
-     * No-throw.
      */
     void removeLast() noexcept {
         if (tail_ == nullptr)
@@ -443,12 +382,6 @@ class LinkedList {
      *
      * @param idx Zero-based index in [0, size()).
      * @throws std::out_of_range If idx >= size().
-     *
-     * @par Complexity
-     * O(min(idx, size()-idx)) to locate the node; unlink is O(1).
-     *
-     * @par Exception Safety
-     * Strong: throws only before any modification (on out_of_range).
      */
     void removeAt(const size_t idx) {
         if (idx >= size_)
@@ -473,13 +406,6 @@ class LinkedList {
      * @brief Remove the first occurrence of `element`, if any.
      *
      * @param element Value to remove (compared via `operator==`).
-     *
-     * @par Complexity
-     * O(n) for linear search; unlink is O(1).
-     *
-     * @par Exception Safety
-     * Basic-to-strong: if comparison (`operator==`) throws, no modification
-     * occurs up to that point.
      */
     void remove(const Type& element) {
         Node* current = head_;
@@ -520,13 +446,6 @@ class LinkedList {
      *
      * @param element Value to remove (compared via `operator==`).
      * @return Number of removed elements.
-     *
-     * @par Complexity
-     * O(n) for a full traversal; each unlink is O(1).
-     *
-     * @par Exception Safety
-     * Basic: if comparison (`operator==`) throws mid-traversal, some removals
-     * may already have occurred; the list remains valid.
      */
     size_t removeAll(const Type& element) {
         if (isEmpty())
@@ -572,9 +491,6 @@ class LinkedList {
      * @param idx Zero-based index in [0, size()).
      * @return Reference to the element at `idx`.
      * @throws std::out_of_range If idx >= size().
-     *
-     * @par Complexity
-     * O(min(idx, size()-idx)).
      */
     Type& get(const size_t idx) {
         if (idx >= size_)
@@ -591,9 +507,6 @@ class LinkedList {
      * @param idx Zero-based index in [0, size()).
      * @return Const reference to the element at `idx`.
      * @throws std::out_of_range If idx >= size().
-     *
-     * @par Complexity
-     * O(min(idx, size()-idx)).
      */
     const Type& get(const size_t idx) const {
         if (idx >= size_)
@@ -611,9 +524,6 @@ class LinkedList {
      * @return Reference to the element at `idx`.
      * @throws std::out_of_range If idx >= size().
      *
-     * @par Complexity
-     * O(min(idx, size()-idx)).
-     *
      * @note Unlike `std::vector::operator[]`, this overload performs a bounds
      * check and may throw.
      */
@@ -627,9 +537,6 @@ class LinkedList {
      * @return Const reference to the element at `idx`.
      * @throws std::out_of_range If idx >= size().
      *
-     * @par Complexity
-     * O(min(idx, size()-idx)).
-     *
      * @note Unlike `std::vector::operator[]`, this overload performs a bounds
      * check and may throw.
      */
@@ -640,9 +547,6 @@ class LinkedList {
      * @brief Access the first element.
      * @return Reference to the first element.
      * @throws std::out_of_range If the list is empty.
-     *
-     * @par Complexity
-     * O(1).
      */
     Type& front() {
         if (isEmpty())
@@ -655,9 +559,6 @@ class LinkedList {
      * @brief Access the first element (const overload).
      * @return Const reference to the first element.
      * @throws std::out_of_range If the list is empty.
-     *
-     * @par Complexity
-     * O(1).
      */
     const Type& front() const {
         if (isEmpty())
@@ -670,9 +571,6 @@ class LinkedList {
      * @brief Access the last element.
      * @return Reference to the last element.
      * @throws std::out_of_range If the list is empty.
-     *
-     * @par Complexity
-     * O(1).
      */
     Type& back() {
         if (isEmpty())
@@ -685,9 +583,6 @@ class LinkedList {
      * @brief Access the last element (const overload).
      * @return Const reference to the last element.
      * @throws std::out_of_range If the list is empty.
-     *
-     * @par Complexity
-     * O(1).
      */
     const Type& back() const {
         if (isEmpty())
@@ -698,12 +593,6 @@ class LinkedList {
 
     /**
      * @brief Remove all elements and reset the list to empty.
-     *
-     * @par Complexity
-     * O(n) — deletes each node.
-     *
-     * @par Exception Safety
-     * No-throw.
      */
     void clear() noexcept {
         Node* current = head_;
@@ -902,15 +791,6 @@ class LinkedList {
      *
      * @param pos Iterator pointing to the node to erase.
      * @return Iterator to the node following the erased one (or end()).
-     *
-     * @par Complexity
-     * O(1).
-     *
-     * @par Exception Safety
-     * No-throw (pointer relinks and delete).
-     *
-     * @par Invalidation
-     * Invalidates only the erased iterator; all other iterators remain valid.
      */
     iterator erase(iterator pos) {
         Node* cur = pos.current_;

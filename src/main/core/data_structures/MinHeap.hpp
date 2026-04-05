@@ -19,33 +19,8 @@ using std::size_t;
  * @brief Pointer-based binary **min-heap** over `Type`.
  *
  * Invariant: for every node `N`, `N->data` is **<=** each child's value.
- * (Duplicates are allowed; equality is permitted.)
  *
  * @tparam Type Element type.
- *
- * @section ordering Ordering & requirements
- * - Ordering uses `operator<` on `Type` (strict weak ordering assumed).
- * - Node payloads are moved during reheapification (`swapData`), not pointers.
- *
- * @section behavior Behavior
- * - `insert(U&&)`: append a new node at level-order index `size()+1`
- *   (computed via `findNodeByPath(path >> 1)`), link `parent/left/right`,
- *   increment `size_`, then `heapifyUp(newNode)`.
- * - `heapifyUp(Node*)`: bubble a node **up** while `node->data < parent->data`.
- * - `heapifyDown(Node*)`: push a node **down** by swapping with the smaller
- * child while that child's value is `< node->data`.
- * - `isValidHeap() const`: validates the min-heap property for
- * testing/debugging.
- *
- * @section complexity Complexity
- * - `insert`: O(log n) time, O(1) extra space.
- * - `heapifyUp` / `heapifyDown`: O(log n) time, O(1) space.
- * - `isValidHeap()`: O(n) time.
- *
- * @section exceptions Exception safety
- * - Propagates from allocations and `Type` move/assign.
- * - **Basic guarantee**: tree shape remains valid; values may be partially
- * moved if `Type` operations throw during reheapification.
  */
 template <typename Type>
 class MinHeap final : public Heap<Type> {
@@ -164,9 +139,6 @@ class MinHeap final : public Heap<Type> {
      * This method creates a new node with the provided element, finds the
      * correct position in the heap based on the current size, and restores the
      * min-heap property by moving the new node upwards as necessary.
-     *
-     * @par Complexity
-     * Time: O(log n), Space: O(1).
      *
      * @par Exceptions
      * Basic guarantee: structure remains valid;

@@ -38,32 +38,6 @@ using std::size_t;
  * (construct/destroy) independently from raw storage (allocate/deallocate).
  *
  * @tparam Type The element type stored by the container.
- *
- * @par Design Highlights
- * - Contiguous storage for cache locality and pointer/pointer-range iteration.
- * - Amortized O(1) append via doubling growth policy (up to MAX_CAPACITY).
- * - Strong exception safety for capacity-changing operations using the
- * allocate+construct+commit pattern.
- * - Over-alignment correctness by passing `std::align_val_t(alignof(Type))` to
- * allocation/deallocation.
- *
- * @par Growth Policy
- * - Capacity doubles on demand until MAX_CAPACITY. When near the limit, it
- * clamps to MAX_CAPACITY.
- *
- * @par Exception Safety
- * - insert / emplaceAt: strong guarantee (the array is unchanged on failure).
- * - removeAt: basic guarantee if assignment throws during shifting; strong
- * during relocation path.
- * - reserve / resize / clone: strong guarantee (build a fresh buffer, then
- * commit).
- *
- * @par Invalidation
- * - Any insert/remove/resize operation invalidates all pointers, references,
- * and iterators.
- *
- * @par Moved-from State
- * - A moved-from DynamicArray is valid and empty (begin()==end()).
  */
 template <typename Type>
 class DynamicArray {
@@ -95,12 +69,6 @@ class DynamicArray {
      * @return Pointer to uninitialized storage; returns nullptr when
      * storage_size == 0.
      *
-     * @par Complexity
-     * - O(1) aside from the cost of the underlying allocation call.
-     *
-     * @par Exception Safety
-     * - Strong: if an exception is thrown, no storage is leaked.
-     *
      * @throws std::bad_alloc If storage_size > MAX_CAPACITY or the allocation
      * fails.
      */
@@ -125,9 +93,6 @@ class DynamicArray {
      * the storage have been destroyed prior to deallocation.
      *
      * @param storage Pointer returned by allocate. May be nullptr.
-     *
-     * @par Exception Safety
-     * - No-throw.
      */
     static void deallocate(Type* storage) noexcept {
         if (storage != nullptr)
@@ -142,12 +107,6 @@ class DynamicArray {
      * Calls the destructor for each element in the range [data_, data_ +
      * size_). Raw storage remains allocated; this function only ends element
      * lifetimes.
-     *
-     * @par Complexity
-     * - O(size()) destructor invocations.
-     *
-     * @par Exception Safety
-     * - If Type's destructor throws (discouraged), the exception propagates.
      */
     void destroyArrayElements() {
         for (size_t i = 0; i < size_; ++i)
@@ -189,11 +148,7 @@ class DynamicArray {
      * placement-new constructed.
      * @return Pointer to one past the last constructed destination element.
      *
-     * @par Precondition
-     * - The source and destination ranges must not overlap.
-     *
-     * @par Exception Safety
-     * - Strong: partial constructions are cleaned up before rethrow.
+     * @note The source and destination ranges must not overlap.
      */
     Type* copyConstructElements(const Type* source_begin,
                                 const Type* source_end, Type* destination) const
@@ -229,11 +184,7 @@ class DynamicArray {
      *
      * @return Pointer to one past the last constructed destination element.
      *
-     * @par Precondition
-     * - The source and destination ranges must not overlap.
-     *
-     * @par Exception Safety
-     * - Strong: partial constructions are cleaned up before rethrow.
+     * @note The source and destination ranges must not overlap.
      */
     Type* moveConstructElements(Type* source_begin, Type* source_end,
                             Type* destination) const
@@ -262,13 +213,6 @@ class DynamicArray {
      * preserved.
      *
      * @param new_capacity Requested capacity in elements.
-     *
-     * @par Complexity
-     * - O(size()) constructions + O(size()) destructions when a resize occurs.
-     *
-     * @par Exception Safety
-     * - Strong: elements are constructed into fresh storage and committed only
-     * on success.
      *
      * @throws std::invalid_argument If new_capacity < size().
      * @throws std::bad_alloc If new_capacity > MAX_CAPACITY or allocation
@@ -317,9 +261,6 @@ class DynamicArray {
      * If size() <= capacity()/4 and capacity() > DEFAULT_CAPACITY, the capacity
      * is reduced by half (not below the default). This reallocation is
      * performed with the same strong exception-safety as resize.
-     *
-     * @par Complexity
-     * - O(size()) constructions/destructions only when a shrink occurs.
      */
     void shrinkIfNecessary() {
         if (size_ <= capacity_ / 4 && capacity_ > DEFAULT_CAPACITY)
@@ -333,9 +274,6 @@ class DynamicArray {
      *
      * If size() == capacity(), this doubles capacity (clamped to MAX_CAPACITY).
      * The growth uses resize, preserving the strong exception guarantee.
-     *
-     * @par Exception Safety
-     * - Strong (via resize).
      *
      * @throws std::length_error If already at MAX_CAPACITY.
      */
@@ -369,13 +307,6 @@ class DynamicArray {
      * @param idx Insertion index (must satisfy 0 <= idx < size() when called
      * from insert/emplace paths).
      * @param args Constructor arguments forwarded to Type for the new element.
-     *
-     * @par Complexity
-     * - O(size()) constructions + O(size()) destructions.
-     *
-     * @par Exception Safety
-     * - Strong: original buffer remains intact unless the entire rebuild
-     * succeeds.
      */
     template <typename... CtorArgs>
     void rebuildBuffer(const size_t idx, CtorArgs&&... args) {
@@ -423,13 +354,6 @@ class DynamicArray {
      * subsequent element, destroys the last element, and decrements the size.
      *
      * @param from_idx Index of the element to remove (0 <= from_idx < size()).
-     *
-     * @par Complexity
-     * - O(n) assignments and one destruction.
-     *
-     * @par Exception Safety
-     * - Basic: if an assignment throws, the invariant size() is left unchanged
-     * and all elements remain valid (the container can be cleared).
      */
     void shiftLeftAssignables(const size_t from_idx) {
         for (size_t i = from_idx; i < size_ - 1; ++i)
@@ -450,13 +374,6 @@ class DynamicArray {
      * last successfully relocated index.
      *
      * @param from_idx Index of the element to remove (0 <= from_idx < size()).
-     *
-     * @par Complexity
-     * - O(n) constructions/destructions.
-     *
-     * @par Exception Safety
-     * - Strong during the relocation loop: partial progress is rolled back on
-     * throw.
      */
     void shiftLeftNonassignables(const size_t from_idx) {
         std::destroy_at(&data_[from_idx]);
@@ -685,13 +602,6 @@ class DynamicArray {
      * @param element The element to insert.
      * @param idx The index at which to insert (must satisfy 0 <= idx <= size()).
      *
-     * @par Complexity
-     * - O(n) due to shifting elements.
-     *
-     * @par Exception Safety
-     * - Strong: the array is unchanged if an exception is thrown during growth
-     * or insertion.
-     *
      * @throws std::out_of_range If idx > size().
      */
     template <typename U>
@@ -709,10 +619,6 @@ class DynamicArray {
      *
      * @tparam U A type that can construct Type.
      * @param element Value to append.
-     *
-     * @par Invalidation
-     * - On growth (reallocation), all pointers/references/iterators are
-     * invalidated.
      */
     template <typename U>
     void addLast(U&& element) {
@@ -747,14 +653,6 @@ class DynamicArray {
      * @tparam Args Argument types forwarded to Type's constructor.
      * @param idx The index at which to emplace (must satisfy 0 <= idx <= size()).
      * @param args Constructor arguments for the new element.
-     *
-     * @par Complexity
-     * - O(n) due to shifting elements.
-     *
-     * @par Exception Safety
-     * - Strong: the array is unchanged if an exception is thrown during growth,
-     * construction, or shifting.
-     *
      *
      * @throws std::out_of_range If idx > size().
      */
@@ -814,9 +712,6 @@ class DynamicArray {
      *
      * @tparam Args Argument types forwarded to Type's constructor.
      * @param args Constructor arguments.
-     *
-     * @par Complexity
-     * - Amortized O(1); O(n) when growth occurs.
      */
     template <typename... Args>
     void emplaceLast(Args&&... args) {
@@ -849,9 +744,6 @@ class DynamicArray {
      * @tparam Args Argument types forwarded to Type's constructor.
      * @param args Constructor arguments.
      * @return Reference to the newly constructed element.
-     *
-     * @par Complexity
-     * - Amortized O(1); O(n) when growth occurs.
      */
     template <typename... Args>
     Type& emplace_back(Args&&... args) {
@@ -870,9 +762,6 @@ class DynamicArray {
      * @tparam Args Argument types forwarded to Type's constructor.
      * @param args Constructor arguments.
      * @return Reference to the newly constructed element.
-     *
-     * @par Complexity
-     * - O(n) due to shifting.
      */
     template <typename... Args>
     Type& emplace_front(Args&&... args) {
@@ -908,14 +797,6 @@ class DynamicArray {
      *
      * @param idx Index of the element to remove (0 <= idx < size()).
      * @return The removed element (moved out).
-     *
-     * @par Complexity
-     * - O(n) due to shifting elements.
-     *
-     * @par Exception Safety
-     * - Basic: if an exception is thrown during shifting, the array remains in
-     * a valid state with size() unchanged, but some elements may have been
-     * moved.
      *
      * @throws std::out_of_range If idx >= size().
      */
@@ -960,12 +841,6 @@ class DynamicArray {
      * This is the exception-safe way to remove an element, as it avoids
      * the potential throw from a copy/move constructor during a return statement.
      *
-     * @par Complexity
-     * - O(1) for the removal; may trigger a shrink which is O(size()).
-     *
-     * @par Exception Safety
-     * - Strong: Destructors should be noexcept.
-     *
      * @throws std::out_of_range If the array is empty.
      */
     void popBack() {
@@ -981,9 +856,6 @@ class DynamicArray {
      * Ends the lifetime of each constructed element and sets size() to zero.
      * The underlying storage is retained so future appends can avoid
      * reallocation.
-     *
-     * @par Complexity
-     * - O(size()) destructor calls.
      */
     void removeAll() noexcept {
         destroyArrayElements();
@@ -1152,12 +1024,6 @@ class DynamicArray {
      *
      * @param new_capacity Desired minimum capacity in elements.
      *
-     * @par Complexity
-     * - O(size()) when a resize occurs; otherwise O(1).
-     *
-     * @par Exception Safety
-     * - Strong (via resize).
-     *
      * @throws std::bad_alloc If new_capacity > MAX_CAPACITY or allocation
      * fails.
      */
@@ -1173,12 +1039,6 @@ class DynamicArray {
      * If size() < DEFAULT_CAPACITY, capacity is set to DEFAULT_CAPACITY.
      * Otherwise capacity is set to size(). Elements are moved/copied into the
      * new buffer.
-     *
-     * @par Complexity
-     * - O(size()) when a resize occurs; otherwise O(1).
-     *
-     * @par Exception Safety
-     * - Strong (via resize).
      */
     void shrinkToFit() {
         if (capacity_ > size_) {
@@ -1197,13 +1057,6 @@ class DynamicArray {
      * modifications to either array do not affect the other.
      *
      * @return A new array equal to *this.
-     *
-     * @par Complexity
-     * - O(size()).
-     *
-     * @par Exception Safety
-     * - Strong; exceptions from allocation and Type's copy constructor
-     * propagate.
      */
     DynamicArray clone() const {
         DynamicArray copy(capacity_);
@@ -1374,12 +1227,6 @@ class DynamicArray {
      * @par Postconditions
      * - size() == 0
      * - capacity() remains unchanged
-     *
-     * @par Complexity
-     * - O(size()) destructor calls.
-     *
-     * @par Exception Safety
-     * - No-throw.
      */
     void clear() noexcept {
         destroyArrayElements();
@@ -1393,10 +1240,6 @@ class DynamicArray {
      * Destroys all constructed elements, then deallocates the raw storage using
      * the aligned delete counterpart. Safe to call on an already-moved-from
      * object.
-     *
-     * @par Exception Safety
-     * - No-throw (assuming Type's destructor is noexcept; if not, exceptions
-     * propagate during destruction).
      */
     ~DynamicArray() noexcept {
         if (data_) {

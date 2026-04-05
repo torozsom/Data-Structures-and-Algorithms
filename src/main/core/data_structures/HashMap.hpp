@@ -21,31 +21,20 @@ using std::size_t;
  * This hash functor provides automatic compile-time dispatch to appropriate
  * hashing strategies based on the key type:
  *
- * - **Integral types** (int, char, bool, etc.): Uses SplitMix64 mixing for
+ * - Integral types (int, char, bool, etc.): Uses SplitMix64 mixing for
  * excellent distribution
- * - **Pointer types**: Removes alignment bits and applies SplitMix64 mixing
- * - **Enumeration types**: Hashes via underlying integral type
- * - **Standard library types**: Delegates to std::hash<T> with additional
+ * - Pointer types: Removes alignment bits and applies SplitMix64 mixing
+ * - Enumeration types: Hashes via underlying integral type
+ * - Standard library types: Delegates to std::hash<T> with additional
  * mixing
- * - **User-defined types**: Requires std::hash<T> specialization
+ * - User-defined types: Requires std::hash<T> specialization
  *
  * The hash function incorporates an optional random seed to provide protection
  * against hash collision attacks while maintaining deterministic behavior when
  * needed.
  *
  * @tparam Key The type of the key to be hashed.
- * @tparam UseRandomSeed Whether to use a random seed (true) or deterministic
- * seed (false). Default is true for security, set to false for reproducible
- * testing.
- *
- * @par Thread Safety:
- * This class is thread-safe. The random seed is initialized once per template
- * instantiation and shared among all instances of the same type.
- *
- * @par Performance:
- * - Zero runtime overhead for type dispatch (compile-time selection)
- * - High-quality mixing prevents clustering for sequential keys
- * - Optimal performance for all supported type categories
+ * @tparam UseRandomSeed Whether to use a random seed (true) or deterministic seed (false).
  */
 template <typename Key, bool UseRandomSeed = true>
 struct DefaultHash {
@@ -58,10 +47,6 @@ struct DefaultHash {
      *
      * @param key The key to be hashed.
      * @return size_t A well-distributed hash value for the key.
-     *
-     * @par Complexity: O(1) for all supported types.
-     * @par Exception Safety: Strong guarantee - either returns a valid hash or
-     * fails to compile.
      */
     [[nodiscard]]
     constexpr size_t operator()(const Key& key) const noexcept {
@@ -82,18 +67,18 @@ struct DefaultHash {
      */
     [[nodiscard]]
     static constexpr size_t hash_dispatch(const Key& key) noexcept {
-        if constexpr (std::is_integral_v<Key>) {
+        if constexpr (std::is_integral_v<Key>)
             return hash_integral(static_cast<size_t>(key));
-        }
-        else if constexpr (std::is_pointer_v<Key>) {
+
+        else if constexpr (std::is_pointer_v<Key>)
             return hash_pointer(reinterpret_cast<uintptr_t>(key));
-        }
-        else if constexpr (std::is_enum_v<Key>) {
+
+        else if constexpr (std::is_enum_v<Key>)
             return hash_enum(key);
-        }
-        else if constexpr (has_std_hash_v<Key>) {
+
+        else if constexpr (has_std_hash_v<Key>)
             return hash_with_std_hash(key);
-        }
+
         else {
             static_assert(always_false_v,
                           "No hash function available for this type. "
@@ -101,7 +86,7 @@ struct DefaultHash {
                           "custom Hash functor. "
                           "See documentation for examples.");
         }
-        return 0; // Unreachable
+        return 0; // Unreachable, but required to satisfy compiler
     }
 
 
@@ -368,7 +353,7 @@ class HashMap {
 
 
     /// Computes the next capacity (double the current).
-    size_t nextCapacity(const size_t current) { return current * 2; }
+    static size_t nextCapacity(const size_t current) { return current * 2; }
 
     /// Rounds up to the next power of two.
     static size_t roundUpToPowerOfTwo(const size_t n) {
@@ -632,12 +617,6 @@ class HashMap {
      * @tparam K The type of the key (perfect-forwarded).
      * @param key The key to look up or insert.
      * @return Value& Reference to the associated value.
-     *
-     * @par Complexity
-     * Amortized O(1).
-     *
-     * @par Exception Safety
-     * Strong: If resizing or element construction throws, the map is unchanged.
      */
     template <typename K>
     Value& operator[](K&& key) {
