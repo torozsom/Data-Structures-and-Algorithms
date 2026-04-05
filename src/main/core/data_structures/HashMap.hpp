@@ -394,25 +394,37 @@ class HashMap {
      * @param new_capacity The new capacity for the hash map.
      */
     void rehash(const size_t new_capacity) {
-        Bucket* old_buckets = buckets_;
-        const size_t old_capacity = capacity_;
-        buckets_ = new Bucket[new_capacity];
-        capacity_ = new_capacity;
-        size_ = 0;
+        Bucket* new_buckets = new Bucket[new_capacity];
+        size_t new_size = 0;
 
-        for (size_t i = 0; i < old_capacity; ++i) {
-            if (Bucket& bucket = old_buckets[i];
-                bucket.state == State::Occupied) {
-                size_t idx = hasher_(*bucket.key()) & (capacity_ - 1);
-                while (buckets_[idx].state == State::Occupied)
-                    idx = (idx + 1) & (capacity_ - 1);
-                buckets_[idx].construct(std::move(*bucket.key()),
-                                        std::move(*bucket.value()));
-                ++size_;
-                bucket.destroy();
+        try {
+            for (size_t i = 0; i < capacity_; ++i) {
+                if (buckets_[i].state == State::Occupied) {
+                    size_t idx = hasher_(*buckets_[i].key()) & (new_capacity - 1);
+                    while (new_buckets[idx].state == State::Occupied)
+                        idx = (idx + 1) & (new_capacity - 1);
+
+                    new_buckets[idx].construct(std::move(*buckets_[i].key()),
+                                               std::move(*buckets_[i].value()));
+                    ++new_size;
+                }
             }
+        } catch (...) {
+            for (size_t i = 0; i < new_capacity; ++i)
+                new_buckets[i].destroy();
+
+            delete[] new_buckets;
+            throw;
         }
-        delete[] old_buckets;
+
+        for (size_t i = 0; i < capacity_; ++i)
+            buckets_[i].destroy();
+
+        delete[] buckets_;
+
+        buckets_ = new_buckets;
+        capacity_ = new_capacity;
+        size_ = new_size;
     }
 
 
@@ -438,11 +450,31 @@ class HashMap {
 
     /// Copy constructor.
     HashMap(const HashMap& other)
-        : buckets_(new Bucket[other.capacity_]), size_(0),
+        : buckets_(nullptr), size_(0),
           capacity_(other.capacity_), hasher_(other.hasher_) {
-        for (size_t i = 0; i < other.capacity_; ++i)
-            if (other.buckets_[i].state == State::Occupied)
-                insert(*other.buckets_[i].key(), *other.buckets_[i].value());
+
+        Bucket* new_buckets = new Bucket[capacity_];
+        buckets_ = new_buckets;
+
+        try {
+            for (size_t i = 0; i < capacity_; ++i) {
+                if (other.buckets_[i].state == State::Occupied) {
+                    new_buckets[i].construct(*other.buckets_[i].key(), *other.buckets_[i].value());
+                    ++size_;
+                } else if (other.buckets_[i].state == State::Tombstone) {
+                    new_buckets[i].state = State::Tombstone;
+                }
+            }
+        } catch (...) {
+            for (size_t i = 0; i < capacity_; ++i)
+                new_buckets[i].destroy();
+
+            delete[] new_buckets;
+            buckets_ = nullptr;
+            capacity_ = 0;
+            size_ = 0;
+            throw;
+        }
     }
 
     /// Move constructor.
@@ -591,6 +623,51 @@ class HashMap {
 
 
     /**
+     * @brief Accesses or inserts a default-constructed value for the given key.
+     *
+     * If the key exists, returns a reference to its value.
+     * If the key does not exist, inserts a new key-value pair with a default
+     * constructed value and returns a reference to it.
+     *
+     * @tparam K The type of the key (perfect-forwarded).
+     * @param key The key to look up or insert.
+     * @return Value& Reference to the associated value.
+     *
+     * @par Complexity
+     * Amortized O(1).
+     *
+     * @par Exception Safety
+     * Strong: If resizing or element construction throws, the map is unchanged.
+     */
+    template <typename K>
+    Value& operator[](K&& key) {
+        ensureCapacity();
+        size_t idx = indexFor(key);
+        size_t first_tombstone = capacity_;
+
+        while (true) {
+            Bucket& bucket = buckets_[idx];
+
+            if (bucket.state == State::Empty) {
+                size_t target = (first_tombstone != capacity_) ? first_tombstone : idx;
+                buckets_[target].construct(std::forward<K>(key), Value{});
+                ++size_;
+                return *buckets_[target].value();
+            }
+
+            if (bucket.state == State::Tombstone) {
+                if (first_tombstone == capacity_)
+                    first_tombstone = idx;
+            } else if (*bucket.key() == key) {
+                return *bucket.value();
+            }
+
+            idx = (idx + 1) & (capacity_ - 1);
+        }
+    }
+
+
+    /**
      * @brief Removes the key-value pair associated with the given key.
      *
      * This method searches for the specified key in the hash map and removes
@@ -646,6 +723,219 @@ class HashMap {
         clear();
         delete[] buckets_;
     }
+
+
+    /**
+     * @class iterator
+     * @brief Forward iterator for traversing the occupied buckets in the HashMap.
+     */
+    class iterator {
+      private:
+        friend class HashMap;
+        friend class const_iterator;
+
+        HashMap* map_;
+        size_t idx_;
+
+        /**
+         * @brief Advances the iterator to the next occupied bucket.
+         *
+         * This method increments the index until it finds the next bucket that is
+         * in the Occupied state. If it reaches the end of the buckets array, it
+         * will point to the end iterator.
+         */
+        void advanceToNextOccupied() {
+            while (idx_ < map_->capacity_ && map_->buckets_[idx_].state != State::Occupied) {
+                ++idx_;
+            }
+        }
+
+      public:
+        /// Proxy structure for arrow (->) operator support with structured bindings
+        struct Proxy {
+            std::pair<const Key&, Value&> pair_ref;
+            std::pair<const Key&, Value&>* operator->() { return &pair_ref; }
+        };
+
+        /// Constructs an iterator pointing to the first occupied bucket starting from idx.
+        iterator(HashMap* map, const size_t idx) : map_(map), idx_(idx) {
+            advanceToNextOccupied();
+        }
+
+
+        /**
+         * @brief Dereference operator returns a reference to the key-value pair.
+         *
+         * This operator returns a reference to the key-value pair stored in the
+         * current bucket. The key is returned as a const reference, while the
+         * value is returned as a non-const reference, allowing for modification.
+         *
+         * @return std::pair<const Key&, Value&> A reference to the key-value pair.
+         */
+        std::pair<const Key&, Value&> operator*() const {
+            return { *map_->buckets_[idx_].key(), *map_->buckets_[idx_].value() };
+        }
+
+
+        /**
+         * @brief Arrow operator returns a proxy object for structured binding support.
+         *
+         * This operator returns a proxy object that allows structured binding
+         * syntax to access the key and value of the current bucket.
+         *
+         * @return Proxy A proxy object for structured binding.
+         */
+        Proxy operator->() const {
+            return Proxy{ **this };
+        }
+
+
+        /// Pre-increment operator advances the iterator to the next occupied bucket.
+        iterator& operator++() {
+            ++idx_;
+            advanceToNextOccupied();
+            return *this;
+        }
+
+
+        /// Post-increment operator advances the iterator to the next
+        /// occupied bucket and returns the previous position.
+        iterator operator++(int) {
+            iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+
+        /// Equality operator checks if two iterators are equal (point to the same bucket).
+        bool operator==(const iterator& other) const {
+            return map_ == other.map_ && idx_ == other.idx_;
+        }
+
+
+        /// Inequality operator checks if two iterators are not equal.
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+
+
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = std::pair<const Key, Value>;
+        using difference_type = std::ptrdiff_t;
+    };
+
+
+    /**
+     * @class const_iterator
+     * @brief Constant forward iterator for the HashMap.
+     */
+    class const_iterator {
+      private:
+        friend class HashMap;
+
+        const HashMap* map_;
+        size_t idx_;
+
+        /**
+         * @brief Advances the iterator to the next occupied bucket.
+         *
+         * This method increments the index until it finds the next bucket that is
+         * in the Occupied state. If it reaches the end of the buckets array, it
+         * will point to the end iterator.
+         */
+        void advanceToNextOccupied() {
+            while (idx_ < map_->capacity_ && map_->buckets_[idx_].state != State::Occupied) {
+                ++idx_;
+            }
+        }
+
+      public:
+        struct Proxy {
+            std::pair<const Key&, const Value&> pair_ref;
+            std::pair<const Key&, const Value&>* operator->() { return &pair_ref; }
+        };
+
+        /// Constructs a const_iterator pointing to the first occupied bucket starting from idx.
+        const_iterator(const HashMap* map, const size_t idx) : map_(map), idx_(idx) {
+            advanceToNextOccupied();
+        }
+
+        /// Constructs a const_iterator from a non-const iterator.
+        explicit const_iterator(const iterator& it) : map_(it.map_), idx_(it.idx_) {}
+
+
+        /**
+         * @brief Dereference operator returns a const reference to the key-value pair.
+         *
+         * This operator returns a const reference to the key-value pair stored in
+         * the current bucket. Both the key and value are returned as const
+         * references, ensuring that they cannot be modified through this iterator.
+         *
+         * @return std::pair<const Key&, const Value&> A const reference to the
+         * key-value pair.
+         */
+        std::pair<const Key&, const Value&> operator*() const {
+            return { *map_->buckets_[idx_].key(), *map_->buckets_[idx_].value() };
+        }
+
+
+        /**
+         * @brief Arrow operator returns a proxy object for structured binding support.
+         *
+         * This operator returns a proxy object that allows structured binding
+         * syntax to access the key and value of the current bucket as const
+         * references.
+         *
+         * @return Proxy A proxy object for structured binding.
+         */
+        Proxy operator->() const {
+            return Proxy{ **this };
+        }
+
+
+        /// Pre-increment operator advances the iterator to the next occupied bucket.
+        const_iterator& operator++() {
+            ++idx_;
+            advanceToNextOccupied();
+            return *this;
+        }
+
+
+        /// Post-increment operator advances the iterator to the next
+        /// occupied bucket and returns the previous position.
+        const_iterator operator++(int) {
+            const_iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        /// Equality operator checks if two const_iterators are equal (point to the same bucket).
+        bool operator==(const const_iterator& other) const {
+            return map_ == other.map_ && idx_ == other.idx_;
+        }
+
+
+        /// Inequality operator checks if two const_iterators are not equal.
+        bool operator!=(const const_iterator& other) const {
+            return !(*this == other);
+        }
+
+
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = std::pair<const Key, Value>;
+        using difference_type = std::ptrdiff_t;
+    };
+
+
+    iterator begin() { return iterator(this, 0); }
+    iterator end() { return iterator(this, capacity_); }
+
+    const_iterator begin() const { return const_iterator(this, 0); }
+    const_iterator end() const { return const_iterator(this, capacity_); }
+
+    const_iterator cbegin() const { return const_iterator(this, 0); }
+    const_iterator cend() const { return const_iterator(this, capacity_); }
+
 };
 
 
