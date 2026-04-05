@@ -726,16 +726,19 @@ class LinkedList {
      * nodes.
      */
     class iterator {
-
+      private:
         friend class const_iterator;
+        friend class LinkedList;
+
+        LinkedList* list_;
         Node* current_;
 
       public:
         /// Default constructor
-        iterator() : current_(nullptr) {}
+        iterator() : list_(nullptr), current_(nullptr) {}
 
         /// Constructor that initializes the iterator to a specific node
-        explicit iterator(Node* node) : current_(node) {}
+        explicit iterator(LinkedList* list, Node* node) : list_(list), current_(node) {}
 
 
         /// Dereference operator to access the data of the current node
@@ -759,14 +762,17 @@ class LinkedList {
 
         /// Pre-decrement operator to move the iterator to the previous node
         iterator& operator--() {
-            current_ = current_->prev;
+            if (current_ == nullptr)
+                current_ = list_->tail_;
+            else
+                current_ = current_->prev;
             return *this;
         }
 
         /// Post-decrement operator to move the iterator to the previous node
         iterator operator--(int) {
             iterator temp = *this;
-            current_ = current_->prev;
+            --(*this);
             return temp;
         }
 
@@ -797,19 +803,19 @@ class LinkedList {
      * nodes without allowing modification of the data.
      */
     class const_iterator {
-
+        const LinkedList* list_;
         const Node* current_;
 
       public:
         /// Default constructor
-        const_iterator() : current_(nullptr) {}
+        const_iterator() : list_(nullptr), current_(nullptr) {}
 
         /// Constructor that initializes the iterator to a specific node
-        explicit const_iterator(const Node* node) : current_(node) {}
+        explicit const_iterator(const LinkedList* list, const Node* node) : list_(list), current_(node) {}
 
         /// Constructor that allows conversion from a non-const iterator
         explicit const_iterator(const iterator& iter)
-            : current_(iter.current_) {}
+            : list_(iter.list_), current_(iter.current_) {}
 
         /// Dereference operator to access the data of the current node
         const Type& operator*() const { return current_->data; }
@@ -832,14 +838,17 @@ class LinkedList {
 
         /// Pre-decrement operator to move the iterator to the previous node
         const_iterator& operator--() {
-            current_ = current_->prev;
+            if (current_ == nullptr)
+                current_ = list_->tail_;
+            else
+                current_ = current_->prev;
             return *this;
         }
 
         /// Post-decrement operator to move the iterator to the previous node
         const_iterator operator--(int) {
             const_iterator temp = *this;
-            current_ = current_->prev;
+            --(*this);
             return temp;
         }
 
@@ -866,9 +875,6 @@ class LinkedList {
     using const_reference = const Type&;
     using pointer = Type*;
     using const_pointer = const Type*;
-
-    using iterator = LinkedList::iterator;
-    using const_iterator = LinkedList::const_iterator;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -877,16 +883,16 @@ class LinkedList {
 
 
     // Regular iterators
-    iterator begin() { return iterator(head_); }
-    iterator end() { return iterator(nullptr); }
+    iterator begin() { return iterator(this, head_); }
+    iterator end() { return iterator(this, nullptr); }
 
     // Const iterators
-    const_iterator begin() const { return const_iterator(head_); }
-    const_iterator end() const { return const_iterator(nullptr); }
+    const_iterator begin() const { return const_iterator(this, head_); }
+    const_iterator end() const { return const_iterator(this, nullptr); }
 
     // Explicit const access
-    const_iterator cbegin() const { return const_iterator(head_); }
-    const_iterator cend() const { return const_iterator(nullptr); }
+    const_iterator cbegin() const { return const_iterator(this, head_); }
+    const_iterator cend() const { return const_iterator(this, nullptr); }
 
 
     /**
@@ -908,8 +914,7 @@ class LinkedList {
      */
     iterator erase(iterator pos) {
         Node* cur = pos.current_;
-        if (!cur)
-            return iterator(nullptr);
+        if (!cur) return end();
 
         Node* next = cur->next;
 
@@ -932,7 +937,7 @@ class LinkedList {
 
         delete cur;
         --size_;
-        return iterator(next);
+        return iterator(this, next);
     }
 
 
