@@ -24,26 +24,6 @@ using std::size_t;
  * N->right are > N->data. Equal values are ignored (no duplicate insert).
  *
  * @tparam Type Element type.
- *
- * @par Type requirements
- * - `Type` must be MoveConstructible or CopyConstructible (node storage).
- * - A strict weak ordering via `operator<` must be defined for `Type`
- *   (search/validation).  (Tip: you can implement comparisons using only `<`.)
- *
- * @par Behavior & guarantees
- * - Not self-balancing; shape depends on insertion order.
- * - Parent pointers are maintained in nodes.
- * - Duplicate policy: duplicates are not inserted.
- *
- * @par Complexity (typical operations)
- * - Average (random-ish data): O(log n) height ⇒ insert/find/remove ~ O(log n).
- * - Worst case (degenerate/unbalanced): height O(n) ⇒ operations ~ O(n).
- * - Space: O(n) nodes; recursion depth up to tree height.
- *
- * @par Exception safety
- * - Insert/remove propagate exceptions from allocations and `Type`
- *   construction/move/assign. Insert offers a strong guarantee (tree
- *   unchanged on failure).
  */
 template <typename Type>
 class BinarySearchTree : private BinaryTree<Type> {
@@ -315,9 +295,6 @@ class BinarySearchTree : private BinaryTree<Type> {
      * @brief Verify the BST invariant (strict ordering) over the whole tree.
      * @return true if every node N satisfies (all left < N.data < all right).
      *
-     * @par Complexity
-     * - Time: O(n), Space: O(h) recursion depth.
-     *
      * @par Notes
      * - Uses only `operator<` on `Type` (strict ordering).
      */
@@ -339,14 +316,6 @@ class BinarySearchTree : private BinaryTree<Type> {
      *
      * @par Duplicate policy
      * - Strict BST: duplicates are **not inserted**.
-     *
-     * @par Complexity
-     * - Time: O(h) where h is the tree height (average ≈ O(log n), worst O(n)).
-     * - Space: O(h) recursion depth.
-     *
-     * @par Exception safety
-     * - Strong: if allocation or `Type` construction/assignment throws, the
-     * tree is unchanged.
      */
     template <typename U>
     void insert(U&& element) {
@@ -364,14 +333,6 @@ class BinarySearchTree : private BinaryTree<Type> {
      * subtree (in-order successor), then remove that successor node.
      *
      * @param element  The value to erase (if present).
-     *
-     * @par Complexity
-     * - Time: O(h) (average ≈ O(log n), worst O(n)).
-     * - Space: O(h) recursion depth.
-     *
-     * @par Exception safety
-     * - Basic/strong depending on `Type` move-assign; if assigning the
-     * successor value throws, no node is removed.
      */
     void remove(const Type& element) { recursiveRemove(this->root_, element); }
 
@@ -380,10 +341,6 @@ class BinarySearchTree : private BinaryTree<Type> {
      * @brief Check whether a value exists in the tree.
      * @param element The value to search for.
      * @return true if found, false otherwise.
-     *
-     * @par Complexity
-     * - Time: O(h) (average ≈ O(log n), worst O(n)).
-     * - Space: O(1).
      */
     [[nodiscard]]
     bool contains(const Type& element) const {
@@ -404,10 +361,6 @@ class BinarySearchTree : private BinaryTree<Type> {
      * @brief Find a node containing a value.
      * @param element The value to search for.
      * @return Pointer to the node if found, nullptr otherwise.
-     *
-     * @par Complexity
-     * - Time: O(h) (average ≈ O(log n), worst O(n)).
-     * - Space: O(1).
      */
     [[nodiscard]]
     const Node<Type>* findNode(const Type& element) const {
@@ -428,9 +381,6 @@ class BinarySearchTree : private BinaryTree<Type> {
      * @brief Return the smallest value in the tree.
      * @return The minimum value.
      * @throws std::runtime_error if the tree is empty.
-     *
-     * @par Complexity
-     * - Time: O(h), Space: O(1).
      */
     [[nodiscard]]
     Type findMinimum() const {
@@ -444,9 +394,6 @@ class BinarySearchTree : private BinaryTree<Type> {
      * @brief Return the greatest value in the tree.
      * @return The maximum value.
      * @throws std::runtime_error if the tree is empty.
-     *
-     * @par Complexity
-     * - Time: O(h), Space: O(1).
      */
     [[nodiscard]]
     Type findMaximum() const {

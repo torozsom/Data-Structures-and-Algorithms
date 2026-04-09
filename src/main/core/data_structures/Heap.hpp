@@ -20,45 +20,10 @@ using std::size_t;
  * @brief Abstract base for pointer-based binary heaps over `Type`.
  *
  * Supplies the shape management and shared mechanics for a heap stored as a
- * *complete* binary tree of linked nodes (with `parent/left/right`). Ordering
- * (min/max) is delegated to derived classes via `heapifyUp` / `heapifyDown`.
+ * *complete* binary tree of linked nodes. Ordering (min/max) is delegated to 
+ * derived classes via `heapifyUp` / `heapifyDown`.
  *
  * @tparam Type Element type. Must be MoveConstructible or CopyConstructible.
- *
- * @section shape Shape & storage
- * - The tree is always complete: levels are filled left-to-right.
- * - Child/parent placement is computed by bit-walking a 1-based level-order
- *   index (see `findNodeByPath()`).
- * - Nodes store `Type` by value; swaps move payloads, not pointers.
- *
- * @section base What the base provides
- * - `extractRoot()` — remove & return the root, then restore the heap via
- *   `heapifyDown()`; **O(log n)**.
- * - `peekRoot()` — read (or move from, rvalue overload) the root without
- * removal; **O(1)**.
- * - Helpers: `findNodeByPath()`, `findLastNode()`, `swapData()`.
- * - Deleted `insertLeft/insertRight` to protect the complete-tree invariant.
- *
- * @section derived What derived classes must provide
- * - `heapifyUp(Node*)` and `heapifyDown(Node*)` to enforce their ordering.
- * - `isValidHeap() const` for validation/testing.
- * - An `insert(U&&)` that:
- *    1) creates a new node at index `size()+1` using `findNodeByPath(path>>1)`,
- *    2) links `parent/left/right`, increments `size_`,
- *    3) calls `heapifyUp(newNode)`.
- *
- * @par Duplicate policy
- * Duplicates are allowed; ordering semantics are defined by the derived type.
- *
- * @par Complexity
- * - `extractRoot()`: O(log n) time, O(1) extra space.
- * - `peekRoot()`: O(1) time/space.
- * - `findNodeByPath()`: O(log n) time, O(1) space.
- *
- * @par Exception safety
- * Operations propagate exceptions from `Type` move/assign. The base offers the
- * **basic** guarantee: the tree remains structurally valid; element values may
- * be partially moved if a `Type` operation throws.
  */
 template <typename Type>
 class Heap : protected BinaryTree<Type> {

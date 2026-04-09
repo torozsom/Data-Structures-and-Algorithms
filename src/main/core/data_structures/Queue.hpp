@@ -19,16 +19,9 @@ using std::size_t;
 
 /**
  * @class Queue
+ * @brief A dynamic circular queue implementation using a DynamicArray as the underlying storage.
  *
- * @brief A dynamic circular queue implementation using a `DynamicArray` as the
- * underlying storage.
- *
- * This `Queue` class provides efficient enqueue and dequeue operations with
- * amortized O(1) complexity. It maintains a circular buffer within the
- * `DynamicArray`, tracking the front index and size to manage the logical order
- * of elements. The queue automatically grows its capacity when needed and
- * periodically checks for under-utilization to shrink the buffer, optimizing
- * memory usage while maintaining performance.
+ * Provides efficient enqueue and dequeue operations with amortized O(1) complexity.
  *
  * @tparam Type The type of elements stored in the queue.
  */
@@ -95,10 +88,6 @@ class Queue {
      * capacity()/SHRINK_THRESHOLD_DIVISOR` and `capacity() >
      * MIN_SHRINK_CAPACITY`, it builds a smaller buffer, moves elements in
      * logical order, and commits the new storage, resetting `front_idx_` to 0.
-     *
-     * @par Complexity
-     * Amortized O(1) per dequeue; when a shrink is triggered, the operation
-     * performs O(size()) move constructions plus one allocation..
      */
     void autoManageCapacity() {
         shrink_check_counter_++;
@@ -149,10 +138,6 @@ class Queue {
      * appended element.
      * @param args  Constructor arguments forwarded to `Type` for the new
      * element.
-     *
-     * @par Complexity
-     * O(size()) move constructions plus one allocation; O(1) index
-     * arithmetic.
      */
     template <typename... Args>
     void reallocateAndPush(Args&&... args) {
@@ -203,12 +188,6 @@ class Queue {
      * @tparam Args Argument types forwarded to `Type`'s constructor.
      * @param args  Constructor arguments forwarded to create/assign the new
      * value.
-     *
-     * @par Complexity
-     * Amortized O(1):
-     * - O(n) only when a growth reallocation occurs (moves `size_` elements).
-     * - O(1) when appending into the unconstructed tail or overwriting an
-     * existing slot.
      */
     template <typename... Args>
     void pushBack(Args&&... args) {
@@ -392,26 +371,12 @@ class Queue {
 
 
     /**
-     * @brief Enqueue (append) a new element at the logical back of the queue.
+     * @brief Enqueue a new element at the back of the queue.
      *
-     * Perfect-forwards the argument into the queue. If there is spare capacity,
-     * the element is placed at the ring-buffer slot returned by
-     * `getBackIndex()`. Depending on `Type`:
-     *  - If the slot lies in the unconstructed tail of the underlying
-     * `DynamicArray`, the element is constructed in-place.
-     *  - If the slot already holds a live (but logically unused) object and
-     * `Type` is assignable, a temporary is constructed from `element` and
-     * assigned into that slot (no reallocation).
-     *  - Otherwise, the queue grows its capacity (by `GROWTH_FACTOR`) and
-     * appends into a fresh buffer in logical order (allocate + move + commit).
+     * @tparam U Type that can construct Type.
+     * @param element The value to enqueue.
      *
-     * @tparam U  A type that can construct `Type` (via perfect forwarding).
-     * @param element  The value to enqueue.
-     *
-     * @par Complexity
-     * Amortized O(1).
-     * - O(n) only when a growth reallocation occurs (moves
-     * `size()` elements).
+     * @complexity Amortized O(1). O(n) on reallocation.
      */
     template <typename U>
     void enqueue(U&& element) {
@@ -423,15 +388,7 @@ class Queue {
 
     /**
      * @brief Dequeue (remove) the front element.
-     *
-     * To inspect the value, use front() before calling dequeue().
-     *
-     * @par Complexity
-     * O(1) for index arithmetic and size decrement;
-     * O(1) for move assignment of the front element to a discard variable
-     * to ensure proper destruction if `Type` has a non-trivial destructor.
-     * Amortized O(1) when considering periodic shrinking, which occurs every
-     * `SHRINK_CHECK_INTERVAL` dequeues and involves O(size()) moves plus one allocation.
+     * @complexity Amortized O(1).
      */
     void dequeue() {
         if (isEmpty())
@@ -526,21 +483,6 @@ class Queue {
      *
      * @tparam Args  Argument types forwarded to `Type`'s constructor.
      * @param args   Constructor arguments for the new element.
-     *
-     * @par Complexity
-     * - Amortized O(1); O(n) only when a growth reallocation occurs.
-     *
-     * @par Exception Safety
-     * - Growth path: **strong guarantee** (the queue is unchanged on failure).
-     * - Tail construction path: strong (if construction throws, nothing
-     * changes).
-     * - Overwrite path (assignable `Type`): strong for the queue; a temporary
-     * is constructed first, so if construction/assignment throws, the logical
-     * state is unchanged.
-     * - May throw `std::bad_alloc` during growth.
-     *
-     * @par Invalidation
-     * - Only the growth path invalidates references/pointers/iterators.
      */
     template <typename... Args>
     void emplaceBack(Args&&... args) {
