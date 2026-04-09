@@ -39,6 +39,7 @@ add_executable(algorithms_main
         src/main/core/data_structures/Heap.hpp
         src/main/core/data_structures/MaxHeap.hpp
         src/main/core/data_structures/Queue.hpp
+        src/main/core/data_structures/HashMap.hpp
 
         src/main/core/algorithms/ArrayAlgorithms.hpp
 
@@ -51,13 +52,11 @@ add_executable(algorithms_main
         src/main/ui/view/array/ArrayPage.ui
         src/main/ui/view/array/ArrayWidget.hpp
 
-        src/main/ui/viewmodel/array/SearchAnimator.hpp
-
-        src/main/ui/controller/array/ArrayAnimations.cpp
-        src/main/ui/controller/array/ArrayAnimations.h
-        src/main/ui/viewmodel/array/SortAnimator.hpp
-        src/main/ui/viewmodel/array/ArrayAlgorithmFunctors.hpp
-        src/main/core/data_structures/HashMap.hpp
+        src/main/ui/service/array/SearchAnimator.hpp
+        src/main/ui/service/array/ArrayAnimations.cpp
+        src/main/ui/service/array/ArrayAnimations.h
+        src/main/ui/service/array/SortAnimator.hpp
+        src/main/ui/service/array/ArrayAlgorithmFunctors.hpp
 )
 
 
@@ -65,14 +64,13 @@ target_include_directories(algorithms_main PRIVATE
         src/main/core
             src/main/core/data_structures
             src/main/core/algorithms
-        src/main/ui/assets
-        src/main/ui/common
-        src/main/ui/controller
-            src/main/ui/controller/array
-        src/main/ui/view
-            src/main/ui/view/array
-        src/main/ui/viewmodel
-            src/main/ui/viewmodel/array
+        src/main/ui
+            src/main/ui/assets
+            src/main/ui/common
+            src/main/ui/service
+                src/main/ui/service/array
+            src/main/ui/view
+                src/main/ui/view/array
 )
 
 
