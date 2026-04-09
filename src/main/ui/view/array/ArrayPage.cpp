@@ -70,18 +70,50 @@ void ArrayPage::setupAndShowAnimation(QWidget* view, QObject* animator,
     hbox->setContentsMargins(8, 8, 8, 8);
     hbox->setSpacing(8);
 
-    const QPointer btn = new QPushButton("Back", bottomBar);
-    connect(btn, &QPushButton::clicked, this, &ArrayPage::restoreUI);
-    btn->setCursor(Qt::PointingHandCursor);
-    hbox->addWidget(btn);
-    hbox->addStretch();
+    const QPointer btnBack = new QPushButton("Back", bottomBar);
+    connect(btnBack, &QPushButton::clicked, this, &ArrayPage::restoreUI);
+    btnBack->setCursor(Qt::PointingHandCursor);
+    hbox->addWidget(btnBack);
 
+    currentSpeedMultiplier_ = 1;
+    const QPointer btnSpeed = new QPushButton("Speed 1x", bottomBar);
+    btnSpeed->setCursor(Qt::PointingHandCursor);
+    connect(btnSpeed, &QPushButton::clicked, this, [this, btnSpeed]() {
+        switch (currentSpeedMultiplier_) {
+            case 1:
+                currentSpeedMultiplier_ = 2;
+                break;
+            case 2:
+                currentSpeedMultiplier_ = 3;
+                break;
+            case 3:
+                currentSpeedMultiplier_ = 4;
+                break;
+            case 4:
+                currentSpeedMultiplier_ = 5;
+                break;
+            default:
+                currentSpeedMultiplier_ = 1;
+                break;
+        }
+        btnSpeed->setText(QString("Speed %1x").arg(currentSpeedMultiplier_));
+        emit speedChanged(currentSpeedMultiplier_);
+    });
+
+    hbox->addWidget(btnSpeed);
     vbox->addWidget(bottomBar, 0);
 
     replaceContent(content_, container);
 
-    animator_ = nullptr;
     animator_ = animator;
+
+    if (animator_) {
+        if (auto* sortAnim = qobject_cast<SortAnimator*>(animator_))
+            connect(this, &ArrayPage::speedChanged, sortAnim, &SortAnimator::setSpeedMultiplier);
+        else if (auto* searchAnim = qobject_cast<SearchAnimator*>(animator_))
+            connect(this, &ArrayPage::speedChanged, searchAnim, &SearchAnimator::setSpeedMultiplier);
+    }
+
     if (auto* w = window())
         w->setWindowTitle(windowTitle);
 }
@@ -96,7 +128,9 @@ void ArrayPage::setupAndShowAnimation(QWidget* view, QObject* animator,
  * original UI.
  */
 void ArrayPage::showLinearSearch() {
-    auto [view, animator] = createLinearSearchAnimation();
+    auto values = generateRandomDoubleArray();
+    const double target = values[18];
+    auto [view, animator] = createLinearSearchAnimation(values, target);
     setupAndShowAnimation(view, animator, "Dynamic Array - Linear Search");
 }
 
@@ -110,7 +144,9 @@ void ArrayPage::showLinearSearch() {
  * original UI.
  */
 void ArrayPage::showBinarySearch() {
-    auto [view, animator] = createBinarySearchAnimation();
+    auto values = generateSortedDoubleArray();
+    const double target = values[18];
+    auto [view, animator] = createBinarySearchAnimation(values, target);
     setupAndShowAnimation(view, animator, "Dynamic Array - Binary Search");
 }
 
@@ -124,7 +160,8 @@ void ArrayPage::showBinarySearch() {
  * original UI.
  */
 void ArrayPage::showBubbleSort() {
-    auto [view, animator] = createBubbleSortAnimation();
+    auto values = generateRandomDoubleArray();
+    auto [view, animator] = createBubbleSortAnimation(values);
     setupAndShowAnimation(view, animator, "Dynamic Array - Bubble Sort");
 }
 
@@ -138,7 +175,8 @@ void ArrayPage::showBubbleSort() {
  * original UI.
  */
 void ArrayPage::showImprovedBubbleSort() {
-    auto [view, animator] = createImprovedBubbleSortAnimation();
+    auto values = generateRandomDoubleArray();
+    auto [view, animator] = createImprovedBubbleSortAnimation(values);
     setupAndShowAnimation(view, animator,
                           "Dynamic Array - Improved Bubble Sort");
 }
@@ -153,7 +191,8 @@ void ArrayPage::showImprovedBubbleSort() {
  * the "Back" button restores the original UI.
  */
 void ArrayPage::showInsertSortLS() {
-    auto [view, animator] = createInsertSortLSAnimation();
+    auto values = generateRandomDoubleArray();
+    auto [view, animator] = createInsertSortLSAnimation(values);
     setupAndShowAnimation(view, animator,
                           "Dynamic Array - Insertion Sort with Linear Search");
 }
@@ -168,7 +207,8 @@ void ArrayPage::showInsertSortLS() {
  * the "Back" button restores the original UI.
  */
 void ArrayPage::showInsertSortBS() {
-    auto [view, animator] = createInsertSortBSAnimation();
+    auto values = generateRandomDoubleArray();
+    auto [view, animator] = createInsertSortBSAnimation(values);
     setupAndShowAnimation(view, animator,
                           "Dynamic Array - Insertion Sort with Binary Search");
 }
@@ -183,7 +223,8 @@ void ArrayPage::showInsertSortBS() {
  * original UI.
  */
 void ArrayPage::showQuickSort() {
-    auto [view, animator] = createQuickSortAnimation();
+    auto values = generateRandomDoubleArray();
+    auto [view, animator] = createQuickSortAnimation(values);
     setupAndShowAnimation(view, animator, "Dynamic Array - Quick Sort");
 }
 
@@ -197,7 +238,8 @@ void ArrayPage::showQuickSort() {
  * original UI.
  */
 void ArrayPage::showMergeSort() {
-    auto [view, animator] = createMergeSortAnimation();
+    auto values = generateRandomDoubleArray();
+    auto [view, animator] = createMergeSortAnimation(values);
     setupAndShowAnimation(view, animator, "Dynamic Array - Merge Sort");
 }
 
@@ -211,7 +253,8 @@ void ArrayPage::showMergeSort() {
  * original UI.
  */
 void ArrayPage::showHeapSort() {
-    auto [view, animator] = createHeapSortAnimation();
+    auto values = generateRandomDoubleArray();
+    auto [view, animator] = createHeapSortAnimation(values);
     setupAndShowAnimation(view, animator, "Dynamic Array - Heap Sort");
 }
 
@@ -283,5 +326,49 @@ void ArrayPage::replaceContent(QWidget* container, QWidget* newChild) {
 /// Destructor that cleans up the UI form
 ArrayPage::~ArrayPage() { delete uiForm_; }
 
+
+/**
+ * @brief Generates a DynamicArray of random double values.
+ *
+ * This function creates a DynamicArray of the specified size and fills it with
+ * random double values uniformly distributed between 10.0 and 150.0. The random
+ * number generator is seeded with a non-deterministic random device to ensure
+ * different values each time the function is called.
+ *
+ * @param size The number of random double values to generate (default is 25).
+ * @return A DynamicArray containing the generated random double values.
+ */
+containers::DynamicArray<double> generateRandomDoubleArray(const size_t size) {
+    containers::DynamicArray<double> arr;
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution dist(10.0, 150.0);
+
+    for(size_t i = 0; i < size; ++i)
+        arr.addLast(dist(rng));
+
+    return arr;
+}
+
+
+/**
+ * @brief Generates a DynamicArray of sorted double values.
+ *
+ * This function creates a DynamicArray of the specified size and fills it with
+ * sorted double values starting from 10.0 and increasing by 4.5 for each
+ * subsequent element. The resulting array will contain values in ascending
+ * order, making it suitable for testing algorithms that require sorted input.
+ *
+ * @param size The number of sorted double values to generate (default is 25).
+ * @return A DynamicArray containing the generated sorted double values.
+ */
+containers::DynamicArray<double> generateSortedDoubleArray(const size_t size) {
+    containers::DynamicArray<double> arr;
+    double current = 10.0;
+    for(size_t i = 0; i < size; ++i) {
+        arr.addLast(current);
+        current += 4.5;
+    }
+    return arr;
+}
 
 } // namespace ui

@@ -168,9 +168,7 @@ static ArrayAnimation makeSortAnimation(Values& values, SortFunc&& sortFunc) {
  * @return An ArrayAnimation struct containing the container view and
  * LinearSearchAnimator.
  */
-ArrayAnimation createLinearSearchAnimation() {
-    const containers::DynamicArray values{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    constexpr int target = 8;
+ArrayAnimation createLinearSearchAnimation(const containers::DynamicArray<double>& values, const double target) {
     return makeSearchAnimation(values, target, LinearSearchFn{});
 }
 
@@ -187,10 +185,7 @@ ArrayAnimation createLinearSearchAnimation() {
  * @return An ArrayAnimation struct containing the container view and
  * BinarySearchAnimator.
  */
-ArrayAnimation createBinarySearchAnimation() {
-    const containers::DynamicArray values{1.6, 2.5, 3.4, 4.8, 5.9,
-                                          6.2, 7.7, 8.1, 9.1, 10.9};
-    constexpr double target = 9.1;
+ArrayAnimation createBinarySearchAnimation(const containers::DynamicArray<double>& values, const double target) {
     return makeSearchAnimation(values, target, BinarySearchFn{});
 }
 
@@ -205,8 +200,7 @@ ArrayAnimation createBinarySearchAnimation() {
  * @return An ArrayAnimation struct containing the container view and
  * BubbleSortAnimator.
  */
-ArrayAnimation createBubbleSortAnimation() {
-    containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
+ArrayAnimation createBubbleSortAnimation(containers::DynamicArray<double>& values) {
     return makeSortAnimation(values, BubbleSortFn{});
 }
 
@@ -221,9 +215,7 @@ ArrayAnimation createBubbleSortAnimation() {
  * @return An ArrayAnimation struct containing the container view and
  * ImprovedBubbleSortAnimator.
  */
-ArrayAnimation createImprovedBubbleSortAnimation() {
-    containers::DynamicArray values{6.4, 4.3, 9.7, 3.2, 3.2,
-                                    6.5, 2.4, 1.1, 7.2, 6.6};
+ArrayAnimation createImprovedBubbleSortAnimation(containers::DynamicArray<double>& values) {
     return makeSortAnimation(values, ImprovedBubbleSortFn{});
 }
 
@@ -239,8 +231,7 @@ ArrayAnimation createImprovedBubbleSortAnimation() {
  * @return An ArrayAnimation struct containing the container view and
  * InsertSortLSAnimator.
  */
-ArrayAnimation createInsertSortLSAnimation() {
-    containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
+ArrayAnimation createInsertSortLSAnimation(containers::DynamicArray<double>& values) {
     return makeSortAnimation(values, LinearInsertionSortFn{});
 }
 
@@ -256,8 +247,7 @@ ArrayAnimation createInsertSortLSAnimation() {
  * @return An ArrayAnimation struct containing the container view and
  * InsertSortBSAnimator.
  */
-ArrayAnimation createInsertSortBSAnimation() {
-    containers::DynamicArray values{8, 3, 5, 4, 7, 6, 2, 1, 9, 0};
+ArrayAnimation createInsertSortBSAnimation(containers::DynamicArray<double>& values) {
     return makeSortAnimation(values, BinaryInsertionSortFn{});
 }
 
@@ -272,8 +262,7 @@ ArrayAnimation createInsertSortBSAnimation() {
  * @return An ArrayAnimation struct containing the container view and
  * QuickSortAnimator.
  */
-ArrayAnimation createQuickSortAnimation() {
-    containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
+ArrayAnimation createQuickSortAnimation(containers::DynamicArray<double>& values) {
     return makeSortAnimation(values, QuickSortFn{});
 }
 
@@ -288,8 +277,7 @@ ArrayAnimation createQuickSortAnimation() {
  * @return An ArrayAnimation struct containing the container view and
  * MergeSortAnimator.
  */
-ArrayAnimation createMergeSortAnimation() {
-    containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
+ArrayAnimation createMergeSortAnimation(containers::DynamicArray<double>& values) {
     return makeSortAnimation(values, MergeSortInPlaceFn{});
 }
 
@@ -304,8 +292,7 @@ ArrayAnimation createMergeSortAnimation() {
  * @return An ArrayAnimation struct containing the container view and
  * HeapSortAnimator.
  */
-ArrayAnimation createHeapSortAnimation() {
-    containers::DynamicArray values{6, 4, 9, 3, 3, 6, 2, 1, 7, 6};
+ArrayAnimation createHeapSortAnimation(containers::DynamicArray<double>& values) {
     return makeSortAnimation(values, HeapSortFn{});
 }
 

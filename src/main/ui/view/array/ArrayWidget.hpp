@@ -40,10 +40,12 @@ class ArrayWidget final : public QGraphicsView {
     QGraphicsScene* scene_;
     QGraphicsPolygonItem* arrow_;
     containers::DynamicArray<QGraphicsRectItem*> cells_;
-    containers::DynamicArray<QGraphicsTextItem*> labels_;
+    int animationDurationMs_ = 300;
 
-    static constexpr size_t CELL_WIDTH = 55;
-    static constexpr size_t CELL_HEIGHT = 55;
+    static constexpr qreal BAR_WIDTH = 25.0;
+    static constexpr qreal BAR_SPACING = 5.0;
+    static constexpr qreal MAX_BAR_HEIGHT = 200.0;
+    static constexpr qreal ARROW_OFFSET_Y = 15.0;
 
 
   public:
@@ -64,42 +66,41 @@ class ArrayWidget final : public QGraphicsView {
           arrow_(nullptr) {
         setScene(scene_);
 
-        QPen pen;
-        pen.setColor(Qt::black);
-        pen.setWidth(2);
+        if (values.size() == 0) return;
+
+        QPen pen(Qt::black);
+        pen.setWidth(1);
+
+        Type maxVal = values[0];
+        for (const auto& v : values)
+            if (v > maxVal)
+                maxVal = v;
+
+        if (maxVal == 0) maxVal = 1;
 
         for (size_t i = 0; i < values.size(); ++i) {
-            auto rect = scene_->addRect(0, 0, CELL_WIDTH, CELL_HEIGHT, pen,
-                                        QBrush{Qt::white});
-            rect->setPos(i * CELL_WIDTH, 0);
+            const qreal height = (static_cast<qreal>(values[i]) / maxVal) * MAX_BAR_HEIGHT;
+            const qreal xPos = i * (BAR_WIDTH + BAR_SPACING);
+            const qreal yPos = MAX_BAR_HEIGHT - height;
+
+            auto rect = scene_->addRect(0, 0, BAR_WIDTH, height, pen, QBrush{Qt::white});
+            rect->setPos(xPos, yPos);
             cells_.addLast(rect);
-
-            auto text = scene_->addText(QString::number(values[i]));
-            text->setDefaultTextColor(Qt::black);
-
-            QFont font = text->font();
-            font.setPointSizeF(static_cast<qreal>(CELL_HEIGHT) *
-                               0.3); // scale with cell size
-            text->setFont(font);
-
-            QRectF textRect = text->boundingRect();
-            const qreal textX =
-                (CELL_WIDTH - textRect.width()) / 2 + i * CELL_WIDTH;
-            const qreal textY = (CELL_HEIGHT - textRect.height()) / 2;
-            text->setPos(textX, textY);
-            labels_.addLast(text);
         }
 
-        const QPolygonF polygon{QPointF{0.0, 0.0}, QPointF{-10.0, -20.0},
-                                QPointF{10.0, -20.0}};
+        const QPolygonF polygon{
+            QPointF{0.0, 0.0},
+            QPointF{-8.0, 15.0},
+            QPointF{8.0, 15.0}
+        };
 
         arrow_ = scene_->addPolygon(polygon, pen, QBrush{Qt::cyan});
         setArrowPosition(0);
 
-        // Reserve space above the cells for swap animations so that
-        // the view's origin doesn't shift when items move upward.
-        const qreal width = values.size() * CELL_WIDTH;
-        scene_->setSceneRect(0, -20, width, CELL_HEIGHT + 20);
+        const qreal totalWidth = values.size() * (BAR_WIDTH + BAR_SPACING);
+        scene_->setSceneRect(-10, -10, totalWidth + 20, MAX_BAR_HEIGHT + ARROW_OFFSET_Y + 30);
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     }
 
 
@@ -155,8 +156,9 @@ class ArrayWidget final : public QGraphicsView {
         if (!arrow_ || index >= cells_.size())
             return;
 
-        const qreal x = index * CELL_WIDTH + CELL_WIDTH / 2;
-        arrow_->setPos(x, 0);
+        const qreal x = static_cast<qreal>(index) * (BAR_WIDTH + BAR_SPACING) + BAR_WIDTH / 2.0;
+        constexpr qreal y = MAX_BAR_HEIGHT + ARROW_OFFSET_Y;
+        arrow_->setPos(x, y);
     }
 
 
@@ -187,6 +189,11 @@ class ArrayWidget final : public QGraphicsView {
     void markSorted(const size_t index) const { markFound(index); }
 
 
+    void setAnimationDurationMs(const int ms) {
+        animationDurationMs_ = ms;
+    }
+
+
     /**
      * @brief Animates swapping of two cells by making them "float" and
      * exchanging positions.
@@ -204,50 +211,26 @@ class ArrayWidget final : public QGraphicsView {
 
         auto* rect1 = cells_[first];
         auto* rect2 = cells_[second];
-        auto* label1 = labels_[first];
-        auto* label2 = labels_[second];
 
         const qreal x1 = rect1->pos().x();
         const qreal x2 = rect2->pos().x();
 
         const QPointer anim = new QVariantAnimation(this);
-        anim->setDuration(500);
+        anim->setDuration(animationDurationMs_);
         anim->setStartValue(0.0);
         anim->setEndValue(1.0);
 
-        connect(
-            anim, &QVariantAnimation::valueChanged, this,
-            [=](const QVariant& val) {
-                const qreal t = val.toReal();
-                const qreal dy = (t < 0.5) ? (-20.0 * (t / 0.5))
-                                           : (-20.0 * (1 - (t - 0.5) / 0.5));
-
-                rect1->setPos(x1 + (x2 - x1) * t, dy);
-                rect2->setPos(x2 + (x1 - x2) * t, -dy);
-
-                label1->setPos(
-                    rect1->pos().x() +
-                        (CELL_WIDTH - label1->boundingRect().width()) / 2,
-                    dy + (CELL_HEIGHT - label1->boundingRect().height()) / 2);
-                label2->setPos(
-                    rect2->pos().x() +
-                        (CELL_WIDTH - label2->boundingRect().width()) / 2,
-                    -dy + (CELL_HEIGHT - label2->boundingRect().height()) / 2);
-            });
+        connect(anim, &QVariantAnimation::valueChanged, this, [=](const QVariant& val) {
+            const qreal t = val.toReal();
+            rect1->setX(x1 + (x2 - x1) * t);
+            rect2->setX(x2 + (x1 - x2) * t);
+        });
 
         connect(anim, &QVariantAnimation::finished, this, [=, this] {
-            rect1->setPos(x2, 0);
-            rect2->setPos(x1, 0);
-            label1->setPos(x2 + (CELL_WIDTH - label1->boundingRect().width()) /
-                                    2,
-                           (CELL_HEIGHT - label1->boundingRect().height()) / 2);
-            label2->setPos(x1 + (CELL_WIDTH - label2->boundingRect().width()) /
-                                    2,
-                           (CELL_HEIGHT - label2->boundingRect().height()) / 2);
+            rect1->setX(x2);
+            rect2->setX(x1);
 
             std::swap(cells_[first], cells_[second]);
-            std::swap(labels_[first], labels_[second]);
-
             anim->deleteLater();
         });
 

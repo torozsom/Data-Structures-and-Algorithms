@@ -25,24 +25,24 @@ struct ArrayAnimation {
 };
 
 
-ArrayAnimation createLinearSearchAnimation();
+ArrayAnimation createLinearSearchAnimation(const containers::DynamicArray<double>& values, double target);
 
-ArrayAnimation createBinarySearchAnimation();
+ArrayAnimation createBinarySearchAnimation(const containers::DynamicArray<double>& values, double target);
 
 
-ArrayAnimation createBubbleSortAnimation();
+ArrayAnimation createBubbleSortAnimation(containers::DynamicArray<double>& values);
 
-ArrayAnimation createImprovedBubbleSortAnimation();
+ArrayAnimation createImprovedBubbleSortAnimation(containers::DynamicArray<double>& values);
 
-ArrayAnimation createInsertSortLSAnimation();
+ArrayAnimation createInsertSortLSAnimation(containers::DynamicArray<double>& values);
 
-ArrayAnimation createInsertSortBSAnimation();
+ArrayAnimation createInsertSortBSAnimation(containers::DynamicArray<double>& values);
 
-ArrayAnimation createQuickSortAnimation();
+ArrayAnimation createQuickSortAnimation(containers::DynamicArray<double>& values);
 
-ArrayAnimation createMergeSortAnimation();
+ArrayAnimation createMergeSortAnimation(containers::DynamicArray<double>& values);
 
-ArrayAnimation createHeapSortAnimation();
+ArrayAnimation createHeapSortAnimation(containers::DynamicArray<double>& values);
 
 
 } // namespace ui
