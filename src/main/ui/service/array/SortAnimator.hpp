@@ -68,6 +68,25 @@ class SortAnimator final : public QObject {
         }
     }
 
+  public slots:
+
+    /**
+     * @brief Sets the animation speed multiplier.
+     *
+     * Adjusts the animation speed by modifying the interval between animation
+     * frames. The speed multiplier is a positive number where 1 represents
+     * the default speed.
+     *
+     * @param multiplier Speed multiplier to apply.
+     */
+    void setSpeedMultiplier(int multiplier) {
+      constexpr int baseInterval = 550;
+      const int newInterval = baseInterval / multiplier;
+      timer_.setInterval(newInterval);
+      if (widget_)
+          widget_->setAnimationDurationMs(newInterval > 50 ? newInterval - 20 : newInterval);
+    }
+
 
   private:
     /**

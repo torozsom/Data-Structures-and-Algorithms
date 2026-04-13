@@ -6,6 +6,7 @@
 #include <QPointer>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <random>
 
 #include "./ui_ArrayPage.h"
 #include "ArrayAnimations.h"
@@ -37,6 +38,8 @@ class ArrayPage final : public QWidget {
     QPointer<QObject> animator_{};
     QPointer<QWidget> content_{};
 
+    int currentSpeedMultiplier_ = 1;
+
 
   private:
     void connectButtonActions();
@@ -58,6 +61,9 @@ class ArrayPage final : public QWidget {
 
     void restoreUI();
 
+  signals:
+    void speedChanged(double multiplier);
+
 
   public:
     explicit ArrayPage(QWidget* parent = nullptr);
@@ -65,6 +71,10 @@ class ArrayPage final : public QWidget {
     ~ArrayPage() override;
 };
 
+
+
+  containers::DynamicArray<double> generateRandomDoubleArray(size_t size = 25);
+  containers::DynamicArray<double> generateSortedDoubleArray(size_t size = 25);
 
 } // namespace ui
 

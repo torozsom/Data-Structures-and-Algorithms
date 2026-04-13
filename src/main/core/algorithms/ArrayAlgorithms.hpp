@@ -278,39 +278,30 @@ template <typename Type, typename Callback = void (*)(size_t, size_t, size_t)>
 void LinearInsertionSort(DynamicArray<Type>& array,
                                    Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
     const size_t n = array.size();
+
     if (n <= 1 || isSorted(array)) {
-        for (size_t i = 0; i < n; ++i)
-            callback(2, i, 0);
+        for (size_t i = 0; i < n; ++i) callback(2, i, 0);
         return;
     }
 
-    // Mark first element as sorted
-    callback(2, 0, 0);
-
     for (size_t i = 1; i < n; ++i) {
-        Type key = array[i];
-        size_t j = i;
+        size_t insert_pos = i;
 
-        // Linear search backwards to find insertion position
-        while (j > 0) {
-            callback(0, j - 1, i); // Compare with key (stored at original position i)
-            if (array[j - 1] > key) {
-                callback(1, j - 1, j); // Swap (shift element right)
-                array[j] = array[j - 1];
-                --j;
-            } else {
+        while (insert_pos > 0) {
+            callback(0, insert_pos - 1, i);
+            if (array[insert_pos - 1] > array[i])
+                --insert_pos;
+            else
                 break;
-            }
         }
 
-        // Insert key at position j
-        array[j] = key;
-
-        // Mark the newly sorted element
-        callback(2, j, 0);
+        for (size_t j = i; j > insert_pos; --j) {
+            callback(1, j - 1, j);
+            swap(array[j], array[j - 1]);
+        }
     }
-    // First element is also in its correct place after the final pass
-    callback(2, 0, 0);
+
+    for (size_t i = 0; i < n; ++i) callback(2, i, 0);
 }
 
 
@@ -345,41 +336,27 @@ void BinaryInsertionSort(DynamicArray<Type>& array,
                                    Callback&& callback = [](size_t, size_t, size_t) -> void {}) {
     const size_t n = array.size();
     if (n <= 1 || isSorted(array)) {
-        for (size_t i = 0; i < n; ++i)
-            callback(2, i, 0);
+        for (size_t i = 0; i < n; ++i) callback(2, i, 0);
         return;
     }
 
-    // Mark first element as sorted
-    callback(2, 0, 0);
-
     for (size_t i = 1; i < n; ++i) {
-        Type key = array[i];
-
-        // Binary search for insertion position in [0, i)
         size_t left = 0, right = i;
         while (left < right) {
             size_t mid = left + (right - left) / 2;
             callback(0, mid, i);
-            if (array[mid] <= key)
+            if (array[mid] <= array[i])
                 left = mid + 1;
             else
                 right = mid;
         }
-
-        // Shift to make room
         for (size_t j = i; j > left; --j) {
-            array[j] = array[j - 1];
-            callback(1, j, j - 1); // Swap (shift element right)
+            callback(1, j, j - 1);
+            swap(array[j], array[j - 1]);
         }
-
-        // Insert key
-        array[left] = key;
-        // Mark the newly sorted element
-        callback(2, left, 0);
     }
-    // First element is also in its correct place after the final pass
-    callback(2, 0, 0);
+
+    for (size_t i = 0; i < n; ++i) callback(2, i, 0);
 }
 
 
